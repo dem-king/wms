@@ -68,9 +68,13 @@
         </template>
       </el-table-column>
       <el-table-column prop="amount" label="金额" min-width="100" />
-      <el-table-column label="操作" width="80" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ $index }">
-          <el-button type="danger" text :icon="Delete" @click="form.details.splice($index, 1)" />
+          <TableActionGroup
+            :actions="[
+              { label: '删除', type: 'danger', icon: Delete, onClick: () => { form.details.splice($index, 1) } },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -87,6 +91,7 @@ import { ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { addOutboundOrder, updateOutboundOrder } from '@/api/business/outbound'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getItemList } from '@/api/item/item'
@@ -131,13 +136,13 @@ const form = reactive<{
   purpose: '',
   returnDate: '',
   remark: '',
-  details: []
+  details: [],
 })
 
 const rules: FormRules = {
   warehouseId: [{ required: true, message: '请选择库房', trigger: 'change' }],
   outboundType: [{ required: true, message: '请选择出库类型', trigger: 'change' }],
-  recipient: [{ required: true, message: '请输入领用人', trigger: 'blur' }]
+  recipient: [{ required: true, message: '请输入领用人', trigger: 'blur' }],
 }
 
 watch(() => props.visible, async (val) => {
@@ -158,8 +163,8 @@ watch(() => props.visible, async (val) => {
           unitPrice: d.unitPrice,
           specModel: d.specModel,
           unit: d.unit,
-          amount: d.amount
-        }))
+          amount: d.amount,
+        })),
       })
     }
   }
@@ -203,7 +208,7 @@ async function handleSubmit() {
       purpose: form.purpose,
       returnDate: form.returnDate,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice }))
+      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice })),
     }
     if (props.isEdit && props.formData) {
       await updateOutboundOrder(props.formData.id, dto)
@@ -231,3 +236,4 @@ function handleClose() {
   margin-bottom: 8px;
 }
 </style>
+

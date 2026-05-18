@@ -48,14 +48,14 @@
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" min-width="160" />
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column label="操作" class-name="table-action-column" fixed="right">
               <template #default="{ row }">
-                <el-button type="primary" text :icon="Edit" @click="handleEditSub(row)">编辑</el-button>
-                <el-popconfirm title="确定删除该细分类目吗？" @confirm="handleDeleteSub(row.id)">
-                  <template #reference>
-                    <el-button type="danger" text :icon="Delete">删除</el-button>
-                  </template>
-                </el-popconfirm>
+                <TableActionGroup
+                  :actions="[
+                    { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEditSub(row) },
+                    { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该细分类目吗？', onClick: () => handleDeleteSub(row.id) },
+                  ]"
+                />
               </template>
             </el-table-column>
           </el-table>
@@ -118,6 +118,7 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getCategoryList, addCategory, updateCategory, deleteCategory, getSubCategories, addSubCategory, updateSubCategory, deleteSubCategory } from '@/api/item/category'
 import type { WmsCategoryVo, WmsCategoryDto, WmsSubCategoryVo, WmsSubCategoryDto } from '@/types/item'
 

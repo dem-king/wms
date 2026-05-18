@@ -58,9 +58,13 @@
         </template>
       </el-table-column>
       <el-table-column prop="amount" label="金额" min-width="100" />
-      <el-table-column label="操作" width="80" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ $index }">
-          <el-button type="danger" text :icon="Delete" @click="form.details.splice($index, 1)" />
+          <TableActionGroup
+            :actions="[
+              { label: '删除', type: 'danger', icon: Delete, onClick: () => { form.details.splice($index, 1) } },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -77,6 +81,7 @@ import { ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { addInboundOrder, updateInboundOrder } from '@/api/business/inbound'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getSupplierList } from '@/api/system/supplier'
@@ -120,13 +125,13 @@ const form = reactive<{
   supplierId: undefined,
   inboundType: '',
   remark: '',
-  details: []
+  details: [],
 })
 
 const rules: FormRules = {
   warehouseId: [{ required: true, message: '请选择库房', trigger: 'change' }],
   supplierId: [{ required: true, message: '请选择供应商', trigger: 'change' }],
-  inboundType: [{ required: true, message: '请选择入库类型', trigger: 'change' }]
+  inboundType: [{ required: true, message: '请选择入库类型', trigger: 'change' }],
 }
 
 watch(() => props.visible, async (val) => {
@@ -145,8 +150,8 @@ watch(() => props.visible, async (val) => {
           unitPrice: d.unitPrice,
           specModel: d.specModel,
           unit: d.unit,
-          amount: d.amount
-        }))
+          amount: d.amount,
+        })),
       })
     }
   }
@@ -157,7 +162,7 @@ async function loadOptions() {
   const [whRes, sRes, iRes] = await Promise.all([
     getWarehouseList(),
     getSupplierList({ page: 1, size: 1000 }),
-    getItemList({ page: 1, size: 1000, status: 1 })
+    getItemList({ page: 1, size: 1000, status: 1 }),
   ])
   warehouseList.value = whRes.data
   supplierList.value = sRes.data.records
@@ -193,7 +198,7 @@ async function handleSubmit() {
       supplierId: form.supplierId!,
       inboundType: form.inboundType,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice }))
+      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice })),
     }
     if (props.isEdit && props.formData) {
       await updateInboundOrder(props.formData.id, dto)
@@ -221,3 +226,4 @@ function handleClose() {
   margin-bottom: 8px;
 }
 </style>
+

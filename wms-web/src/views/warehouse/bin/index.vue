@@ -28,14 +28,14 @@
           <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" text :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-          <el-popconfirm title="确定删除该库位吗？" @confirm="handleDelete(row.id)">
-            <template #reference>
-              <el-button type="danger" text :icon="Delete">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <TableActionGroup
+            :actions="[
+              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该库位吗？', onClick: () => handleDelete(row.id) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -110,6 +110,7 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Grid } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList } from '@/api/warehouse/cabinet'

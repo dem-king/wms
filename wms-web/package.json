@@ -31,6 +31,7 @@
     "vue3-pdf-app": "^1.0.2"
   },
   "devDependencies": {
+    "@types/node": "^25.8.0",
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-vue": "^5.0.4",
     "sass": "^1.77.4",

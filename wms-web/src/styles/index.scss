@@ -53,6 +53,51 @@ select {
   clear: both;
 }
 
+.table-action-column {
+  min-width: 220px;
+
+  .cell {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .cell > * {
+    flex: 0 0 auto;
+  }
+
+  .cell .el-button + .el-button {
+    margin-left: 0;
+  }
+}
+
+.table-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  .el-button + .el-button {
+    margin-left: 0;
+  }
+}
+
+.table-action-group__more {
+  padding-inline: 0;
+}
+
+.table-action-group__dropdown-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.table-action-group__dropdown-icon {
+  font-size: 14px;
+}
+
 /* 暗色模式过渡 */
 html {
   transition: color-scheme 0.3s;

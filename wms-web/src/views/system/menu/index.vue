@@ -38,15 +38,15 @@
           <el-tag :type="row.visible === 1 ? 'success' : 'danger'">{{ row.visible === 1 ? '显示' : '隐藏' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" text :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-          <el-button v-if="row.menuType !== 3" type="success" text :icon="Plus" @click="handleAdd(row.id)">新增</el-button>
-          <el-popconfirm title="确定删除该菜单吗？" @confirm="handleDelete(row.id)">
-            <template #reference>
-              <el-button type="danger" text :icon="Delete">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <TableActionGroup
+            :actions="[
+              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+              { label: '新增', type: 'success', icon: Plus, visible: row.menuType !== 3, onClick: () => handleAdd(row.id) },
+              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该菜单吗？', onClick: () => handleDelete(row.id) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -109,6 +109,7 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Sort } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getMenuList, addMenu, updateMenu, deleteMenu, getMenuTree } from '@/api/system/menu'
 import type { MenuTreeNode } from '@/types/auth'
 

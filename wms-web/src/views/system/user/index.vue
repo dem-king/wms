@@ -37,15 +37,15 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160" />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" text :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-          <el-button type="warning" text :icon="Key" @click="handleResetPwd(row)">重置密码</el-button>
-          <el-popconfirm title="确定删除该用户吗？" @confirm="handleDelete(row.id)">
-            <template #reference>
-              <el-button type="danger" text :icon="Delete">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <TableActionGroup
+            :actions="[
+              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+              { label: '重置密码', type: 'warning', icon: Key, onClick: () => handleResetPwd(row) },
+              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该用户吗？', onClick: () => handleDelete(row.id) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -69,6 +69,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, Key } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getUserList, deleteUser, resetUserPwd, changeUserStatus } from '@/api/system/user'
 import type { SysUserVo } from '@/types/system'
 import UserForm from './components/UserForm.vue'

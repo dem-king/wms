@@ -31,9 +31,13 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160" />
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" text :icon="View" @click="handleView(row)">查看</el-button>
+          <TableActionGroup
+            :actions="[
+              { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -78,9 +82,13 @@
             <el-input-number v-model="row.quantity" :min="1" size="small" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="80" fixed="right">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
           <template #default="{ $index }">
-            <el-button type="danger" text :icon="Delete" @click="form.details.splice($index, 1)" />
+            <TableActionGroup
+              :actions="[
+                { label: '删除', type: 'danger', icon: Delete, onClick: () => { form.details.splice($index, 1) } },
+              ]"
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -115,6 +123,7 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Delete, View } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getReturnOrders, getReturnOrder, addReturnOrder } from '@/api/business/return'
 import { getOutboundOrders } from '@/api/business/outbound'
 import type { ReturnOrderVo, ReturnDetailDto, OrderStatus } from '@/types/business'

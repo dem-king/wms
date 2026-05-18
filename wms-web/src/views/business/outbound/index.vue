@@ -45,16 +45,16 @@
           {{ row.totalAmount?.toFixed(2) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="280" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" text :icon="View" @click="handleView(row)">查看</el-button>
-          <el-button v-if="row.status === 'DRAFT'" type="primary" text :icon="Edit" @click="handleEdit(row)">编辑</el-button>
-          <el-button v-if="row.status === 'DRAFT'" type="warning" text @click="handleSubmitOrder(row)">提交</el-button>
-          <el-popconfirm v-if="row.status === 'DRAFT'" title="确定删除该出库单吗？" @confirm="handleDelete(row.id)">
-            <template #reference>
-              <el-button type="danger" text :icon="Delete">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <TableActionGroup
+            :actions="[
+              { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
+              { label: '编辑', type: 'primary', icon: Edit, visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, visible: row.status === 'DRAFT', confirmText: '确定删除该出库单吗？', onClick: () => handleDelete(row.id) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -103,6 +103,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getOutboundOrders, getOutboundOrder, submitOutboundOrder, deleteOutboundOrder } from '@/api/business/outbound'
 import type { OutboundOrderVo, OrderStatus } from '@/types/business'
 import OutboundForm from './components/OutboundForm.vue'
