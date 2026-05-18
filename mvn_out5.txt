@@ -1,0 +1,211 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] wms-server                                                         [pom]
+[INFO] wms-common                                                         [jar]
+[INFO] wms-system                                                         [jar]
+[INFO] wms-warehouse                                                      [jar]
+[INFO] wms-item                                                           [jar]
+[INFO] wms-business                                                       [jar]
+[INFO] wms-approval                                                       [jar]
+[INFO] wms-report                                                         [jar]
+[INFO] wms-monitor                                                        [jar]
+[INFO] wms-auth                                                           [jar]
+[INFO] wms-app                                                            [jar]
+[INFO] 
+[INFO] -------------------------< com.wms:wms-server >-------------------------
+[INFO] Building wms-server 1.0.0                                         [1/11]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -------------------------< com.wms:wms-common >-------------------------
+[INFO] Building wms-common 1.0.0                                         [2/11]
+[INFO]   from wms-common\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-common ---
+[INFO] skip non existing resourceDirectory D:\Codes\WMS_code\wms-server\wms-common\src\main\resources
+[INFO] skip non existing resourceDirectory D:\Codes\WMS_code\wms-server\wms-common\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-common ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] -------------------------< com.wms:wms-system >-------------------------
+[INFO] Building wms-system 1.0.0                                         [3/11]
+[INFO]   from wms-system\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-system ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-system ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] -----------------------< com.wms:wms-warehouse >------------------------
+[INFO] Building wms-warehouse 1.0.0                                      [4/11]
+[INFO]   from wms-warehouse\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-warehouse ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-warehouse ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --------------------------< com.wms:wms-item >--------------------------
+[INFO] Building wms-item 1.0.0                                           [5/11]
+[INFO]   from wms-item\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-item ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-item ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] ------------------------< com.wms:wms-business >------------------------
+[INFO] Building wms-business 1.0.0                                       [6/11]
+[INFO]   from wms-business\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-business ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-business ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] ------------------------< com.wms:wms-approval >------------------------
+[INFO] Building wms-approval 1.0.0                                       [7/11]
+[INFO]   from wms-approval\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-approval ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-approval ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] -------------------------< com.wms:wms-report >-------------------------
+[INFO] Building wms-report 1.0.0                                         [8/11]
+[INFO]   from wms-report\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-report ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-report ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] ------------------------< com.wms:wms-monitor >-------------------------
+[INFO] Building wms-monitor 1.0.0                                        [9/11]
+[INFO]   from wms-monitor\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-monitor ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-monitor ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --------------------------< com.wms:wms-auth >--------------------------
+[INFO] Building wms-auth 1.0.0                                          [10/11]
+[INFO]   from wms-auth\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ wms-auth ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ wms-auth ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 43 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --------------------------< com.wms:wms-app >---------------------------
+[INFO] Building wms-app 1.0.0                                           [11/11]
+[INFO]   from wms-app\pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-maven-plugin/3.2.5/spring-boot-maven-plugin-3.2.5.pom
+[WARNING] Failed to create tracking file parent 'C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-maven-plugin\3.2.5\spring-boot-maven-plugin-3.2.5.pom.lastUpdated'
+java.nio.file.AccessDeniedException: C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-maven-plugin\3.2.5
+    at sun.nio.fs.WindowsException.translateToIOException (WindowsException.java:89)
+    at sun.nio.fs.WindowsException.rethrowAsIOException (WindowsException.java:103)
+    at sun.nio.fs.WindowsException.rethrowAsIOException (WindowsException.java:108)
+    at sun.nio.fs.WindowsFileSystemProvider.createDirectory (WindowsFileSystemProvider.java:521)
+    at java.nio.file.Files.createDirectory (Files.java:700)
+    at java.nio.file.Files.createAndCheckIsDirectory (Files.java:807)
+    at java.nio.file.Files.createDirectories (Files.java:793)
+    at org.eclipse.aether.internal.impl.DefaultTrackingFileManager.update (DefaultTrackingFileManager.java:77)
+    at org.eclipse.aether.internal.impl.DefaultUpdateCheckManager.write (DefaultUpdateCheckManager.java:529)
+    at org.eclipse.aether.internal.impl.DefaultUpdateCheckManager.touchArtifact (DefaultUpdateCheckManager.java:476)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.evaluateDownloads (DefaultArtifactResolver.java:636)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.performDownloads (DefaultArtifactResolver.java:545)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolve (DefaultArtifactResolver.java:449)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifacts (DefaultArtifactResolver.java:261)
+    at org.eclipse.aether.internal.impl.DefaultArtifactResolver.resolveArtifact (DefaultArtifactResolver.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.loadPom (DefaultArtifactDescriptorReader.java:243)
+    at org.apache.maven.repository.internal.DefaultArtifactDescriptorReader.readArtifactDescriptor (DefaultArtifactDescriptorReader.java:183)
+    at org.eclipse.aether.internal.impl.DefaultRepositorySystem.readArtifactDescriptor (DefaultRepositorySystem.java:269)
+    at org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver.resolve (DefaultPluginDependenciesResolver.java:109)
+    at org.apache.maven.plugin.internal.DefaultMavenPluginManager.lambda$getPluginDescriptor$0 (DefaultMavenPluginManager.java:183)
+    at org.apache.maven.plugin.DefaultPluginDescriptorCache.lambda$get$0 (DefaultPluginDescriptorCache.java:72)
+    at java.util.concurrent.ConcurrentHashMap.computeIfAbsent (ConcurrentHashMap.java:1708)
+    at org.apache.maven.plugin.DefaultPluginDescriptorCache.get (DefaultPluginDescriptorCache.java:70)
+    at org.apache.maven.plugin.internal.DefaultMavenPluginManager.getPluginDescriptor (DefaultMavenPluginManager.java:181)
+    at org.apache.maven.plugin.internal.DefaultMavenPluginManager.getMojoDescriptor (DefaultMavenPluginManager.java:271)
+    at org.apache.maven.plugin.DefaultBuildPluginManager.getMojoDescriptor (DefaultBuildPluginManager.java:214)
+    at org.apache.maven.lifecycle.internal.DefaultLifecycleMappingDelegate.calculateLifecycleMappings (DefaultLifecycleMappingDelegate.java:101)
+    at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateLifecycleMappings (DefaultLifecycleExecutionPlanCalculator.java:239)
+    at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateMojoExecutions (DefaultLifecycleExecutionPlanCalculator.java:197)
+    at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateExecutionPlan (DefaultLifecycleExecutionPlanCalculator.java:119)
+    at org.apache.maven.lifecycle.internal.DefaultLifecycleExecutionPlanCalculator.calculateExecutionPlan (DefaultLifecycleExecutionPlanCalculator.java:135)
+    at org.apache.maven.lifecycle.internal.builder.BuilderCommon.resolveBuildPlan (BuilderCommon.java:93)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:100)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:906)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:283)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:206)
+    at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0 (Native Method)
+    at jdk.internal.reflect.NativeMethodAccessorImpl.invoke (NativeMethodAccessorImpl.java:77)
+    at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke (DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke (Method.java:568)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for wms-server 1.0.0:
+[INFO] 
+[INFO] wms-server ......................................... SUCCESS [  0.010 s]
+[INFO] wms-common ......................................... SUCCESS [  0.647 s]
+[INFO] wms-system ......................................... SUCCESS [  0.093 s]
+[INFO] wms-warehouse ...................................... SUCCESS [  0.077 s]
+[INFO] wms-item ........................................... SUCCESS [  0.073 s]
+[INFO] wms-business ....................................... SUCCESS [  0.071 s]
+[INFO] wms-approval ....................................... SUCCESS [  0.071 s]
+[INFO] wms-report ......................................... SUCCESS [  0.067 s]
+[INFO] wms-monitor ........................................ SUCCESS [  0.068 s]
+[INFO] wms-auth ........................................... SUCCESS [  1.987 s]
+[INFO] wms-app ............................................ FAILURE [  8.292 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12.489 s
+[INFO] Finished at: 2026-05-13T17:28:13+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] java.nio.file.AccessDeniedException: C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-maven-plugin\3.2.5
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.

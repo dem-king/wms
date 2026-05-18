@@ -1,0 +1,181 @@
+/** 物品管理 */
+
+/** 主类目视图对象 */
+export interface WmsCategoryVo {
+  /** 类目ID */
+  id: number
+  /** 类目名称 */
+  categoryName: string
+  /** 类目编码 */
+  categoryCode: string
+  /** 排序号 */
+  sortOrder: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 主类目新增/编辑DTO */
+export interface WmsCategoryDto {
+  /** 类目名称 */
+  categoryName: string
+  /** 类目编码 */
+  categoryCode: string
+  /** 排序号 */
+  sortOrder: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+}
+
+/** 细分类目视图对象 */
+export interface WmsSubCategoryVo {
+  /** 细分类目ID */
+  id: number
+  /** 主类目ID */
+  categoryId: number
+  /** 细分类目名称 */
+  subCategoryName: string
+  /** 细分类目编码 */
+  subCategoryCode: string
+  /** 排序号 */
+  sortOrder: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 细分类目新增/编辑DTO */
+export interface WmsSubCategoryDto {
+  /** 主类目ID */
+  categoryId: number
+  /** 细分类目名称 */
+  subCategoryName: string
+  /** 细分类目编码 */
+  subCategoryCode: string
+  /** 排序号 */
+  sortOrder: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+}
+
+/** 标签视图对象 */
+export interface WmsTagVo {
+  /** 标签ID */
+  id: number
+  /** 标签名称 */
+  tagName: string
+  /** 标签编码 */
+  tagCode: string
+  /** 标签颜色 */
+  color: string
+  /** 描述 */
+  description: string
+  /** 状态(0-禁用 1-启用) */
+  status: number
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 标签新增/编辑DTO */
+export interface WmsTagDto {
+  /** 标签名称 */
+  tagName: string
+  /** 标签编码 */
+  tagCode: string
+  /** 标签颜色 */
+  color: string
+  /** 描述 */
+  description: string
+  /** 状态(0-禁用 1-启用) */
+  status: number
+}
+
+/** 物品视图对象 */
+export interface WmsItemVo {
+  /** 物品ID */
+  id: number
+  /** 物品编码 */
+  itemCode: string
+  /** 物品名称 */
+  itemName: string
+  /** 规格型号 */
+  specModel: string
+  /** 计量单位 */
+  unit: string
+  /** 主类目ID */
+  categoryId: number
+  /** 主类目名称 */
+  categoryName: string
+  /** 细分类目ID */
+  subCategoryId: number
+  /** 细分类目名称 */
+  subCategoryName: string
+  /** 标签ID列表 */
+  tagIds: number[]
+  /** 标签名称列表 */
+  tagNames: string[]
+  /** 供应商ID */
+  supplierId: number
+  /** 供应商名称 */
+  supplierName: string
+  /** 安全库存 */
+  safetyStock: number
+  /** 当前库存 */
+  currentStock: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 物品新增/编辑DTO */
+export interface WmsItemDto {
+  /** 物品编码 */
+  itemCode: string
+  /** 物品名称 */
+  itemName: string
+  /** 规格型号 */
+  specModel: string
+  /** 计量单位 */
+  unit: string
+  /** 主类目ID */
+  categoryId: number
+  /** 细分类目ID */
+  subCategoryId: number
+  /** 标签ID列表 */
+  tagIds: number[]
+  /** 供应商ID */
+  supplierId: number
+  /** 安全库存 */
+  safetyStock: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+}
+
+/** 库存视图对象 */
+export interface WmsStockVo {
+  /** 库存ID */
+  id: number
+  /** 物品ID */
+  itemId: number
+  /** 物品编码 */
+  itemCode: string
+  /** 物品名称 */
+  itemName: string
+  /** 库房ID */
+  warehouseId: number
+  /** 库房名称 */
+  warehouseName: string
+  /** 库位ID */
+  binId: number
+  /** 库位编码 */
+  binCode: string
+  /** 数量 */
+  quantity: number
+  /** 安全库存 */
+  safetyStock: number
+  /** 是否预警 */
+  isAlert: boolean
+}

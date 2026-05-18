@@ -1,0 +1,46 @@
+package com.wms.warehouse.service;
+
+import com.wms.warehouse.domain.dto.AreaDto;
+import com.wms.warehouse.domain.vo.AreaVo;
+
+import java.util.List;
+
+/**
+ * 存放区域服务接口
+ * 提供区域CRUD、按库房查询等功能
+ */
+public interface AreaService {
+
+    /**
+     * 按库房ID查询区域列表
+     *
+     * @param warehouseId 库房ID
+     * @return 区域VO列表
+     */
+    List<AreaVo> listByWarehouseId(Long warehouseId);
+
+    /**
+     * 新增区域
+     * 自动生成区域编码
+     *
+     * @param dto 区域新增参数
+     * @return 新增后的区域VO
+     */
+    AreaVo create(AreaDto dto);
+
+    /**
+     * 更新区域
+     *
+     * @param id  区域ID
+     * @param dto 区域更新参数
+     * @return 更新后的区域VO
+     */
+    AreaVo update(Long id, AreaDto dto);
+
+    /**
+     * 删除区域(逻辑删除)
+     *
+     * @param id 区域ID
+     */
+    void delete(Long id);
+}

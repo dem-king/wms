@@ -1,0 +1,169 @@
+<template>
+  <div class="app-container">
+    <el-form :model="queryParams" :inline="true" class="search-form">
+      <el-form-item label="角色名称">
+        <el-input v-model="queryParams.roleName" placeholder="请输入角色名称" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="角色编码">
+        <el-input v-model="queryParams.roleCode" placeholder="请输入角色编码" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="状态">
+        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+          <el-option label="启用" :value="1" />
+          <el-option label="禁用" :value="0" />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+      </el-col>
+    </el-row>
+
+    <el-table v-loading="loading" :data="tableData" border>
+      <el-table-column prop="roleName" label="角色名称" min-width="120" />
+      <el-table-column prop="roleCode" label="角色编码" min-width="120" />
+      <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+      <el-table-column prop="dataScope" label="数据范围" min-width="120">
+        <template #default="{ row }">
+          {{ dataScopeMap[row.dataScope] || '未知' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" min-width="80">
+        <template #default="{ row }">
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="240" fixed="right">
+        <template #default="{ row }">
+          <el-button type="primary" text :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+          <el-button type="success" text :icon="Menu" @click="handleAssignMenu(row)">分配菜单</el-button>
+          <el-popconfirm title="确定删除该角色吗？" @confirm="handleDelete(row.id)">
+            <template #reference>
+              <el-button type="danger" text :icon="Delete">删除</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-pagination
+      v-model:current-page="queryParams.page"
+      v-model:page-size="queryParams.size"
+      :total="total"
+      :page-sizes="[10, 20, 50, 100]"
+      layout="total, sizes, prev, pager, next, jumper"
+      class="pagination"
+      @size-change="handleQuery"
+      @current-change="handleQuery"
+    />
+
+    <RoleForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
+    <RoleMenu v-model:visible="menuVisible" :role-id="currentRow?.id" :role-name="currentRow?.roleName" @success="handleQuery" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Search, Refresh, Plus, Edit, Delete, Menu } from '@element-plus/icons-vue'
+import { getRoleList, deleteRole } from '@/api/system/role'
+import type { SysRoleVo } from '@/types/system'
+import RoleForm from './components/RoleForm.vue'
+import RoleMenu from './components/RoleMenu.vue'
+
+const dataScopeMap: Record<number, string> = {
+  1: '全部数据',
+  2: '自定义',
+  3: '本部门',
+  4: '本部门及以下',
+  5: '仅本人'
+}
+
+const loading = ref(false)
+const tableData = ref<SysRoleVo[]>([])
+const total = ref(0)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+  roleName: '',
+  roleCode: '',
+  status: undefined as number | undefined
+})
+
+const formVisible = ref(false)
+const menuVisible = ref(false)
+const isEdit = ref(false)
+const currentRow = ref<SysRoleVo | null>(null)
+
+async function handleQuery() {
+  loading.value = true
+  try {
+    const res = await getRoleList(queryParams)
+    tableData.value = res.data.records
+    total.value = res.data.total
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleReset() {
+  queryParams.roleName = ''
+  queryParams.roleCode = ''
+  queryParams.status = undefined
+  queryParams.page = 1
+  handleQuery()
+}
+
+function handleAdd() {
+  isEdit.value = false
+  currentRow.value = null
+  formVisible.value = true
+}
+
+function handleEdit(row: SysRoleVo) {
+  isEdit.value = true
+  currentRow.value = { ...row }
+  formVisible.value = true
+}
+
+async function handleDelete(id: number) {
+  await deleteRole(id)
+  ElMessage.success('删除成功')
+  handleQuery()
+}
+
+function handleAssignMenu(row: SysRoleVo) {
+  currentRow.value = { ...row }
+  menuVisible.value = true
+}
+
+onMounted(() => {
+  handleQuery()
+})
+</script>
+
+<style scoped lang="scss">
+.app-container {
+  padding: 20px;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.mb8 {
+  margin-bottom: 8px;
+}
+
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+</style>

@@ -1,0 +1,81 @@
+/**
+ * 语义化颜色变量映射
+ * 将HSL设计令牌转换为可用的CSS颜色值
+ * 同时兼容Element Plus组件库
+ */
+@layer base {
+  :root {
+    /* 背景色 */
+    --bg-background: hsl(var(--background));
+    --bg-background-deep: hsl(var(--background-deep));
+    --bg-card: hsl(var(--card));
+    --bg-popover: hsl(var(--popover));
+    --bg-header: hsl(var(--header));
+    --bg-sidebar: hsl(var(--sidebar));
+    --bg-sidebar-deep: hsl(var(--sidebar-deep));
+    --bg-accent: hsl(var(--accent));
+    --bg-muted: hsl(var(--muted));
+
+    /* 前景色/文字色 */
+    --text-foreground: hsl(var(--foreground));
+    --text-card-foreground: hsl(var(--card-foreground));
+    --text-muted-foreground: hsl(var(--muted-foreground));
+    --text-accent-foreground: hsl(var(--accent-foreground));
+
+    /* 主色 */
+    --color-primary: hsl(var(--primary));
+    --color-primary-foreground: hsl(var(--primary-foreground));
+
+    /* 边框色 */
+    --color-border: hsl(var(--border));
+    --color-input: hsl(var(--input));
+
+    /* 语义色 */
+    --color-success: hsl(var(--success));
+    --color-warning: hsl(var(--warning));
+    --color-destructive: hsl(var(--destructive));
+    --color-info: hsl(var(--info));
+
+    /* 遮罩层 */
+    --color-overlay: hsl(var(--overlay));
+    --color-overlay-content: hsl(var(--overlay-content));
+
+    /* 圆角 */
+    --border-radius: var(--radius);
+
+    /* Element Plus CSS变量覆盖 - 亮色 */
+    --el-color-primary: var(--color-primary);
+    --el-color-success: var(--color-success);
+    --el-color-warning: var(--color-warning);
+    --el-color-danger: var(--color-destructive);
+    --el-color-info: hsl(var(--muted-foreground));
+    --el-bg-color: var(--bg-background);
+    --el-bg-color-page: var(--bg-background-deep);
+    --el-bg-color-overlay: var(--bg-card);
+    --el-text-color-primary: var(--text-foreground);
+    --el-text-color-regular: var(--text-foreground);
+    --el-text-color-secondary: var(--text-muted-foreground);
+    --el-border-color: var(--color-border);
+    --el-border-color-light: hsl(var(--accent));
+    --el-fill-color-blank: var(--bg-background);
+    --el-fill-color-light: var(--bg-accent);
+  }
+
+  .dark {
+    /* Element Plus CSS变量覆盖 - 暗色 */
+    --el-bg-color: var(--bg-background);
+    --el-bg-color-page: var(--bg-background-deep);
+    --el-bg-color-overlay: var(--bg-card);
+    --el-text-color-primary: var(--text-foreground);
+    --el-text-color-regular: var(--text-foreground);
+    --el-text-color-secondary: var(--text-muted-foreground);
+    --el-border-color: var(--color-border);
+    --el-border-color-light: hsl(var(--accent));
+    --el-fill-color-blank: var(--bg-background);
+    --el-fill-color-light: var(--bg-accent);
+    --el-color-primary: var(--color-primary);
+    --el-color-success: var(--color-success);
+    --el-color-warning: var(--color-warning);
+    --el-color-danger: var(--color-destructive);
+  }
+}
