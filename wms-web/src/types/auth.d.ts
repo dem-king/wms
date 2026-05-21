@@ -21,6 +21,31 @@ export interface UserInfoVO {
   realName: string
   avatar: string
   deptId: number
+  phone?: string
+  email?: string
+}
+
+export interface LastLoginInfoVO {
+  loginTime: string | null
+  loginIp: string | null
+}
+
+export interface ProfileResp {
+  userInfo: UserInfoVO
+  lastLoginInfo: LastLoginInfoVO | null
+  permissions: string[]
+  roles: string[]
+}
+
+export interface UpdateProfileReq {
+  realName: string
+  phone?: string
+  email?: string
+  avatar?: string
+}
+
+export interface UploadAvatarResp {
+  avatarUrl: string
 }
 
 export interface RsaKeyPairResp {

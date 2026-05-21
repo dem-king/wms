@@ -8,4 +8,6 @@ public interface AuthAuditService {
     void recordLoginLog(AuthLoginLog log);
 
     void recordOperLog(AuthOperLog log);
+
+    AuthLoginLog getLatestSuccessLoginLog(Long userId);
 }

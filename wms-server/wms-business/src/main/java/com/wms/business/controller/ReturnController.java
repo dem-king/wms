@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 归还单控制器
- * 提供归还单创建、分页查询、详情等接口
+ * 提供归还单创建、更新、删除、提交、分页查询等接口
  */
 @Tag(name = "归还管理")
 @RestController
@@ -62,5 +62,40 @@ public class ReturnController {
     @OperLog(module = "business", type = "新增", desc = "新增归还单")
     public R<ReturnOrderVo> createOrder(@Valid @RequestBody ReturnOrderDto dto) {
         return R.ok(returnService.createOrder(dto));
+    }
+
+    /**
+     * 更新归还单(仅草稿状态)
+     */
+    @Operation(summary = "更新归还单")
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "更新", desc = "更新归还单")
+    public R<ReturnOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody ReturnOrderDto dto) {
+        return R.ok(returnService.updateOrder(id, dto));
+    }
+
+    /**
+     * 提交归还单
+     */
+    @Operation(summary = "提交归还单")
+    @PostMapping("/{id}/submit")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "提交", desc = "提交归还单")
+    public R<Void> submitOrder(@PathVariable Long id) {
+        returnService.submitOrder(id);
+        return R.ok();
+    }
+
+    /**
+     * 删除归还单(仅草稿状态)
+     */
+    @Operation(summary = "删除归还单")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "删除", desc = "删除归还单")
+    public R<Void> deleteOrder(@PathVariable Long id) {
+        returnService.deleteOrder(id);
+        return R.ok();
     }
 }

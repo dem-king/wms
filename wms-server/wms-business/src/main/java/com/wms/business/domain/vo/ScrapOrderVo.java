@@ -22,6 +22,14 @@ public class ScrapOrderVo {
     @Schema(description = "报废单号")
     private String orderNo;
 
+    /** 所属库房ID */
+    @Schema(description = "所属库房ID")
+    private Long warehouseId;
+
+    /** 所属库房名称 */
+    @Schema(description = "所属库房名称")
+    private String warehouseName;
+
     /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
     @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
     private Integer status;

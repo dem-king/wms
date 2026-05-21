@@ -21,4 +21,10 @@ public class UserInfoVO {
 
     @Schema(description = "部门ID")
     private Long deptId;
+
+    @Schema(description = "手机号")
+    private String phone;
+
+    @Schema(description = "邮箱")
+    private String email;
 }

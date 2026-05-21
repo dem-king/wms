@@ -10,7 +10,8 @@ public enum BizTypeEnum {
     INBOUND(1, "入库"),
     OUTBOUND(2, "出库/领用"),
     SCRAP(3, "报废"),
-    TRANSFER(4, "调拨");
+    TRANSFER(4, "调拨"),
+    RETURN(5, "归还");
 
     private final int code;
     private final String desc;

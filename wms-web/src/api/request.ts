@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
-import { getToken, getRefreshToken, setToken, setRefreshToken, removeToken, removeRefreshToken } from '@/utils/auth'
+import { clearAuth, getRefreshToken, getToken, setRefreshToken, setToken } from '@/utils/auth'
 import router from '@/router'
 
 interface R<T = unknown> {
@@ -93,8 +93,7 @@ service.interceptors.response.use(
 )
 
 function clearAuthAndRedirect() {
-  removeToken()
-  removeRefreshToken()
+  clearAuth()
   pendingRequests = []
   router.push('/login')
 }

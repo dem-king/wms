@@ -65,6 +65,17 @@ public class ScrapController {
     }
 
     /**
+     * 更新报废单(仅草稿状态)
+     */
+    @Operation(summary = "更新报废单")
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "更新", desc = "更新报废单")
+    public R<ScrapOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody ScrapOrderDto dto) {
+        return R.ok(scrapService.updateOrder(id, dto));
+    }
+
+    /**
      * 提交报废单
      */
     @Operation(summary = "提交报废单")
@@ -73,6 +84,18 @@ public class ScrapController {
     @OperLog(module = "business", type = "提交", desc = "提交报废单")
     public R<Void> submitOrder(@PathVariable Long id) {
         scrapService.submitOrder(id);
+        return R.ok();
+    }
+
+    /**
+     * 删除报废单(仅草稿状态)
+     */
+    @Operation(summary = "删除报废单")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "删除", desc = "删除报废单")
+    public R<Void> deleteOrder(@PathVariable Long id) {
+        scrapService.deleteOrder(id);
         return R.ok();
     }
 }

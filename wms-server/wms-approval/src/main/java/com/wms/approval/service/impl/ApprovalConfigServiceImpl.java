@@ -1,0 +1,209 @@
+package com.wms.approval.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wms.approval.converter.ApprovalConfigConverter;
+import com.wms.approval.domain.constant.ApprovalConstants;
+import com.wms.approval.domain.dto.ApprovalConfigDto;
+import com.wms.approval.domain.entity.WmsApprovalConfig;
+import com.wms.approval.domain.entity.WmsApprovalNode;
+import com.wms.approval.domain.vo.ApprovalConfigVo;
+import com.wms.approval.mapper.WmsApprovalConfigMapper;
+import com.wms.approval.mapper.WmsApprovalNodeMapper;
+import com.wms.approval.service.ApprovalConfigService;
+import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
+import com.wms.common.exception.BizException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * 审批配置服务实现类
+ * 处理审批配置的CRUD和分页查询业务逻辑
+ */
+@Service
+@RequiredArgsConstructor
+public class ApprovalConfigServiceImpl implements ApprovalConfigService {
+
+    private final WmsApprovalConfigMapper wmsApprovalConfigMapper;
+    private final WmsApprovalNodeMapper wmsApprovalNodeMapper;
+    private final ApprovalConfigConverter approvalConfigConverter;
+
+    /**
+     * 分页查询审批配置
+     *
+     * @param pageParam 分页参数
+     * @param bizType   业务类型(可选)
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<ApprovalConfigVo> pageConfigs(PageParam pageParam, Integer bizType) {
+        LambdaQueryWrapper<WmsApprovalConfig> wrapper = new LambdaQueryWrapper<>();
+        if (bizType != null) {
+            wrapper.eq(WmsApprovalConfig::getBizType, bizType);
+        }
+        wrapper.orderByDesc(WmsApprovalConfig::getCreateTime);
+
+        Page<WmsApprovalConfig> page = wmsApprovalConfigMapper.selectPage(
+                new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
+
+        PageResult<ApprovalConfigVo> result = new PageResult<>();
+        List<WmsApprovalConfig> records = page.getRecords();
+        // 批量查询节点配置以避免N+1查询
+        result.setRecords(records.stream().map(entity -> {
+            ApprovalConfigVo vo = approvalConfigConverter.toVo(entity);
+            List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
+                    new LambdaQueryWrapper<WmsApprovalNode>()
+                            .eq(WmsApprovalNode::getConfigId, entity.getId())
+                            .orderByAsc(WmsApprovalNode::getStepOrder));
+            vo.setNodes(approvalConfigConverter.toNodeVoList(nodes));
+            return vo;
+        }).toList());
+        result.setTotal(page.getTotal());
+        result.setPage(pageParam.getPage());
+        result.setSize(pageParam.getSize());
+        return result;
+    }
+
+    /**
+     * 根据ID获取审批配置详情(含节点列表)
+     *
+     * @param id 审批配置ID
+     * @return 审批配置详情VO
+     */
+    @Override
+    public ApprovalConfigVo getConfigById(Long id) {
+        WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
+        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置不存在");
+        }
+        ApprovalConfigVo vo = approvalConfigConverter.toVo(config);
+        // 查询节点列表并按顺序排列
+        List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
+                new LambdaQueryWrapper<WmsApprovalNode>()
+                        .eq(WmsApprovalNode::getConfigId, id)
+                        .orderByAsc(WmsApprovalNode::getStepOrder));
+        vo.setNodes(approvalConfigConverter.toNodeVoList(nodes));
+        return vo;
+    }
+
+    /**
+     * 新增审批配置
+     * 保存配置及节点列表
+     *
+     * @param dto 审批配置创建参数
+     * @return 创建后的审批配置VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApprovalConfigVo createConfig(ApprovalConfigDto dto) {
+        WmsApprovalConfig config = new WmsApprovalConfig();
+        config.setBizType(dto.getBizType());
+        config.setEnabled(dto.getEnabled() != null ? dto.getEnabled() : ApprovalConstants.STATUS_APPROVED);
+        config.setAutoApprove(dto.getAutoApprove() != null ? dto.getAutoApprove() : ApprovalConstants.STATUS_PENDING);
+        config.setConfigName(dto.getConfigName());
+        config.setRemark(dto.getRemark());
+        wmsApprovalConfigMapper.insert(config);
+
+        // 保存审批节点配置
+        if (dto.getNodes() != null) {
+            for (ApprovalConfigDto.ApprovalNodeDto nodeDto : dto.getNodes()) {
+                WmsApprovalNode node = new WmsApprovalNode();
+                node.setConfigId(config.getId());
+                node.setStepOrder(nodeDto.getStepOrder());
+                node.setNodeName(nodeDto.getNodeName());
+                node.setApproverType(nodeDto.getApproverType());
+                node.setApproverId(nodeDto.getApproverId());
+                wmsApprovalNodeMapper.insert(node);
+            }
+        }
+
+        return getConfigById(config.getId());
+    }
+
+    /**
+     * 更新审批配置
+     * 逻辑删除原有节点后重新保存
+     *
+     * @param id  审批配置ID
+     * @param dto 审批配置更新参数
+     * @return 更新后的审批配置VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApprovalConfigVo updateConfig(Long id, ApprovalConfigDto dto) {
+        WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
+        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置不存在");
+        }
+
+        config.setBizType(dto.getBizType());
+        if (dto.getEnabled() != null) {
+            config.setEnabled(dto.getEnabled());
+        }
+        if (dto.getAutoApprove() != null) {
+            config.setAutoApprove(dto.getAutoApprove());
+        }
+        config.setConfigName(dto.getConfigName());
+        config.setRemark(dto.getRemark());
+        wmsApprovalConfigMapper.updateById(config);
+
+        // 逻辑删除原有节点
+        List<WmsApprovalNode> oldNodes = wmsApprovalNodeMapper.selectList(
+                new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
+        for (WmsApprovalNode oldNode : oldNodes) {
+            WmsApprovalNode updateNode = new WmsApprovalNode();
+            updateNode.setId(oldNode.getId());
+            updateNode.setDelFlag(DelFlagConstants.DELETED);
+            wmsApprovalNodeMapper.updateById(updateNode);
+        }
+
+        // 保存新的审批节点配置
+        if (dto.getNodes() != null) {
+            for (ApprovalConfigDto.ApprovalNodeDto nodeDto : dto.getNodes()) {
+                WmsApprovalNode node = new WmsApprovalNode();
+                node.setConfigId(id);
+                node.setStepOrder(nodeDto.getStepOrder());
+                node.setNodeName(nodeDto.getNodeName());
+                node.setApproverType(nodeDto.getApproverType());
+                node.setApproverId(nodeDto.getApproverId());
+                wmsApprovalNodeMapper.insert(node);
+            }
+        }
+
+        return getConfigById(id);
+    }
+
+    /**
+     * 删除审批配置(逻辑删除)
+     *
+     * @param id 审批配置ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteConfig(Long id) {
+        WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
+        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置不存在");
+        }
+        // 逻辑删除配置
+        WmsApprovalConfig updateEntity = new WmsApprovalConfig();
+        updateEntity.setId(id);
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        wmsApprovalConfigMapper.updateById(updateEntity);
+
+        // 逻辑删除关联节点
+        List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
+                new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
+        for (WmsApprovalNode node : nodes) {
+            WmsApprovalNode updateNode = new WmsApprovalNode();
+            updateNode.setId(node.getId());
+            updateNode.setDelFlag(DelFlagConstants.DELETED);
+            wmsApprovalNodeMapper.updateById(updateNode);
+        }
+    }
+}

@@ -54,5 +54,9 @@ public class ReturnOrderDto {
         /** 物品状态(1-正常 2-损坏) */
         @Schema(description = "物品状态(1-正常 2-损坏)")
         private Integer conditionStatus;
+
+        /** 异常说明 */
+        @Schema(description = "异常说明")
+        private String abnormalRemark;
     }
 }

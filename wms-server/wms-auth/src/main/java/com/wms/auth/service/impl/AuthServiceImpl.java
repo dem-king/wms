@@ -3,10 +3,14 @@ package com.wms.auth.service.impl;
 import com.wms.auth.config.AuthProperties;
 import com.wms.auth.domain.dto.LoginReq;
 import com.wms.auth.domain.dto.RefreshTokenReq;
+import com.wms.auth.domain.dto.UpdateProfileDto;
 import com.wms.auth.domain.entity.AuthLoginLog;
 import com.wms.auth.domain.entity.AuthOperLog;
+import com.wms.auth.domain.vo.AuthProfileVo;
+import com.wms.auth.domain.vo.LastLoginInfoVo;
 import com.wms.auth.domain.vo.LoginResp;
 import com.wms.auth.domain.vo.TokenResp;
+import com.wms.auth.domain.vo.UploadAvatarVo;
 import com.wms.auth.domain.vo.UserInfoVO;
 import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.enums.AuthOperTypeEnum;
@@ -15,17 +19,29 @@ import com.wms.auth.service.*;
 import com.wms.common.constant.BizConstants;
 import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.vo.MenuTreeVo;
+import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -123,6 +139,8 @@ public class AuthServiceImpl implements AuthService {
         userInfo.setRealName(user.getRealName());
         userInfo.setAvatar(user.getAvatar());
         userInfo.setDeptId(user.getDeptId());
+        userInfo.setPhone(user.getPhone());
+        userInfo.setEmail(user.getEmail());
         resp.setUserInfo(userInfo);
 
         return resp;
@@ -153,6 +171,95 @@ public class AuthServiceImpl implements AuthService {
         return tokenService.refreshToken(req.getRefreshToken());
     }
 
+    @Override
+    public AuthProfileVo getCurrentProfile() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BizException(AuthErrorCode.TOKEN_INVALID.getCode(), AuthErrorCode.TOKEN_INVALID.getMsg());
+        }
+
+        SysUserVo user = sysUserService.getById(userId);
+        List<String> permissions = authorizeService.getUserPermissions(userId);
+        List<String> roles = sysUserService.getUserRoles(userId).stream()
+                .map(String::valueOf)
+                .toList();
+        AuthLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
+
+        AuthProfileVo profile = new AuthProfileVo();
+        profile.setUserInfo(buildUserInfo(user));
+        profile.setPermissions(permissions);
+        profile.setRoles(roles);
+        profile.setLastLoginInfo(buildLastLoginInfo(lastLoginLog));
+        return profile;
+    }
+
+    @Override
+    public AuthProfileVo updateCurrentProfile(UpdateProfileDto dto) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BizException(AuthErrorCode.TOKEN_INVALID.getCode(), AuthErrorCode.TOKEN_INVALID.getMsg());
+        }
+
+        SysUserVo user = sysUserService.updateProfile(
+                userId,
+                dto.getRealName(),
+                dto.getPhone(),
+                dto.getEmail(),
+                dto.getAvatar()
+        );
+        List<String> permissions = authorizeService.getUserPermissions(userId);
+        List<String> roles = sysUserService.getUserRoles(userId).stream()
+                .map(String::valueOf)
+                .toList();
+        AuthLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
+
+        AuthProfileVo profile = new AuthProfileVo();
+        profile.setUserInfo(buildUserInfo(user));
+        profile.setPermissions(permissions);
+        profile.setRoles(roles);
+        profile.setLastLoginInfo(buildLastLoginInfo(lastLoginLog));
+        return profile;
+    }
+
+    @Override
+    public UploadAvatarVo uploadCurrentUserAvatar(MultipartFile file) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            throw new BizException(AuthErrorCode.TOKEN_INVALID.getCode(), AuthErrorCode.TOKEN_INVALID.getMsg());
+        }
+
+        validateAvatarFile(file);
+        String extension = resolveFileExtension(file.getOriginalFilename(), file.getContentType());
+        String storedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
+        Path userAvatarDir = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId));
+        Path targetPath = userAvatarDir.resolve(storedFileName);
+
+        try {
+            Files.createDirectories(userAvatarDir);
+            file.transferTo(targetPath);
+        } catch (IOException e) {
+            throw new BizException("头像上传失败");
+        }
+
+        UploadAvatarVo uploadAvatarVo = new UploadAvatarVo();
+        uploadAvatarVo.setAvatarUrl(authProperties.getAvatarUrlPrefix() + "/" + userId + "/" + storedFileName);
+        return uploadAvatarVo;
+    }
+
+    @Override
+    public Resource loadAvatarResource(Long userId, String fileName) {
+        Path avatarPath = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId), fileName).normalize();
+        try {
+            Resource resource = new UrlResource(avatarPath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new BizException("头像不存在");
+            }
+            return resource;
+        } catch (MalformedURLException e) {
+            throw new BizException("头像不存在");
+        }
+    }
+
     private void recordLoginSuccess(String username, Long userId, String ip, String ua) {
         AuthLoginLog loginLog = new AuthLoginLog();
         loginLog.setUsername(username);
@@ -174,5 +281,59 @@ public class AuthServiceImpl implements AuthService {
         loginLog.setFailReason(reason);
         loginLog.setLoginTime(LocalDateTime.now());
         authAuditService.recordLoginLog(loginLog);
+    }
+
+    private UserInfoVO buildUserInfo(SysUserVo user) {
+        UserInfoVO userInfo = new UserInfoVO();
+        userInfo.setUserId(user.getId());
+        userInfo.setUsername(user.getUsername());
+        userInfo.setRealName(user.getRealName());
+        userInfo.setAvatar(user.getAvatar());
+        userInfo.setDeptId(user.getDeptId());
+        userInfo.setPhone(user.getPhone());
+        userInfo.setEmail(user.getEmail());
+        return userInfo;
+    }
+
+    private LastLoginInfoVo buildLastLoginInfo(AuthLoginLog loginLog) {
+        if (loginLog == null) {
+            return null;
+        }
+        LastLoginInfoVo lastLoginInfo = new LastLoginInfoVo();
+        lastLoginInfo.setLoginIp(loginLog.getLoginIp());
+        lastLoginInfo.setLoginTime(loginLog.getLoginTime());
+        return lastLoginInfo;
+    }
+
+    private void validateAvatarFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BizException("头像文件不能为空");
+        }
+        if (!isSupportedAvatarContentType(file.getContentType())) {
+            throw new BizException("头像仅支持 PNG、JPG、JPEG、WEBP 图片");
+        }
+        if (file.getSize() > authProperties.getAvatarMaxSizeBytes()) {
+            throw new BizException("头像大小不能超过" + authProperties.getAvatarMaxSizeBytes() + "字节");
+        }
+    }
+
+    private boolean isSupportedAvatarContentType(String contentType) {
+        return "image/png".equals(contentType)
+                || "image/jpg".equals(contentType)
+                || "image/jpeg".equals(contentType)
+                || "image/webp".equals(contentType);
+    }
+
+    private String resolveFileExtension(String originalFilename, String contentType) {
+        if (StringUtils.hasText(originalFilename) && originalFilename.contains(".")) {
+            return originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        if ("image/png".equals(contentType)) {
+            return ".png";
+        }
+        if ("image/webp".equals(contentType)) {
+            return ".webp";
+        }
+        return ".jpg";
     }
 }

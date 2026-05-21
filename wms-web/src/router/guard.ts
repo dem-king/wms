@@ -1,6 +1,6 @@
 import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
-import { getToken } from '@/utils/auth'
+import { clearAuth, getToken } from '@/utils/auth'
 import { useUserStore } from '@/store/modules/user'
 import { usePermissionStore } from '@/store/modules/permission'
 import { getUserMenuTree } from '@/api/system/menu'
@@ -83,12 +83,4 @@ async function fetchMenuTree(): Promise<MenuTreeNode[]> {
   // 页面刷新后需要重新从API获取当前用户菜单树
   const res = await getUserMenuTree()
   return res.data
-}
-
-/**
- * 清除认证信息
- */
-function clearAuth() {
-  localStorage.removeItem('wms_token')
-  localStorage.removeItem('wms_refresh_token')
 }

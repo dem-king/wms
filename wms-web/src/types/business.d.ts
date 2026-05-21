@@ -255,6 +255,8 @@ export interface ReturnOrderVo {
   outboundOrderNo: string
   /** 领用人 */
   recipient: string
+  /** 归还人 */
+  receiver: string
   /** 单据状态 */
   status: OrderStatus
   /** 备注 */
@@ -279,12 +281,18 @@ export interface ReturnDetailVo {
   itemName: string
   /** 归还数量 */
   quantity: number
+  /** 物品状态(0-正常 1-损坏) */
+  conditionStatus: number
+  /** 异常说明 */
+  abnormalRemark: string
 }
 
 /** 归还单新增DTO */
 export interface ReturnOrderDto {
   /** 关联出库单ID */
   outboundOrderId: number
+  /** 归还人 */
+  receiver: string
   /** 备注 */
   remark: string
   /** 明细列表 */
@@ -297,6 +305,10 @@ export interface ReturnDetailDto {
   itemId: number
   /** 归还数量 */
   quantity: number
+  /** 物品状态(0-正常 1-损坏) */
+  conditionStatus: number
+  /** 异常说明 */
+  abnormalRemark: string
 }
 
 /** 报废单视图对象 */
@@ -415,4 +427,142 @@ export interface TransferDetailDto {
   itemId: number
   /** 调拨数量 */
   quantity: number
+}
+
+/** 审批状态枚举 */
+export type ApprovalStatus = 'PENDING' | 'APPROVING' | 'APPROVED' | 'REJECTED' | 'REVOKED'
+
+/** 业务类型枚举 */
+export type BizType = 'INBOUND' | 'OUTBOUND' | 'RETURN' | 'SCRAP' | 'TRANSFER'
+
+/** 审批配置视图对象 */
+export interface ApprovalConfigVo {
+  /** 配置ID */
+  id: number
+  /** 配置名称 */
+  configName: string
+  /** 业务类型 */
+  bizType: BizType
+  /** 是否启用 */
+  enabled: boolean
+  /** 是否免审 */
+  autoApproved: boolean
+  /** 审批节点列表 */
+  nodes: ApprovalNodeVo[]
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 审批配置新增/编辑DTO */
+export interface ApprovalConfigDto {
+  /** 配置名称 */
+  configName: string
+  /** 业务类型 */
+  bizType: BizType
+  /** 是否启用 */
+  enabled: boolean
+  /** 是否免审 */
+  autoApproved: boolean
+  /** 审批节点列表 */
+  nodes: ApprovalNodeVo[]
+}
+
+/** 审批节点视图对象 */
+export interface ApprovalNodeVo {
+  /** 节点ID */
+  id: number
+  /** 配置ID */
+  configId: number
+  /** 节点顺序 */
+  nodeOrder: number
+  /** 节点名称 */
+  nodeName: string
+  /** 审批人类型(1-指定角色 2-指定用户 3-库房管理员) */
+  assigneeType: number
+  /** 审批人ID */
+  assigneeId: number
+}
+
+/** 审批单视图对象 */
+export interface ApprovalOrderVo {
+  /** 审批单ID */
+  id: number
+  /** 审批单号 */
+  approvalNo: string
+  /** 业务类型 */
+  bizType: BizType
+  /** 业务单据ID */
+  bizId: number
+  /** 业务单号 */
+  bizNo: string
+  /** 当前节点名称 */
+  currentNodeName: string
+  /** 审批状态 */
+  status: ApprovalStatus
+  /** 申请人 */
+  applicant: string
+  /** 申请人ID */
+  applicantId: number
+  /** 审批记录列表 */
+  records: ApprovalRecordVo[]
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 审批记录视图对象 */
+export interface ApprovalRecordVo {
+  /** 记录ID */
+  id: number
+  /** 审批单ID */
+  approvalId: number
+  /** 节点名称 */
+  nodeName: string
+  /** 审批人 */
+  assigneeName: string
+  /** 审批动作(APPROVE/REJECT) */
+  action: string
+  /** 审批意见 */
+  opinion: string
+  /** 审批时间 */
+  actionTime: string
+}
+
+/** 审批操作DTO */
+export interface ApprovalActionDto {
+  /** 审批意见 */
+  opinion: string
+}
+
+/** 机器-备件关联视图对象 */
+export interface MachineSpareVo {
+  /** ID */
+  id: number
+  /** 机器名称 */
+  machineName: string
+  /** 机器编号 */
+  machineCode: string
+  /** 备件物品ID */
+  itemId: number
+  /** 备件物品名称 */
+  itemName: string
+  /** 数量 */
+  quantity: number
+  /** 备注 */
+  remark: string
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 机器-备件关联新增/编辑DTO */
+export interface MachineSpareDto {
+  /** 机器名称 */
+  machineName: string
+  /** 机器编号 */
+  machineCode: string
+  /** 备件物品ID */
+  itemId: number
+  /** 数量 */
+  quantity: number
+  /** 备注 */
+  remark: string
 }

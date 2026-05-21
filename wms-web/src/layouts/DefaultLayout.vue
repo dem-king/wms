@@ -17,7 +17,10 @@
     <header
       v-if="headerVisible"
       class="layout-header"
-      :class="{ 'semi-dark': preferences.theme.semiDarkHeader || isDark }"
+      :class="{
+        'semi-dark': preferences.theme.semiDarkHeader || isDark,
+        'with-header-menu': showHeaderMenu,
+      }"
       :style="headerStyle"
     >
       <Navbar>
@@ -217,6 +220,16 @@ function openPreferences() {
   background: hsl(var(--header) / 0.84);
   box-shadow: 0 18px 36px hsl(220 43% 11% / 0.08);
   backdrop-filter: blur(18px);
+  overflow: hidden;
+
+  &.with-header-menu {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--header) / 0.94) 0%,
+      hsl(var(--card) / 0.86) 100%
+    );
+    box-shadow: 0 12px 28px hsl(220 43% 11% / 0.06);
+  }
 
   &.semi-dark {
     background-color: hsl(var(--sidebar-deep));

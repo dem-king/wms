@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { ArrowDown, Lock, SwitchButton } from '@element-plus/icons-vue'
+import { ArrowDown, Lock, SwitchButton, User } from '@element-plus/icons-vue'
 
 defineOptions({ name: 'UserDropdown' })
 
@@ -18,6 +18,7 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
+  profile: []
   changePassword: []
   logout: []
 }>()
@@ -47,6 +48,10 @@ const initials = computed(() => props.name.trim().slice(0, 1).toUpperCase() || '
             <div class="user-card-description">{{ description }}</div>
           </div>
         </div>
+        <el-dropdown-item @click="emit('profile')">
+          <el-icon><User /></el-icon>
+          个人中心
+        </el-dropdown-item>
         <el-dropdown-item @click="emit('changePassword')">
           <el-icon><Lock /></el-icon>
           修改密码

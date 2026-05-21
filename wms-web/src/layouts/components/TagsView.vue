@@ -21,8 +21,7 @@
     </div>
 
     <TagsViewActions
-      v-if="preferences.tabbar.showMore || preferences.tabbar.showMaximize"
-      :can-maximize="preferences.tabbar.showMaximize"
+      v-if="preferences.tabbar.showMore"
       @close-all="closeAllTags"
       @close-others="closeOtherTags"
     />
@@ -90,53 +89,62 @@ function closeAllTags() {
 .tags-view {
   height: v-bind('`${preferences.tabbar.height}px`');
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 16px;
+  padding: 8px 16px 0;
   background: transparent;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid transparent;
 }
 
 .tags-view-scroll {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 4px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
 .tag-item {
   flex-shrink: 0;
-  height: 30px;
+  height: 32px;
   padding: 0 10px 0 12px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 12px 12px 10px 10px;
-  background: hsl(var(--card) / 0.92);
+  border: 1px solid transparent;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px;
+  background: transparent;
   color: var(--text-muted-foreground);
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
+  position: relative;
+  transition: all 0.2s ease;
 
   &:hover {
     color: var(--text-foreground);
-    background: hsl(var(--accent));
-    border-color: hsl(var(--primary) / 0.14);
+    background: hsl(var(--accent) / 0.5);
   }
 
   &.active {
     color: var(--color-primary);
-    background: linear-gradient(180deg, hsl(var(--primary) / 0.18), hsl(var(--primary) / 0.08));
-    border-color: hsl(var(--primary) / 0.22);
-    box-shadow: 0 10px 24px hsl(var(--primary) / 0.1);
+    background: transparent;
+    border-color: transparent;
+    border-bottom-color: transparent;
+    z-index: 1;
+
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--color-primary);
+      border-radius: 0;
+    }
   }
 }
 

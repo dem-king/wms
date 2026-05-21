@@ -46,4 +46,22 @@ public interface TransferService {
      * @param id 调拨单ID
      */
     void submitOrder(Long id);
+
+    /**
+     * 更新调拨单(仅草稿状态)
+     * 逻辑删除原有明细后重新保存
+     *
+     * @param id 调拨单ID
+     * @param dto 调拨单更新参数
+     * @return 更新后的调拨单VO
+     */
+    TransferOrderVo updateOrder(Long id, TransferOrderDto dto);
+
+    /**
+     * 删除调拨单(仅草稿状态)
+     * 逻辑删除调拨单及明细
+     *
+     * @param id 调拨单ID
+     */
+    void deleteOrder(Long id);
 }

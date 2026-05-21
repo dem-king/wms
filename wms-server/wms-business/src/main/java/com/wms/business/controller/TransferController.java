@@ -65,6 +65,30 @@ public class TransferController {
     }
 
     /**
+     * 更新调拨单(仅草稿状态)
+     */
+    @Operation(summary = "更新调拨单")
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "修改", desc = "更新调拨单")
+    public R<TransferOrderVo> updateOrder(@PathVariable Long id,
+                                          @Valid @RequestBody TransferOrderDto dto) {
+        return R.ok(transferService.updateOrder(id, dto));
+    }
+
+    /**
+     * 删除调拨单(仅草稿状态)
+     */
+    @Operation(summary = "删除调拨单")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "business", type = "删除", desc = "删除调拨单")
+    public R<Void> deleteOrder(@PathVariable Long id) {
+        transferService.deleteOrder(id);
+        return R.ok();
+    }
+
+    /**
      * 提交调拨单
      */
     @Operation(summary = "提交调拨单")

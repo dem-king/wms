@@ -25,6 +25,12 @@ const staticRoutes: RouteRecordRaw[] = [
         name: 'WarehouseVisual',
         component: () => import('@/views/warehouse/visual/index.vue'),
         meta: { title: '库房可视化', hidden: true }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { title: '个人中心', hidden: true }
       }
     ]
   },

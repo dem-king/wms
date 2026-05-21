@@ -36,7 +36,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
+              { label: '编辑', type: 'primary', icon: Edit, visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
               { label: '提交', type: 'warning', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, visible: row.status === 'DRAFT', confirmText: '确定删除该报废单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -54,54 +56,7 @@
       @current-change="handleQuery"
     />
 
-    <el-dialog v-model="formVisible" title="新增报废单" width="800px" @close="handleClose">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="库房" prop="warehouseId">
-          <el-select v-model="form.warehouseId" placeholder="请选择库房" style="width: 100%">
-            <el-option v-for="w in warehouseList" :key="w.id" :label="w.warehouseName" :value="w.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="报废原因" prop="scrapReason">
-          <el-input v-model="form.scrapReason" type="textarea" :rows="2" placeholder="请输入报废原因" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-
-      <el-divider content-position="left">报废明细</el-divider>
-      <el-row class="mb8">
-        <el-button type="primary" plain :icon="Plus" @click="addDetailRow">新增行</el-button>
-      </el-row>
-      <el-table :data="form.details" border>
-        <el-table-column label="物品" min-width="200">
-          <template #default="{ row }">
-            <el-select v-model="row.itemId" placeholder="请选择物品" filterable>
-              <el-option v-for="item in itemList" :key="item.id" :label="`${item.itemCode} - ${item.itemName}`" :value="item.id" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="报废数量" min-width="150">
-          <template #default="{ row }">
-            <el-input-number v-model="row.quantity" :min="1" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
-          <template #default="{ $index }">
-            <TableActionGroup
-              :actions="[
-                { label: '删除', type: 'danger', icon: Delete, onClick: () => { form.details.splice($index, 1) } },
-              ]"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <template #footer>
-        <el-button @click="handleClose">取 消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
-      </template>
-    </el-dialog>
+    <ScrapForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
 
     <el-dialog v-model="detailVisible" title="报废单详情" width="700px">
       <el-descriptions :column="2" border v-if="viewRow">
@@ -124,16 +79,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Delete, View } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getScrapOrders, getScrapOrder, addScrapOrder, submitScrapOrder } from '@/api/business/scrap'
-import { getWarehouseList } from '@/api/warehouse/warehouse'
-import { getItemList } from '@/api/item/item'
-import type { ScrapOrderVo, ScrapDetailDto, OrderStatus } from '@/types/business'
-import type { WmsWarehouseVo } from '@/types/warehouse'
-import type { WmsItemVo } from '@/types/item'
+import { getScrapOrders, getScrapOrder, submitScrapOrder, deleteScrapOrder } from '@/api/business/scrap'
+import type { ScrapOrderVo, OrderStatus } from '@/types/business'
+import ScrapForm from './components/ScrapForm.vue'
 
 const statusOptions = [
   { label: '草稿', value: 'DRAFT' },
@@ -155,28 +106,8 @@ const queryParams = reactive({
 })
 
 const formVisible = ref(false)
-const formRef = ref<FormInstance>()
-const submitLoading = ref(false)
-const warehouseList = ref<WmsWarehouseVo[]>([])
-const itemList = ref<WmsItemVo[]>([])
-
-const form = reactive<{
-  warehouseId: number | undefined
-  scrapReason: string
-  remark: string
-  details: ScrapDetailDto[]
-}>({
-  warehouseId: undefined,
-  scrapReason: '',
-  remark: '',
-  details: [],
-})
-
-const rules: FormRules = {
-  warehouseId: [{ required: true, message: '请选择库房', trigger: 'change' }],
-  scrapReason: [{ required: true, message: '请输入报废原因', trigger: 'blur' }],
-}
-
+const isEdit = ref(false)
+const currentRow = ref<ScrapOrderVo | null>(null)
 const detailVisible = ref(false)
 const viewRow = ref<ScrapOrderVo | null>(null)
 
@@ -210,32 +141,16 @@ function handleReset() {
   handleQuery()
 }
 
-async function handleAdd() {
-  const [whRes, iRes] = await Promise.all([getWarehouseList(), getItemList({ page: 1, size: 1000, status: 1 })])
-  warehouseList.value = whRes.data
-  itemList.value = iRes.data.records
+function handleAdd() {
+  isEdit.value = false
+  currentRow.value = null
   formVisible.value = true
 }
 
-function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as number, quantity: 1 })
-}
-
-async function handleSubmit() {
-  await formRef.value?.validate()
-  if (form.details.length === 0) {
-    ElMessage.warning('请添加报废明细')
-    return
-  }
-  submitLoading.value = true
-  try {
-    await addScrapOrder({ warehouseId: form.warehouseId!, scrapReason: form.scrapReason, remark: form.remark, details: form.details })
-    ElMessage.success('新增成功')
-    handleClose()
-    handleQuery()
-  } finally {
-    submitLoading.value = false
-  }
+function handleEdit(row: ScrapOrderVo) {
+  isEdit.value = true
+  currentRow.value = { ...row }
+  formVisible.value = true
 }
 
 async function handleView(row: ScrapOrderVo) {
@@ -251,10 +166,10 @@ async function handleSubmitOrder(row: ScrapOrderVo) {
   handleQuery()
 }
 
-function handleClose() {
-  formVisible.value = false
-  formRef.value?.resetFields()
-  Object.assign(form, { warehouseId: undefined, scrapReason: '', remark: '', details: [] })
+async function handleDelete(id: number) {
+  await deleteScrapOrder(id)
+  ElMessage.success('删除成功')
+  handleQuery()
 }
 
 onMounted(() => {

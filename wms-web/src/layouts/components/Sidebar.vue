@@ -1,7 +1,12 @@
 <template>
   <div class="sidebar-container" :class="{ 'semi-dark': preferences.theme.semiDarkSidebar || isDark }">
     <!-- 双栏布局的左侧（主菜单） -->
-    <div v-if="isSidebarMixedNav || isHeaderMixedNav" class="sidebar-mixed-left" :style="{ width: preferences.sidebar.mixedWidth + 'px' }">
+    <div
+      v-if="isSidebarMixedNav || isHeaderMixedNav"
+      class="sidebar-mixed-left"
+      :class="{ 'has-active-root': !!activeRootMenu }"
+      :style="{ width: preferences.sidebar.mixedWidth + 'px' }"
+    >
       <div v-if="!isHeaderMixedNav" class="logo-mixed">
         <h1>W</h1>
       </div>
@@ -32,7 +37,11 @@
     </div>
 
     <!-- 常规侧边栏 或 双栏布局的右侧（子菜单） -->
-    <div class="sidebar-main" :style="mainSidebarStyle">
+    <div
+      class="sidebar-main"
+      :class="{ 'linked-highlight': isSplitMenu && !!activeRootMenu }"
+      :style="mainSidebarStyle"
+    >
       <div v-if="!isSplitMenu && !isHeaderSidebarNav" class="logo">
         <h1 v-if="!preferences.sidebar.collapsed">WMS</h1>
         <h1 v-else>W</h1>
@@ -132,6 +141,10 @@ function handleRootMenuClick(menu: MenuTreeNode) {
   flex-direction: column;
   border-right: 1px solid var(--color-border);
   background-color: var(--bg-sidebar-deep);
+
+  &.has-active-root {
+    box-shadow: inset -1px 0 0 hsl(var(--primary) / 0.18);
+  }
   
   .mixed-menu-list {
     padding: 8px 0;
@@ -182,6 +195,12 @@ function handleRootMenuClick(menu: MenuTreeNode) {
   height: 100%;
   min-width: 0;
   padding: 12px 10px 14px;
+
+  &.linked-highlight {
+    background:
+      linear-gradient(180deg, hsl(var(--primary) / 0.06), transparent 120px),
+      transparent;
+  }
   
   :deep(.el-menu) {
     background-color: transparent;
@@ -203,6 +222,13 @@ function handleRootMenuClick(menu: MenuTreeNode) {
     color: var(--color-primary) !important;
     background: linear-gradient(90deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.04)) !important;
     box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+
+  &.linked-highlight :deep(.el-menu-item.is-active),
+  &.linked-highlight :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+    box-shadow:
+      inset 0 0 0 1px hsl(var(--primary) / 0.12),
+      0 0 0 1px hsl(var(--primary) / 0.04);
   }
 }
 

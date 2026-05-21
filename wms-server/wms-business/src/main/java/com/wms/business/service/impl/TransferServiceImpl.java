@@ -2,19 +2,20 @@ package com.wms.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wms.business.converter.TransferOrderConverter;
 import com.wms.business.domain.dto.TransferOrderDto;
 import com.wms.business.domain.entity.WmsTransferDetail;
 import com.wms.business.domain.entity.WmsTransferOrder;
 import com.wms.business.domain.vo.TransferOrderVo;
-import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
 import com.wms.business.service.TransferService;
-import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
+import com.wms.common.event.ApprovalRequestEvent;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.business.domain.constant.OrderConstants;
@@ -27,16 +28,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 调拨单服务实现类
- * 处理调拨单的创建、提交等业务逻辑
+ * 处理调拨单的创建、提交、更新、删除等业务逻辑
  */
 @Service
 @RequiredArgsConstructor
@@ -48,11 +45,11 @@ public class TransferServiceImpl implements TransferService {
     private final WmsItemMapper wmsItemMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
-
-
+    private final TransferOrderConverter transferOrderConverter;
 
     /**
      * 分页查询调拨单
+     * 批量查询关联库房构建Map，避免N+1查询
      *
      * @param pageParam 分页参数
      * @param status 单据状态
@@ -75,8 +72,26 @@ public class TransferServiceImpl implements TransferService {
         Page<WmsTransferOrder> page = wmsTransferOrderMapper.selectPage(
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
+        List<WmsTransferOrder> records = page.getRecords();
+        // 收集所有库房ID，批量查询构建Map避免N+1
+        Set<Long> warehouseIds = new HashSet<>();
+        for (WmsTransferOrder order : records) {
+            if (order.getFromWarehouseId() != null) {
+                warehouseIds.add(order.getFromWarehouseId());
+            }
+            if (order.getToWarehouseId() != null) {
+                warehouseIds.add(order.getToWarehouseId());
+            }
+        }
+        Map<Long, WmsWarehouse> warehouseMap = Collections.emptyMap();
+        if (!warehouseIds.isEmpty()) {
+            warehouseMap = wmsWarehouseMapper.selectBatchIds(warehouseIds)
+                    .stream().collect(Collectors.toMap(WmsWarehouse::getId, w -> w));
+        }
+
         PageResult<TransferOrderVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(order -> toOrderVo(order, Map.of())).collect(Collectors.toList()));
+        Map<Long, WmsWarehouse> finalWarehouseMap = warehouseMap;
+        result.setRecords(records.stream().map(order -> transferOrderConverter.toVo(order, finalWarehouseMap)).collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -95,8 +110,12 @@ public class TransferServiceImpl implements TransferService {
         if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调拨单不存在");
         }
-        TransferOrderVo vo = toOrderVo(order, Map.of());
-        vo.setDetails(getOrderDetails(id));
+        TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
+        // 查询明细并转换为VO列表
+        List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsTransferDetail>()
+                        .eq(WmsTransferDetail::getOrderId, id));
+        vo.setDetails(transferOrderConverter.toDetailVoList(details));
         return vo;
     }
 
@@ -135,27 +154,20 @@ public class TransferServiceImpl implements TransferService {
 
         wmsTransferOrderMapper.insert(order);
         // 保存调拨明细
-        for (TransferOrderDto.TransferDetailDto detailDto : dto.getDetails()) {
-            // 校验物品存在
-            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
-                throw new BizException("物品不存在: " + detailDto.getItemId());
-            }
-            WmsTransferDetail detail = new WmsTransferDetail();
-            detail.setOrderId(order.getId());
-            detail.setItemId(detailDto.getItemId());
-            detail.setQuantity(detailDto.getQuantity());
-            wmsTransferDetailMapper.insert(detail);
-        }
+        saveDetails(order.getId(), dto.getDetails());
 
-        TransferOrderVo vo = toOrderVo(order, Map.of());
-        vo.setDetails(getOrderDetails(order.getId()));
+        TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
+        // 查询明细并转换为VO列表
+        List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsTransferDetail>()
+                        .eq(WmsTransferDetail::getOrderId, order.getId()));
+        vo.setDetails(transferOrderConverter.toDetailVoList(details));
         return vo;
     }
 
     /**
      * 提交调拨单
-     * 仅草稿状态可提交，提交后标记为已完成并发布库存同步事件(调出库房出库、调入库房入库)
+     * 仅草稿状态可提交，提交后状态变为待审核并发起审批请求，库存同步延迟到审批通过后
      *
      * @param id 调拨单ID
      */
@@ -175,23 +187,100 @@ public class TransferServiceImpl implements TransferService {
         order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsTransferOrderMapper.updateById(order);
 
-        // 直接标记为已完成并发布库存同步事件(简化流程)
-        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
+        // 发起审批请求，库存同步延迟到审批通过后
+        eventPublisher.publishEvent(new ApprovalRequestEvent(id, BizTypeEnum.TRANSFER.getCode()));
+    }
+
+    /**
+     * 更新调拨单(仅草稿状态)
+     * 校验草稿状态→校验调出/调入库房→更新主表→逻辑删除旧明细→保存新明细
+     *
+     * @param id 调拨单ID
+     * @param dto 调拨单更新参数
+     * @return 更新后的调拨单VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public TransferOrderVo updateOrder(Long id, TransferOrderDto dto) {
+        WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单不存在");
+        }
+        // 仅草稿状态可更新
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
+            throw new BizException("仅草稿状态的调拨单可以更新");
+        }
+        // 校验调出库房存在
+        WmsWarehouse fromWarehouse = wmsWarehouseMapper.selectById(dto.getFromWarehouseId());
+        if (fromWarehouse == null || fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调出库房不存在或已禁用");
+        }
+        // 校验调入库房存在
+        WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
+        if (toWarehouse == null || toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调入库房不存在或已禁用");
+        }
+        // 调出库房和调入库房不能相同
+        if (dto.getFromWarehouseId().equals(dto.getToWarehouseId())) {
+            throw new BizException("调出库房和调入库房不能相同");
+        }
+
+        // 更新主表
+        order.setFromWarehouseId(dto.getFromWarehouseId());
+        order.setToWarehouseId(dto.getToWarehouseId());
+        order.setRemark(dto.getRemark());
         wmsTransferOrderMapper.updateById(order);
 
-        // 调拨完成后：调出库房出库(负数)，调入库房入库(正数)
+        // 逻辑删除原有明细
+        List<WmsTransferDetail> oldDetails = wmsTransferDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsTransferDetail>()
+                        .eq(WmsTransferDetail::getOrderId, id));
+        for (WmsTransferDetail oldDetail : oldDetails) {
+            oldDetail.setDelFlag(DelFlagConstants.DELETED);
+            wmsTransferDetailMapper.updateById(oldDetail);
+        }
+
+        // 保存新明细
+        saveDetails(id, dto.getDetails());
+
+        TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
+        // 查询新明细并转换为VO列表
+        List<WmsTransferDetail> newDetails = wmsTransferDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsTransferDetail>()
+                        .eq(WmsTransferDetail::getOrderId, id));
+        vo.setDetails(transferOrderConverter.toDetailVoList(newDetails));
+        return vo;
+    }
+
+    /**
+     * 删除调拨单(仅草稿状态)
+     * 逻辑删除调拨单主表及明细
+     *
+     * @param id 调拨单ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteOrder(Long id) {
+        WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单不存在");
+        }
+        // 仅草稿状态可删除
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
+            throw new BizException("仅草稿状态的调拨单可以删除");
+        }
+
+        // 逻辑删除主表
+        order.setDelFlag(DelFlagConstants.DELETED);
+        wmsTransferOrderMapper.updateById(order);
+
+        // 逻辑删除明细
         List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsTransferDetail>()
                         .eq(WmsTransferDetail::getOrderId, id));
         for (WmsTransferDetail detail : details) {
-            // 调出库房出库
-            eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getFromWarehouseId(), null,
-                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
-            // 调入库房入库
-            eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getToWarehouseId(), null,
-                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
+            detail.setDelFlag(DelFlagConstants.DELETED);
+            wmsTransferDetailMapper.updateById(detail);
         }
     }
 
@@ -205,70 +294,24 @@ public class TransferServiceImpl implements TransferService {
     }
 
     /**
-     * 获取调拨单明细列表
+     * 批量保存调拨明细
+     * 校验物品存在后逐条保存
      *
      * @param orderId 调拨单ID
-     * @return 调拨明细VO列表
+     * @param detailDtos 明细DTO列表
      */
-    private List<TransferOrderVo.TransferDetailVo> getOrderDetails(Long orderId) {
-        List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
-                new LambdaQueryWrapper<WmsTransferDetail>()
-                        .eq(WmsTransferDetail::getOrderId, orderId));
-        return details.stream().map(this::toDetailVo).collect(Collectors.toList());
-    }
-
-    /**
-     * WmsTransferOrder实体转TransferOrderVo(填充库房名称)
-     */
-    private TransferOrderVo toOrderVo(WmsTransferOrder order, Map<Long, WmsWarehouse> warehouseMap) {
-        TransferOrderVo vo = new TransferOrderVo();
-        vo.setId(order.getId());
-        vo.setOrderNo(order.getOrderNo());
-        vo.setFromWarehouseId(order.getFromWarehouseId());
-        vo.setToWarehouseId(order.getToWarehouseId());
-        vo.setStatus(order.getStatus());
-        vo.setRemark(order.getRemark());
-        vo.setCreateTime(order.getCreateTime());
-        vo.setCreateBy(order.getCreateBy());
-        // 从Map中填充调出库房名称
-        if (order.getFromWarehouseId() != null) {
-            WmsWarehouse fromWarehouse = warehouseMap.get(order.getFromWarehouseId());
-            if (fromWarehouse == null) {
-                fromWarehouse = wmsWarehouseMapper.selectById(order.getFromWarehouseId());
+    private void saveDetails(Long orderId, List<TransferOrderDto.TransferDetailDto> detailDtos) {
+        for (TransferOrderDto.TransferDetailDto detailDto : detailDtos) {
+            // 校验物品存在
+            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
+            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品不存在: " + detailDto.getItemId());
             }
-            if (fromWarehouse != null) {
-                vo.setFromWarehouseName(fromWarehouse.getWarehouseName());
-            }
+            WmsTransferDetail detail = new WmsTransferDetail();
+            detail.setOrderId(orderId);
+            detail.setItemId(detailDto.getItemId());
+            detail.setQuantity(detailDto.getQuantity());
+            wmsTransferDetailMapper.insert(detail);
         }
-        // 从Map中填充调入库房名称
-        if (order.getToWarehouseId() != null) {
-            WmsWarehouse toWarehouse = warehouseMap.get(order.getToWarehouseId());
-            if (toWarehouse == null) {
-                toWarehouse = wmsWarehouseMapper.selectById(order.getToWarehouseId());
-            }
-            if (toWarehouse != null) {
-                vo.setToWarehouseName(toWarehouse.getWarehouseName());
-            }
-        }
-        return vo;
-    }
-
-    /**
-     * WmsTransferDetail实体转TransferDetailVo(填充物品名称)
-     */
-    private TransferOrderVo.TransferDetailVo toDetailVo(WmsTransferDetail detail) {
-        TransferOrderVo.TransferDetailVo vo = new TransferOrderVo.TransferDetailVo();
-        vo.setId(detail.getId());
-        vo.setItemId(detail.getItemId());
-        vo.setQuantity(detail.getQuantity());
-        // 填充物品信息
-        if (detail.getItemId() != null) {
-            WmsItem item = wmsItemMapper.selectById(detail.getItemId());
-            if (item != null) {
-                vo.setItemName(item.getItemName());
-                vo.setItemCode(item.getItemCode());
-            }
-        }
-        return vo;
     }
 }

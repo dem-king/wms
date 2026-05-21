@@ -94,6 +94,22 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public SysUserVo updateProfile(Long id, String realName, String phone, String email, String avatar) {
+        SysUser existing = sysUserMapper.selectById(id);
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户不存在");
+        }
+
+        existing.setRealName(realName);
+        existing.setPhone(phone);
+        existing.setEmail(email);
+        existing.setAvatar(avatar);
+        sysUserMapper.updateById(existing);
+        return toVo(existing);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public SysUserVo create(SysUserDto dto) {
         // 校验用户名唯一性
         checkUsernameUnique(dto.getUsername(), null);

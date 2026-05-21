@@ -7,7 +7,7 @@ import com.wms.common.domain.PageResult;
 
 /**
  * 归还单服务接口
- * 提供归还单的创建、分页查询、详情查看等功能
+ * 提供归还单的创建、更新、删除、提交、分页查询等功能
  */
 public interface ReturnService {
 
@@ -40,11 +40,28 @@ public interface ReturnService {
     ReturnOrderVo createOrder(ReturnOrderDto dto);
 
     /**
+     * 更新归还单(仅草稿状态)
+     * 逻辑删除原有明细后重新保存
+     *
+     * @param id 归还单ID
+     * @param dto 归还单更新参数
+     * @return 更新后的归还单VO
+     */
+    ReturnOrderVo updateOrder(Long id, ReturnOrderDto dto);
+
+    /**
+     * 删除归还单(仅草稿状态)
+     * 逻辑删除归还单及明细
+     *
+     * @param id 归还单ID
+     */
+    void deleteOrder(Long id);
+
+    /**
      * 提交归还单
      * 状态由草稿变为待审批，并发布库存同步事件
      *
      * @param id 归还单ID
-     * @return 提交后的归还单VO
      */
-    ReturnOrderVo submitOrder(Long id);
+    void submitOrder(Long id);
 }

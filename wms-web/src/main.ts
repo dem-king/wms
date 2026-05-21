@@ -5,6 +5,7 @@ import VueKonva from 'vue-konva'
 import App from './App.vue'
 import router from './router'
 import { setupStore } from './store'
+import { useUserStore } from '@/store/modules/user'
 import { initPreferences } from '@/utils/preferences'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
@@ -39,6 +40,7 @@ initPreferences({
 })
 
 setupStore(app)
+useUserStore().initializeFromStorage()
 app.use(ElementPlus, { locale: zhCn })
 app.use(VueKonva)
 app.use(router)

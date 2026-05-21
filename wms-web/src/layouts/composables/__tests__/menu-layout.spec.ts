@@ -4,6 +4,8 @@ import {
   buildSplitMenuState,
   buildSidebarPreferenceState,
   getLayoutMetrics,
+  isRootMenuHighlighted,
+  resolveHorizontalScrollState,
   resolveHeaderMenuAlignment,
   resolveLayoutFlags,
 } from '../menu-layout'
@@ -83,11 +85,87 @@ describe('buildSplitMenuState', () => {
   })
 })
 
+describe('isRootMenuHighlighted', () => {
+  const rootMenu = {
+    id: 10,
+    menuName: '库存管理',
+    menuCode: 'stock',
+    parentId: 0,
+    menuType: 1,
+    path: 'stock',
+    component: '',
+    redirect: '',
+    icon: '',
+    isExternal: 0,
+    isCache: 1,
+    visible: 1,
+    sortOrder: 1,
+    permCode: '',
+    children: [
+      {
+        id: 11,
+        menuName: '库存台账',
+        menuCode: 'ledger',
+        parentId: 10,
+        menuType: 2,
+        path: 'ledger',
+        component: '',
+        redirect: '',
+        icon: '',
+        isExternal: 0,
+        isCache: 1,
+        visible: 1,
+        sortOrder: 1,
+        permCode: '',
+        children: [],
+      },
+    ],
+  }
+
+  it('highlights root menu when current path matches a child route', () => {
+    expect(isRootMenuHighlighted(rootMenu, '/stock/ledger')).toBe(true)
+  })
+
+  it('keeps root menu highlighted when shared active root menu id matches', () => {
+    expect(isRootMenuHighlighted(rootMenu, '/other/path', 10)).toBe(true)
+  })
+})
+
 describe('resolveHeaderMenuAlignment', () => {
   it('maps header menu alignment to flex positions', () => {
     expect(resolveHeaderMenuAlignment('start')).toBe('flex-start')
     expect(resolveHeaderMenuAlignment('center')).toBe('center')
     expect(resolveHeaderMenuAlignment('end')).toBe('flex-end')
+  })
+})
+
+describe('resolveHorizontalScrollState', () => {
+  it('returns no overflow when container width is enough', () => {
+    expect(
+      resolveHorizontalScrollState({
+        clientWidth: 720,
+        scrollLeft: 0,
+        scrollWidth: 720,
+      }),
+    ).toEqual({
+      canScrollLeft: false,
+      canScrollRight: false,
+      isOverflowing: false,
+    })
+  })
+
+  it('returns bidirectional scrolling state when content overflows in the middle', () => {
+    expect(
+      resolveHorizontalScrollState({
+        clientWidth: 720,
+        scrollLeft: 120,
+        scrollWidth: 1080,
+      }),
+    ).toEqual({
+      canScrollLeft: true,
+      canScrollRight: true,
+      isOverflowing: true,
+    })
   })
 })
 

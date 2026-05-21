@@ -43,6 +43,18 @@ export interface LayoutMetrics {
   tabbarHeight: number
 }
 
+export interface HorizontalScrollStateInput {
+  clientWidth: number
+  scrollLeft: number
+  scrollWidth: number
+}
+
+export interface HorizontalScrollState {
+  canScrollLeft: boolean
+  canScrollRight: boolean
+  isOverflowing: boolean
+}
+
 export function resolveLayoutFlags(layout: LayoutType, isMobile: boolean): LayoutFlags {
   const effectiveLayout: LayoutType = isMobile ? 'sidebar-nav' : layout
   const isFullContent = effectiveLayout === 'full-content'
@@ -78,6 +90,27 @@ export function resolveHeaderMenuAlignment(
   return 'flex-start'
 }
 
+export function resolveHorizontalScrollState(
+  input: HorizontalScrollStateInput,
+): HorizontalScrollState {
+  const { clientWidth, scrollLeft, scrollWidth } = input
+  const isOverflowing = scrollWidth - clientWidth > 4
+
+  if (!isOverflowing) {
+    return {
+      canScrollLeft: false,
+      canScrollRight: false,
+      isOverflowing: false,
+    }
+  }
+
+  return {
+    canScrollLeft: scrollLeft > 4,
+    canScrollRight: scrollLeft + clientWidth < scrollWidth - 4,
+    isOverflowing: true,
+  }
+}
+
 export function resolveMenuPath(menu: MenuTreeNode, basePath = ''): string {
   if (menu.path.startsWith('/')) {
     return menu.path
@@ -88,6 +121,23 @@ export function resolveMenuPath(menu: MenuTreeNode, basePath = ''): string {
   }
 
   return `/${menu.path}`.replace(/\/+/g, '/')
+}
+
+export function isRootMenuHighlighted(
+  menu: MenuTreeNode,
+  currentPath: string,
+  activeRootMenuId?: MenuTreeNode['id'] | null,
+): boolean {
+  if (activeRootMenuId != null && menu.id === activeRootMenuId) {
+    return true
+  }
+
+  const rootPath = resolveMenuPath(menu)
+  if (matchesPath(rootPath, currentPath)) {
+    return true
+  }
+
+  return hasMatchingChild(menu.children ?? [], currentPath, rootPath)
 }
 
 function findActiveRootMenu(
@@ -104,12 +154,7 @@ function findActiveRootMenu(
 
   return (
     menuTree.find((menu) => {
-      const rootPath = resolveMenuPath(menu)
-      if (matchesPath(rootPath, currentPath)) {
-        return true
-      }
-
-      return hasMatchingChild(menu.children ?? [], currentPath, rootPath)
+      return isRootMenuHighlighted(menu, currentPath)
     }) ?? null
   )
 }

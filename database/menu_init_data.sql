@@ -69,7 +69,8 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (302, '类目管理', 'item:category', 300, 2, 'category', 'item/category', NULL, 'Menu', 0, 0, 1, 1, 2, NULL, 0),
 (303, '标签管理', 'item:tag', 300, 2, 'tag', 'item/tag', NULL, 'PriceTag', 0, 0, 1, 1, 3, NULL, 0),
 (304, '电子标签', 'item:label', 300, 2, 'label', 'label', NULL, 'Ticket', 0, 0, 1, 1, 4, NULL, 0),
-(305, '库存管理', 'item:stock', 300, 2, 'stock', 'stock', NULL, 'Goods', 0, 0, 1, 1, 5, NULL, 0);
+(305, '库存管理', 'item:stock', 300, 2, 'stock', 'stock', NULL, 'Goods', 0, 0, 1, 1, 5, NULL, 0),
+(306, '机器备件', 'item:machine-spare', 300, 2, 'machine-spare', 'item/machineSpare/index', NULL, 'Connection', 0, 0, 1, 1, 6, NULL, 0);
 
 -- 业务管理目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES

@@ -19,4 +19,7 @@ public class AuthProperties {
     private long captchaExpire = 300;
     private long rsaKeyExpire = 86400;
     private boolean captchaEnabled = true;
+    private String avatarUploadDir = "storage/avatars";
+    private String avatarUrlPrefix = "/api/auth/profile/avatar/content";
+    private long avatarMaxSizeBytes = 2 * 1024 * 1024L;
 }

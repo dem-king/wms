@@ -40,6 +40,24 @@ public interface ScrapService {
     ScrapOrderVo createOrder(ScrapOrderDto dto);
 
     /**
+     * 更新报废单(仅草稿状态)
+     * 逻辑删除原有明细后重新保存
+     *
+     * @param id 报废单ID
+     * @param dto 报废单更新参数
+     * @return 更新后的报废单VO
+     */
+    ScrapOrderVo updateOrder(Long id, ScrapOrderDto dto);
+
+    /**
+     * 删除报废单(仅草稿状态)
+     * 逻辑删除报废单及明细
+     *
+     * @param id 报废单ID
+     */
+    void deleteOrder(Long id);
+
+    /**
      * 提交报废单
      * 草稿→待审核，触发审批或直接执行报废
      *

@@ -23,8 +23,8 @@
 
     <el-table v-loading="loading" :data="tableData" border>
       <el-table-column prop="orderNo" label="归还单号" min-width="160" />
-      <el-table-column prop="outboundOrderNo" label="关联出库单" min-width="160" />
-      <el-table-column prop="recipient" label="领用人" min-width="100" />
+      <el-table-column prop="outboundOrderNo" label="关联出库单号" min-width="160" />
+      <el-table-column prop="receiver" label="归还人" min-width="100" />
       <el-table-column prop="status" label="状态" min-width="100">
         <template #default="{ row }">
           <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
@@ -36,6 +36,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
+              { label: '编辑', type: 'primary', icon: Edit, visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, visible: row.status === 'DRAFT', confirmText: '确定删除该归还单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -53,57 +56,13 @@
       @current-change="handleQuery"
     />
 
-    <el-dialog v-model="formVisible" title="新增归还单" width="800px" @close="handleClose">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="关联出库单" prop="outboundOrderId">
-          <el-select v-model="form.outboundOrderId" placeholder="请选择出库单" style="width: 100%" @change="handleOutboundChange">
-            <el-option v-for="o in outboundList" :key="o.id" :label="`${o.orderNo} - ${o.recipient}`" :value="o.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
+    <ReturnForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
 
-      <el-divider content-position="left">归还明细</el-divider>
-      <el-row class="mb8">
-        <el-button type="primary" plain :icon="Plus" @click="addDetailRow">新增行</el-button>
-      </el-row>
-      <el-table :data="form.details" border>
-        <el-table-column label="物品" min-width="200">
-          <template #default="{ row }">
-            <el-select v-model="row.itemId" placeholder="请选择物品" filterable>
-              <el-option v-for="item in outboundItems" :key="item.itemId" :label="`${item.itemCode} - ${item.itemName}`" :value="item.itemId" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="归还数量" min-width="150">
-          <template #default="{ row }">
-            <el-input-number v-model="row.quantity" :min="1" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
-          <template #default="{ $index }">
-            <TableActionGroup
-              :actions="[
-                { label: '删除', type: 'danger', icon: Delete, onClick: () => { form.details.splice($index, 1) } },
-              ]"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <template #footer>
-        <el-button @click="handleClose">取 消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="detailVisible" title="归还单详情" width="700px">
+    <el-dialog v-model="detailVisible" title="归还单详情" width="800px">
       <el-descriptions :column="2" border v-if="viewRow">
         <el-descriptions-item label="归还单号">{{ viewRow.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="关联出库单">{{ viewRow.outboundOrderNo }}</el-descriptions-item>
-        <el-descriptions-item label="领用人">{{ viewRow.recipient }}</el-descriptions-item>
+        <el-descriptions-item label="归还人">{{ viewRow.receiver }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="statusTagType(viewRow.status)">{{ statusLabel(viewRow.status) }}</el-tag>
         </el-descriptions-item>
@@ -113,6 +72,12 @@
         <el-table-column prop="itemCode" label="物品编码" min-width="120" />
         <el-table-column prop="itemName" label="物品名称" min-width="150" />
         <el-table-column prop="quantity" label="归还数量" min-width="100" />
+        <el-table-column label="物品状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.conditionStatus === 0 ? 'success' : 'danger'">{{ row.conditionStatus === 0 ? '正常' : '损坏' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="abnormalRemark" label="异常说明" min-width="150" />
       </el-table>
     </el-dialog>
   </div>
@@ -120,14 +85,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
-import { ElMessage } from 'element-plus'
-import { Search, Refresh, Plus, Delete, View } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getReturnOrders, getReturnOrder, addReturnOrder } from '@/api/business/return'
-import { getOutboundOrders } from '@/api/business/outbound'
-import type { ReturnOrderVo, ReturnDetailDto, OrderStatus } from '@/types/business'
-import type { OutboundOrderVo, OutboundDetailVo } from '@/types/business'
+import { getReturnOrders, getReturnOrder, submitReturnOrder, deleteReturnOrder } from '@/api/business/return'
+import type { ReturnOrderVo, OrderStatus } from '@/types/business'
+import ReturnForm from './components/ReturnForm.vue'
 
 const statusOptions = [
   { label: '草稿', value: 'DRAFT' },
@@ -149,25 +112,8 @@ const queryParams = reactive({
 })
 
 const formVisible = ref(false)
-const formRef = ref<FormInstance>()
-const submitLoading = ref(false)
-const outboundList = ref<OutboundOrderVo[]>([])
-const outboundItems = ref<OutboundDetailVo[]>([])
-
-const form = reactive<{
-  outboundOrderId: number | undefined
-  remark: string
-  details: ReturnDetailDto[]
-}>({
-  outboundOrderId: undefined,
-  remark: '',
-  details: [],
-})
-
-const rules: FormRules = {
-  outboundOrderId: [{ required: true, message: '请选择出库单', trigger: 'change' }],
-}
-
+const isEdit = ref(false)
+const currentRow = ref<ReturnOrderVo | null>(null)
 const detailVisible = ref(false)
 const viewRow = ref<ReturnOrderVo | null>(null)
 
@@ -201,37 +147,16 @@ function handleReset() {
   handleQuery()
 }
 
-async function handleAdd() {
-  const res = await getOutboundOrders({ page: 1, size: 1000, status: 'COMPLETED' })
-  outboundList.value = res.data.records
+function handleAdd() {
+  isEdit.value = false
+  currentRow.value = null
   formVisible.value = true
 }
 
-async function handleOutboundChange(orderId: number) {
-  const order = outboundList.value.find(o => o.id === orderId)
-  outboundItems.value = order?.details || []
-  form.details = outboundItems.value.map(d => ({ itemId: d.itemId, quantity: d.quantity }))
-}
-
-function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as number, quantity: 1 })
-}
-
-async function handleSubmit() {
-  await formRef.value?.validate()
-  if (form.details.length === 0) {
-    ElMessage.warning('请添加归还明细')
-    return
-  }
-  submitLoading.value = true
-  try {
-    await addReturnOrder({ outboundOrderId: form.outboundOrderId!, remark: form.remark, details: form.details })
-    ElMessage.success('新增成功')
-    handleClose()
-    handleQuery()
-  } finally {
-    submitLoading.value = false
-  }
+function handleEdit(row: ReturnOrderVo) {
+  isEdit.value = true
+  currentRow.value = { ...row }
+  formVisible.value = true
 }
 
 async function handleView(row: ReturnOrderVo) {
@@ -240,11 +165,17 @@ async function handleView(row: ReturnOrderVo) {
   detailVisible.value = true
 }
 
-function handleClose() {
-  formVisible.value = false
-  formRef.value?.resetFields()
-  Object.assign(form, { outboundOrderId: undefined, remark: '', details: [] })
-  outboundItems.value = []
+async function handleSubmitOrder(row: ReturnOrderVo) {
+  await ElMessageBox.confirm('确定提交该归还单吗？', '提示', { type: 'warning' })
+  await submitReturnOrder(row.id)
+  ElMessage.success('提交成功')
+  handleQuery()
+}
+
+async function handleDelete(id: number) {
+  await deleteReturnOrder(id)
+  ElMessage.success('删除成功')
+  handleQuery()
 }
 
 onMounted(() => {

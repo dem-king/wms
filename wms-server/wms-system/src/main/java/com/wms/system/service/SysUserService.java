@@ -51,6 +51,18 @@ public interface SysUserService {
     SysUserVo getById(Long id);
 
     /**
+     * 更新当前用户个人资料
+     *
+     * @param id 用户ID
+     * @param realName 真实姓名
+     * @param phone 手机号
+     * @param email 邮箱
+     * @param avatar 头像地址
+     * @return 更新后的用户VO
+     */
+    SysUserVo updateProfile(Long id, String realName, String phone, String email, String avatar);
+
+    /**
      * 新增用户
      * 密码使用BCrypt加密存储，并关联角色
      *

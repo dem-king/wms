@@ -1,6 +1,8 @@
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\StockService.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\ItemDto.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\impl\MachineSpareServiceImpl.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\TagService.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\entity\WmsMachineSpare.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsItemTagMapper.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsElectronicLabelMapper.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\entity\WmsTag.java
@@ -11,6 +13,7 @@ D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\util\QrCodeUtil
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\LabelController.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\ItemVo.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\impl\ItemServiceImpl.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\task\IdleCheckTask.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\LabelStatusDto.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\impl\TagServiceImpl.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\SubCategoryVo.java
@@ -25,7 +28,9 @@ D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\Categ
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\CategoryController.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\CategoryDto.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\StockVo.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\MachineSpareController.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\TagController.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\MachineSpareDto.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsStockMapper.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\entity\WmsItem.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\entity\WmsCategory.java
@@ -36,6 +41,7 @@ D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\SubC
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\constant\ItemConstants.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\constant\LabelConstants.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\ElectronicLabelService.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\MachineSpareVo.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\constant\TagConstants.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\converter\ItemConverter.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsTagMapper.java
@@ -47,6 +53,9 @@ D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\impl\Ca
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsSubCategoryMapper.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\entity\WmsStock.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsCategoryMapper.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\converter\MachineSpareConverter.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\ItemService.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\LabelBindDto.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\LabelGenerateDto.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\service\MachineSpareService.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\mapper\WmsMachineSpareMapper.java
