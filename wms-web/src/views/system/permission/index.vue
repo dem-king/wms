@@ -147,8 +147,9 @@ async function handleQuery() {
   loading.value = true
   try {
     const res = await getPermissionList(queryParams)
-    tableData.value = res.data.records
-    total.value = res.data.total
+    const permissions = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = permissions
+    total.value = Array.isArray(res.data) ? permissions.length : res.data.total
   } finally {
     loading.value = false
   }

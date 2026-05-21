@@ -90,23 +90,13 @@ public class ItemConverter {
 - `mapper.deleteById(id)`
 - `mapper.deleteBatchIds(ids)`
 
-### 3.2 逻辑删除必须设置lastOperType
+### 3.2 逻辑删除
 
 ```java
 // 正确：手动设置 + updateById
-entity.setDelFlag(1);
-entity.setLastOperType("d");
+entity.setDelFlag(DelFlagConstants.DELETED);
 mapper.updateById(entity);
 ```
-
-```java
-// 错误：只设置delFlag
-entity.setDelFlag(1);
-mapper.updateById(entity);
-```
-
-> `lastOperType` 取值：`"i"` 新增、`"u"` 更新、`"d"` 删除
-> MetaObjectHandler 在 insert 时自动填充 `"i"`，update 时自动填充 `"u"`
 > 手动设置的值不会被覆盖（strictFill 仅填充null值）
 
 ### 3.3 禁止手动拼接del_flag=0条件
@@ -156,15 +146,74 @@ if (stock.getQuantity() < 0) {
 
 ### 4.3 禁止魔法数字
 
-状态值必须使用常量：
+状态值、类型值、标志位等**禁止直接写数字或字符串字面量**，必须使用常量类或枚举引用：
+
+#### 4.3.1 常量类规范
+
+- **公共常量**（多模块复用）放在 `wms-common` 的 `com.wms.common.constant` 包下
+- **模块常量**（单模块使用）放在各模块 `domain.constant` 包下
+- 常量类以 `Constants` 结尾，使用 `public final class` + 私有构造函数
+- 每个常量必须有中文JavaDoc注释
 
 ```java
-private static final int STATUS_DRAFT = 0;
-private static final int STATUS_PENDING = 1;
-private static final int STATUS_COMPLETED = 5;
+/**
+ * 逻辑删除常量类
+ */
+public final class DelFlagConstants {
+    private DelFlagConstants() {}
+    /** 逻辑删除：正常（未删除） */
+    public static final int NORMAL = 0;
+    /** 逻辑删除：已删除 */
+    public static final int DELETED = 1;
+}
+```
 
-order.setStatus(STATUS_DRAFT);  // 正确
-order.setStatus(0);             // 错误
+#### 4.3.2 现有公共常量类
+
+| 常量类 | 模块 | 包含常量 |
+|--------|------|---------|
+| `DelFlagConstants` | wms-common | NORMAL=0, DELETED=1 |
+| `BizConstants` | wms-common | STATUS_ENABLED/DISABLED, DEFAULT_SORT_ORDER, TOP_PARENT_ID, STOCK_SYNC_IN/OUT |
+| `WarehouseConstants` | wms-warehouse | 编码前缀(KF/QY/CG), IS_OCCUPIED_NO/YES |
+| `ItemConstants` | wms-item | 编码前缀(WP), IS_CONSUMABLE_NO, IS_RETURNABLE_YES, DEFAULT_STOCK_QTY, QUICK_SEARCH_LIMIT |
+| `LabelConstants` | wms-item | 编码前缀(BQ), 打印状态, RFID类型, 闲置阈值 |
+| `TagConstants` | wms-item | SCOPE_TYPE_GLOBAL |
+| `OrderConstants` | wms-business | 单据编号前缀(RK/CK/GH/BF/DB) |
+| `AuthConstants` | wms-auth | 验证码参数, 限流窗口, 缓存过期, 操作结果, UA长度 |
+| `TokenConstants` | wms-auth | TOKEN_TYPE_BEARER, HMAC_KEY_LENGTH, REVOKE_FLAG, TOKEN_TYPE_REFRESH |
+| `SysMenuConstants` | wms-system | 菜单状态/可见性/类型常量 |
+
+#### 4.3.3 使用示例
+
+```java
+// 正确：使用常量类引用
+entity.setDelFlag(DelFlagConstants.DELETED);
+order.setStatus(OrderStatusEnum.DRAFT.getCode());
+warehouse.setStatus(BizConstants.STATUS_ENABLED);
+event.setDirection(BizConstants.STOCK_SYNC_IN);
+
+// 错误：魔法数字
+entity.setDelFlag(1);
+order.setStatus(0);
+warehouse.setStatus(1);
+event.setDirection("IN");
+```
+
+#### 4.3.4 禁止在ServiceImpl中定义局部常量
+
+ServiceImpl中**禁止**使用 `private static final` 定义业务常量，必须提取到对应的常量类或枚举中：
+
+```java
+// 错误：ServiceImpl中的局部常量
+public class InboundServiceImpl {
+    private static final int STATUS_DRAFT = 0;
+    private static final String ORDER_NO_PREFIX = "RK";
+}
+
+// 正确：引用常量类/枚举
+public class InboundServiceImpl {
+    // 直接使用 OrderStatusEnum.DRAFT.getCode() 和 OrderConstants.INBOUND_NO_PREFIX
+}
 ```
 
 ### 4.4 异常信息必须精确
@@ -302,8 +351,7 @@ public R<List<BinVo>> batchCreate(@PathVariable Long cabinetId,
 `create_by`         VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
 `update_time`       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 `update_by`         VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-`last_oper_type`    VARCHAR(10)  DEFAULT NULL            COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-`last_oper_time`    DATETIME     DEFAULT NULL            COMMENT '最后操作时间',
+
 ```
 
 ### 7.4 主键不使用AUTO_INCREMENT
@@ -324,6 +372,30 @@ public R<List<BinVo>> batchCreate(@PathVariable Long cabinetId,
 | Converter类 | 以`Converter`结尾 | `ItemConverter` |
 | 状态常量 | 全大写下划线 | `STATUS_DRAFT`、`STATUS_PENDING` |
 
+### 8.1 前后端参数命名一致
+
+前后端接口的请求参数和响应字段命名必须保持一致，避免前后端因命名不匹配导致数据绑定失败或字段丢失：
+
+- 后端DTO/VO的字段名必须与前端API请求/响应的参数名一致
+- 后端字段使用小驼峰（camelCase），前端对应参数也使用小驼峰
+- 禁止后端用`warehouseId`而前端用`warehouse_id`等命名不一致的情况
+
+```java
+// 后端DTO
+public class InboundOrderDto {
+    private Long warehouseId;    // 后端：小驼峰
+    private String orderNo;
+}
+```
+
+```typescript
+// 前端API参数：命名与后端保持一致
+interface InboundOrderParams {
+    warehouseId: number;    // 前端：与后端一致，使用小驼峰
+    orderNo: string;
+}
+```
+
 ---
 
 ## 九、PR自查清单（提交前必须逐项确认）
@@ -335,7 +407,7 @@ public R<List<BinVo>> batchCreate(@PathVariable Long cabinetId,
 □ 写操作有@OperLog？
 □ Controller不含业务逻辑（无Entity转换/SecurityUtil）？
 □ 返回VO而非Entity？
-□ 删除用逻辑删除（setDelFlag+setLastOperType("d")+updateById）？
+□ 删除用逻辑删除（setDelFlag+updateById）？
 □ 无.eq(::getDelFlag, 0)冗余条件？
 □ 无物理删除（mapper.delete/deleteById）？
 □ 无魔法数字？
@@ -345,9 +417,11 @@ public R<List<BinVo>> batchCreate(@PathVariable Long cabinetId,
 │  类有JavaDoc？
 │  public方法有JavaDoc？
 │  关键逻辑有行内注释？
-□ SQL表有last_oper_type+last_oper_time字段？
 □ 主键策略为ASSIGN_ID（雪花ID）？
 □ Controller参数有校验注解？
-│  状态值使用常量而非魔法数字？
+│  状态值使用常量类/枚举而非魔法数字？
+│  ServiceImpl中无private static final局部常量？
+│  逻辑删除使用DelFlagConstants而非直接写1？
 │  VO类以Vo结尾（小写o）？
+□ 前后端参数命名一致（小驼峰，无下划线混用）？
 ```

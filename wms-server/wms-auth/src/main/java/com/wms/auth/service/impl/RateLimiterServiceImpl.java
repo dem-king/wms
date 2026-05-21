@@ -2,6 +2,7 @@ package com.wms.auth.service.impl;
 
 import com.wms.auth.constant.AuthRedisKey;
 import com.wms.auth.config.AuthProperties;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.service.RateLimiterService;
 import com.wms.common.exception.BizException;
@@ -38,7 +39,7 @@ public class RateLimiterServiceImpl implements RateLimiterService {
                 script,
                 Collections.singletonList(key),
                 String.valueOf(authProperties.getIpRateLimitThreshold()),
-                "60"
+                String.valueOf(AuthConstants.RATE_LIMIT_WINDOW_SECONDS)
         );
         if (result == null || result == 0L) {
             throw new BizException(AuthErrorCode.IP_RATE_LIMITED.getCode(), AuthErrorCode.IP_RATE_LIMITED.getMsg());

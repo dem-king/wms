@@ -13,8 +13,6 @@ CREATE TABLE IF NOT EXISTS `auth_login_log` (
     `create_by` VARCHAR(50) DEFAULT NULL COMMENT '创建人',
     `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
     `update_by` VARCHAR(50) DEFAULT NULL COMMENT '更新人',
-    `last_oper_time` DATETIME DEFAULT NULL COMMENT '最后操作时间',
-    `last_oper_type` VARCHAR(10) DEFAULT NULL COMMENT '最后操作符',
     PRIMARY KEY (`id`),
     KEY `idx_username` (`username`),
     KEY `idx_user_id` (`user_id`),
@@ -36,8 +34,6 @@ CREATE TABLE IF NOT EXISTS `auth_oper_log` (
     `create_by` VARCHAR(50) DEFAULT NULL COMMENT '创建人',
     `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
     `update_by` VARCHAR(50) DEFAULT NULL COMMENT '更新人',
-    `last_oper_time` DATETIME DEFAULT NULL COMMENT '最后操作时间',
-    `last_oper_type` VARCHAR(10) DEFAULT NULL COMMENT '最后操作符',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_oper_time` (`oper_time`)

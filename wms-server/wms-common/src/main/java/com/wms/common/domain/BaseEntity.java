@@ -33,8 +33,4 @@ public class BaseEntity {
     @Schema(description = "更新人")
     private String updateBy;
 
-    @Schema(description = "最后操作类型(i-新增 u-更新 d-删除)")
-    private String lastOperType;
-
-
 }

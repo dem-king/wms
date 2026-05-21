@@ -1,7 +1,9 @@
 package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
+import com.wms.item.domain.constant.TagConstants;
 import com.wms.item.domain.dto.TagDto;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsItemTag;
@@ -47,7 +49,7 @@ public class TagServiceImpl implements TagService {
         copyDtoToEntity(dto, tag);
         // 默认全局范围
         if (tag.getScopeType() == null) {
-            tag.setScopeType(0);
+            tag.setScopeType(TagConstants.SCOPE_TYPE_GLOBAL);
         }
         wmsTagMapper.insert(tag);
         return toVo(tag);
@@ -57,7 +59,7 @@ public class TagServiceImpl implements TagService {
     @Transactional(rollbackFor = Exception.class)
     public TagVo update(Long id, TagDto dto) {
         WmsTag existing = wmsTagMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("标签不存在");
         }
         copyDtoToEntity(dto, existing);
@@ -70,14 +72,14 @@ public class TagServiceImpl implements TagService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsTag existing = wmsTagMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("标签不存在");
         }
         // 逻辑删除标签
         WmsTag updateEntity = new WmsTag();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsTagMapper.updateById(updateEntity);
         // 逻辑删除物品与该标签的关联
         List<WmsItemTag> itemTags = wmsItemTagMapper.selectList(
@@ -87,8 +89,8 @@ public class TagServiceImpl implements TagService {
         for (WmsItemTag itemTag : itemTags) {
             WmsItemTag updateItemTag = new WmsItemTag();
             updateItemTag.setId(itemTag.getId());
-            updateItemTag.setDelFlag(1);
-            updateItemTag.setLastOperType("d");
+            updateItemTag.setDelFlag(DelFlagConstants.DELETED);
+            
             wmsItemTagMapper.updateById(updateItemTag);
         }
     }

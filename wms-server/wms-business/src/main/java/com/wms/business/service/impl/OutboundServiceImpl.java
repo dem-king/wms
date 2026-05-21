@@ -10,9 +10,14 @@ import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.service.OutboundService;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
 import com.wms.warehouse.domain.entity.WmsBin;
@@ -24,9 +29,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -43,18 +50,9 @@ public class OutboundServiceImpl implements OutboundService {
     private final WmsItemMapper wmsItemMapper;
     private final WmsBinMapper wmsBinMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final SequenceGenerator sequenceGenerator;
 
-    /** 出库单号前缀 */
-    private static final String ORDER_NO_PREFIX = "CK";
 
-    /** 草稿状态 */
-    private static final int STATUS_DRAFT = 0;
-
-    /** 待审核状态 */
-    private static final int STATUS_PENDING = 1;
-
-    /** 已完成状态 */
-    private static final int STATUS_COMPLETED = 3;
 
     /**
      * 分页查询出库单
@@ -92,7 +90,14 @@ public class OutboundServiceImpl implements OutboundService {
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
         PageResult<OutboundOrderVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(this::toOrderVo).collect(Collectors.toList()));
+        List<WmsOutboundOrder> orders = page.getRecords();
+        // 批量查询库房构建Map，避免N+1查询
+        Set<Long> warehouseIds = orders.stream()
+                .map(WmsOutboundOrder::getWarehouseId).filter(id -> id != null).collect(Collectors.toSet());
+        Map<Long, WmsWarehouse> warehouseMap = warehouseIds.isEmpty() ? Map.of()
+                : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
+                        .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
+        result.setRecords(orders.stream().map(order -> toOrderVo(order, warehouseMap)).collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -108,10 +113,10 @@ public class OutboundServiceImpl implements OutboundService {
     @Override
     public OutboundOrderVo getOrderById(Long id) {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("出库单不存在");
         }
-        OutboundOrderVo vo = toOrderVo(order);
+        OutboundOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(id));
         return vo;
     }
@@ -128,7 +133,7 @@ public class OutboundServiceImpl implements OutboundService {
     public OutboundOrderVo createOrder(OutboundOrderDto dto) {
         // 校验库房是否存在且为启用状态
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == 1) {
+        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在或已禁用");
         }
 
@@ -137,7 +142,7 @@ public class OutboundServiceImpl implements OutboundService {
         order.setOrderNo(generateOrderNo());
         order.setWarehouseId(dto.getWarehouseId());
         order.setOrderType(dto.getOrderType());
-        order.setStatus(STATUS_DRAFT);
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
         order.setReceiver(dto.getReceiver());
         order.setPurpose(dto.getPurpose());
         order.setExpectedReturnDate(dto.getExpectedReturnDate());
@@ -148,7 +153,7 @@ public class OutboundServiceImpl implements OutboundService {
         for (OutboundOrderDto.OutboundDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == 1) {
+            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
             }
             WmsOutboundDetail detail = new WmsOutboundDetail();
@@ -159,7 +164,7 @@ public class OutboundServiceImpl implements OutboundService {
             wmsOutboundDetailMapper.insert(detail);
         }
 
-        OutboundOrderVo vo = toOrderVo(order);
+        OutboundOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(order.getId()));
         return vo;
     }
@@ -176,17 +181,17 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public OutboundOrderVo updateOrder(Long id, OutboundOrderDto dto) {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("出库单不存在");
         }
         // 仅草稿状态可更新
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的出库单可以更新");
         }
 
         // 校验库房
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == 1) {
+        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在或已禁用");
         }
 
@@ -204,8 +209,8 @@ public class OutboundServiceImpl implements OutboundService {
         for (WmsOutboundDetail oldDetail : oldDetails) {
             WmsOutboundDetail updateDetail = new WmsOutboundDetail();
             updateDetail.setId(oldDetail.getId());
-            updateDetail.setDelFlag(1);
-            updateDetail.setLastOperType("d");
+            updateDetail.setDelFlag(DelFlagConstants.DELETED);
+            
             wmsOutboundDetailMapper.updateById(updateDetail);
         }
         for (OutboundOrderDto.OutboundDetailDto detailDto : dto.getDetails()) {
@@ -217,7 +222,7 @@ public class OutboundServiceImpl implements OutboundService {
             wmsOutboundDetailMapper.insert(detail);
         }
 
-        OutboundOrderVo vo = toOrderVo(order);
+        OutboundOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(id));
         return vo;
     }
@@ -232,20 +237,20 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("出库单不存在");
         }
         // 仅草稿状态可提交
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的出库单可以提交");
         }
 
         // 状态变为待审核
-        order.setStatus(STATUS_PENDING);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsOutboundOrderMapper.updateById(order);
 
         // 直接标记为已完成并发布库存同步事件(简化流程)
-        order.setStatus(STATUS_COMPLETED);
+        order.setStatus(OrderStatusEnum.APPROVED.getCode());
         wmsOutboundOrderMapper.updateById(order);
 
         // 查询出库明细，逐条发布库存同步事件(出库为负数)
@@ -255,7 +260,7 @@ public class OutboundServiceImpl implements OutboundService {
         for (WmsOutboundDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
-                    -detail.getQuantity(), "OUT"));
+                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
         }
     }
 
@@ -269,18 +274,18 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("出库单不存在");
         }
         // 仅草稿状态可删除
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的出库单可以删除");
         }
         // 逻辑删除出库单
         WmsOutboundOrder updateEntity = new WmsOutboundOrder();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsOutboundOrderMapper.updateById(updateEntity);
         // 逻辑删除出库明细
         List<WmsOutboundDetail> details = wmsOutboundDetailMapper.selectList(
@@ -289,34 +294,19 @@ public class OutboundServiceImpl implements OutboundService {
         for (WmsOutboundDetail detail : details) {
             WmsOutboundDetail updateDetail = new WmsOutboundDetail();
             updateDetail.setId(detail.getId());
-            updateDetail.setDelFlag(1);
-            updateDetail.setLastOperType("d");
+            updateDetail.setDelFlag(DelFlagConstants.DELETED);
+            
             wmsOutboundDetailMapper.updateById(updateDetail);
         }
     }
 
     /**
      * 生成出库单号: CK + 年月日 + 4位流水号
-     * 示例: CK202605140001
+     * 使用Redis INCR原子操作保证并发安全
+     * 示例: CK202605180001
      */
     private String generateOrderNo() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsOutboundOrder> wrapper = new LambdaQueryWrapper<WmsOutboundOrder>()
-                .likeRight(WmsOutboundOrder::getOrderNo, ORDER_NO_PREFIX + datePart)
-                .orderByDesc(WmsOutboundOrder::getOrderNo)
-                .last("LIMIT 1");
-        WmsOutboundOrder lastOrder = wmsOutboundOrderMapper.selectOne(wrapper);
-        int seq = 1;
-        if (lastOrder != null && lastOrder.getOrderNo() != null) {
-            String lastNo = lastOrder.getOrderNo();
-            String seqStr = lastNo.substring(lastNo.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return ORDER_NO_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(OrderConstants.OUTBOUND_NO_PREFIX);
     }
 
     /**
@@ -334,8 +324,11 @@ public class OutboundServiceImpl implements OutboundService {
 
     /**
      * WmsOutboundOrder实体转OutboundOrderVo(填充库房名称)
+     *
+     * @param order 出库单实体
+     * @param warehouseMap 库房ID到实体的映射
      */
-    private OutboundOrderVo toOrderVo(WmsOutboundOrder order) {
+    private OutboundOrderVo toOrderVo(WmsOutboundOrder order, Map<Long, WmsWarehouse> warehouseMap) {
         OutboundOrderVo vo = new OutboundOrderVo();
         vo.setId(order.getId());
         vo.setOrderNo(order.getOrderNo());
@@ -348,9 +341,12 @@ public class OutboundServiceImpl implements OutboundService {
         vo.setRemark(order.getRemark());
         vo.setCreateTime(order.getCreateTime());
         vo.setCreateBy(order.getCreateBy());
-        // 填充库房名称
+        // 从Map中填充库房名称
         if (order.getWarehouseId() != null) {
-            WmsWarehouse warehouse = wmsWarehouseMapper.selectById(order.getWarehouseId());
+            WmsWarehouse warehouse = warehouseMap.get(order.getWarehouseId());
+            if (warehouse == null) {
+                warehouse = wmsWarehouseMapper.selectById(order.getWarehouseId());
+            }
             if (warehouse != null) {
                 vo.setWarehouseName(warehouse.getWarehouseName());
             }

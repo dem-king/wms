@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.WarehouseDto;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.domain.vo.WarehouseVo;
@@ -28,9 +32,7 @@ import java.util.stream.Collectors;
 public class WarehouseServiceImpl implements WarehouseService {
 
     private final WmsWarehouseMapper wmsWarehouseMapper;
-
-    /** 库房编码前缀 */
-    private static final String WAREHOUSE_CODE_PREFIX = "KF";
+    private final SequenceGenerator sequenceGenerator;
 
     @Override
     public List<WarehouseVo> listAll() {
@@ -76,7 +78,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         warehouse.setWarehouseCode(generateWarehouseCode());
         // 默认状态为启用
         if (warehouse.getStatus() == null) {
-            warehouse.setStatus(1);
+            warehouse.setStatus(BizConstants.STATUS_ENABLED);
         }
         wmsWarehouseMapper.insert(warehouse);
         return toWarehouseVo(warehouse);
@@ -86,7 +88,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Transactional(rollbackFor = Exception.class)
     public WarehouseVo update(Long id, WarehouseDto dto) {
         WmsWarehouse existing = wmsWarehouseMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在");
         }
         copyDtoToEntity(dto, existing);
@@ -101,40 +103,24 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsWarehouse existing = wmsWarehouseMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在");
         }
         // 逻辑删除库房
         WmsWarehouse updateEntity = new WmsWarehouse();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsWarehouseMapper.updateById(updateEntity);
     }
 
     /**
      * 生成库房编码: KF + 年月日 + 4位流水号
+     * 基于Redis INCR原子操作保证并发安全
      * 示例: KF202605140001
      */
     private String generateWarehouseCode() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        // 查询当天最大编号
-        LambdaQueryWrapper<WmsWarehouse> wrapper = new LambdaQueryWrapper<WmsWarehouse>()
-                .likeRight(WmsWarehouse::getWarehouseCode, WAREHOUSE_CODE_PREFIX + datePart)
-                .orderByDesc(WmsWarehouse::getWarehouseCode)
-                .last("LIMIT 1");
-        WmsWarehouse last = wmsWarehouseMapper.selectOne(wrapper);
-        int seq = 1;
-        if (last != null && last.getWarehouseCode() != null) {
-            String lastCode = last.getWarehouseCode();
-            String seqStr = lastCode.substring(lastCode.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return WAREHOUSE_CODE_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(WarehouseConstants.WAREHOUSE_CODE_PREFIX);
     }
 
     /**

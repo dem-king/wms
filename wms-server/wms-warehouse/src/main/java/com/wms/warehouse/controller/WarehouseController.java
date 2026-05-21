@@ -37,6 +37,7 @@ public class WarehouseController {
     @Operation(summary = "查询所有库房列表")
     @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
+    @DataScope
     public R<List<WarehouseVo>> listAll() {
         return R.ok(warehouseService.listAll());
     }

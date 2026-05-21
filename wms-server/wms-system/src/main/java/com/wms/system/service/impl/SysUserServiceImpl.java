@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysUserDto;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.entity.SysUserRole;
@@ -84,7 +86,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public SysUserVo getById(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == 1) {
+        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户不存在");
         }
         return toVo(user);
@@ -103,7 +105,7 @@ public class SysUserServiceImpl implements SysUserService {
         user.setPassword(encoder.encode(password));
         // 新增用户默认启用
         if (user.getStatus() == null) {
-            user.setStatus(1);
+            user.setStatus(BizConstants.STATUS_ENABLED);
         }
         sysUserMapper.insert(user);
         // 保存用户角色关联
@@ -117,7 +119,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     public SysUserVo update(Long id, SysUserDto dto) {
         SysUser existing = sysUserMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户不存在");
         }
         // 校验用户名唯一性(排除自身)
@@ -138,14 +140,14 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == 1) {
+        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户不存在");
         }
         // 逻辑删除用户
         SysUser updateUser = new SysUser();
         updateUser.setId(id);
-        updateUser.setDelFlag(1);
-        updateUser.setLastOperType("d");
+        updateUser.setDelFlag(DelFlagConstants.DELETED);
+  
         sysUserMapper.updateById(updateUser);
     }
 
@@ -153,7 +155,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     public void resetPwd(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == 1) {
+        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户不存在");
         }
         // 使用BCrypt加密默认密码
@@ -168,13 +170,13 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     public void changeStatus(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == 1) {
+        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户不存在");
         }
         // 切换状态: 0->1, 1->0
         SysUser updateUser = new SysUser();
         updateUser.setId(id);
-        updateUser.setStatus(user.getStatus() == 1 ? 0 : 1);
+        updateUser.setStatus(user.getStatus() == BizConstants.STATUS_ENABLED ? BizConstants.STATUS_DISABLED : BizConstants.STATUS_ENABLED);
         sysUserMapper.updateById(updateUser);
     }
 
@@ -198,8 +200,8 @@ public class SysUserServiceImpl implements SysUserService {
         for (SysUserRole oldRole : oldUserRoles) {
             SysUserRole updateRole = new SysUserRole();
             updateRole.setId(oldRole.getId());
-            updateRole.setDelFlag(1);
-            updateRole.setLastOperType("d");
+            updateRole.setDelFlag(DelFlagConstants.DELETED);
+ 
             sysUserRoleMapper.updateById(updateRole);
         }
         // 批量插入新的用户角色关联

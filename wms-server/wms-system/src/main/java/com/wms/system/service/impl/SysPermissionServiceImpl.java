@@ -2,6 +2,8 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysPermissionDto;
 import com.wms.system.domain.entity.SysPermission;
 import com.wms.system.domain.entity.SysRolePermission;
@@ -54,7 +56,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         List<SysPermission> permissions = sysPermissionMapper.selectList(
                 new LambdaQueryWrapper<SysPermission>()
                         .in(SysPermission::getId, permIds)
-                        .eq(SysPermission::getStatus, 1)
+                        .eq(SysPermission::getStatus, BizConstants.STATUS_ENABLED)
         );
         return permissions.stream().map(SysPermission::getPermCode).collect(Collectors.toList());
     }
@@ -70,7 +72,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     public SysPermissionVo getById(Long id) {
         SysPermission perm = sysPermissionMapper.selectById(id);
-        if (perm == null || perm.getDelFlag() == 1) {
+        if (perm == null || perm.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("权限不存在");
         }
         return toVo(perm);
@@ -85,7 +87,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         copyDtoToEntity(dto, perm);
         // 新增权限默认启用
         if (perm.getStatus() == null) {
-            perm.setStatus(1);
+            perm.setStatus(BizConstants.STATUS_ENABLED);
         }
         sysPermissionMapper.insert(perm);
         return toVo(perm);
@@ -95,7 +97,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Transactional(rollbackFor = Exception.class)
     public SysPermissionVo update(Long id, SysPermissionDto dto) {
         SysPermission existing = sysPermissionMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("权限不存在");
         }
         // 校验权限编码唯一性(排除自身)
@@ -110,14 +112,14 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysPermission existing = sysPermissionMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("权限不存在");
         }
         // 逻辑删除权限
         SysPermission updatePerm = new SysPermission();
         updatePerm.setId(id);
-        updatePerm.setDelFlag(1);
-        updatePerm.setLastOperType("d");
+        updatePerm.setDelFlag(DelFlagConstants.DELETED);
+   
         sysPermissionMapper.updateById(updatePerm);
     }
 

@@ -2,10 +2,13 @@ package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.PinyinUtil;
+import com.wms.item.domain.constant.ItemConstants;
 import com.wms.item.domain.dto.ItemDto;
 import com.wms.item.domain.entity.*;
 import com.wms.item.domain.vo.ItemImageVo;
@@ -24,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -41,9 +45,6 @@ public class ItemServiceImpl implements ItemService {
     private final WmsCategoryMapper wmsCategoryMapper;
     private final WmsSubCategoryMapper wmsSubCategoryMapper;
     private final WmsTagMapper wmsTagMapper;
-
-    /** 物品编号前缀 */
-    private static final String ITEM_CODE_PREFIX = "WP";
 
     @Override
     public PageResult<ItemVo> page(PageParam pageParam, Long categoryId, Long subCategoryId,
@@ -95,22 +96,22 @@ public class ItemServiceImpl implements ItemService {
 
         // 批量查询所有涉及的类目和细分类目，避免N+1查询
         List<WmsItem> items = page.getRecords();
-        Map<Long, String> categoryNameMap = items.stream()
+        java.util.Set<Long> categoryIds = items.stream()
                 .map(WmsItem::getCategoryId)
                 .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, id -> {
-                    WmsCategory c = wmsCategoryMapper.selectById(id);
-                    return c != null ? c.getCategoryName() : null;
-                }));
-        Map<Long, String> subCategoryNameMap = items.stream()
+                .collect(java.util.stream.Collectors.toSet());
+        java.util.Set<Long> subCategoryIds = items.stream()
                 .map(WmsItem::getSubCategoryId)
                 .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, id -> {
-                    WmsSubCategory sc = wmsSubCategoryMapper.selectById(id);
-                    return sc != null ? sc.getSubCategoryName() : null;
-                }));
+                .collect(java.util.stream.Collectors.toSet());
+        Map<Long, String> categoryNameMap = categoryIds.isEmpty()
+                ? Map.of()
+                : wmsCategoryMapper.selectBatchIds(categoryIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(WmsCategory::getId, WmsCategory::getCategoryName));
+        Map<Long, String> subCategoryNameMap = subCategoryIds.isEmpty()
+                ? Map.of()
+                : wmsSubCategoryMapper.selectBatchIds(subCategoryIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(WmsSubCategory::getId, WmsSubCategory::getSubCategoryName));
 
         PageResult<ItemVo> result = new PageResult<>();
         result.setRecords(items.stream().map(item -> toItemVo(item, categoryNameMap, subCategoryNameMap)).collect(Collectors.toList()));
@@ -123,7 +124,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemVo getById(Long id) {
         WmsItem item = wmsItemMapper.selectById(id);
-        if (item == null || item.getDelFlag() == 1) {
+        if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品不存在");
         }
         ItemVo vo = toItemVo(item);
@@ -139,13 +140,13 @@ public class ItemServiceImpl implements ItemService {
     public ItemVo create(ItemDto dto) {
         // 校验主类目存在
         WmsCategory category = wmsCategoryMapper.selectById(dto.getCategoryId());
-        if (category == null || category.getDelFlag() == 1) {
+        if (category == null || category.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("主类目不存在");
         }
         // 校验细分类目存在(如果指定)
         if (dto.getSubCategoryId() != null) {
             WmsSubCategory subCategory = wmsSubCategoryMapper.selectById(dto.getSubCategoryId());
-            if (subCategory == null || subCategory.getDelFlag() == 1) {
+            if (subCategory == null || subCategory.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("细分类目不存在");
             }
         }
@@ -159,19 +160,19 @@ public class ItemServiceImpl implements ItemService {
         }
         // 默认状态为在库
         if (item.getStatus() == null) {
-            item.setStatus(1);
+            item.setStatus(BizConstants.STATUS_ENABLED);
         }
         if (item.getIsConsumable() == null) {
-            item.setIsConsumable(0);
+            item.setIsConsumable(ItemConstants.IS_CONSUMABLE_NO);
         }
         if (item.getIsReturnable() == null) {
-            item.setIsReturnable(1);
+            item.setIsReturnable(ItemConstants.IS_RETURNABLE_YES);
         }
         if (item.getPurchasePrice() == null) {
             item.setPurchasePrice(BigDecimal.ZERO);
         }
         if (item.getStockQty() == null) {
-            item.setStockQty(0);
+            item.setStockQty(ItemConstants.DEFAULT_STOCK_QTY);
         }
         wmsItemMapper.insert(item);
         // 保存物品标签关联
@@ -185,18 +186,18 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(rollbackFor = Exception.class)
     public ItemVo update(Long id, ItemDto dto) {
         WmsItem existing = wmsItemMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品不存在");
         }
         // 校验主类目存在
         WmsCategory category = wmsCategoryMapper.selectById(dto.getCategoryId());
-        if (category == null || category.getDelFlag() == 1) {
+        if (category == null || category.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("主类目不存在");
         }
         // 校验细分类目存在(如果指定)
         if (dto.getSubCategoryId() != null) {
             WmsSubCategory subCategory = wmsSubCategoryMapper.selectById(dto.getSubCategoryId());
-            if (subCategory == null || subCategory.getDelFlag() == 1) {
+            if (subCategory == null || subCategory.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("细分类目不存在");
             }
         }
@@ -217,14 +218,14 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsItem existing = wmsItemMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品不存在");
         }
         // 逻辑删除物品
         WmsItem updateEntity = new WmsItem();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsItemMapper.updateById(updateEntity);
         // 逻辑删除物品标签关联
         List<WmsItemTag> itemTags = wmsItemTagMapper.selectList(
@@ -234,8 +235,8 @@ public class ItemServiceImpl implements ItemService {
         for (WmsItemTag itemTag : itemTags) {
             WmsItemTag updateItemTag = new WmsItemTag();
             updateItemTag.setId(itemTag.getId());
-            updateItemTag.setDelFlag(1);
-            updateItemTag.setLastOperType("d");
+            updateItemTag.setDelFlag(DelFlagConstants.DELETED);
+
             wmsItemTagMapper.updateById(updateItemTag);
         }
         // 逻辑删除物品图片
@@ -246,8 +247,8 @@ public class ItemServiceImpl implements ItemService {
         for (WmsItemImage image : images) {
             WmsItemImage updateImage = new WmsItemImage();
             updateImage.setId(image.getId());
-            updateImage.setDelFlag(1);
-            updateImage.setLastOperType("d");
+            updateImage.setDelFlag(DelFlagConstants.DELETED);
+
             wmsItemImageMapper.updateById(updateImage);
         }
     }
@@ -257,7 +258,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemImageVo uploadImage(Long itemId, MultipartFile file) {
         // 校验物品存在
         WmsItem item = wmsItemMapper.selectById(itemId);
-        if (item == null || item.getDelFlag() == 1) {
+        if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品不存在");
         }
         if (file == null || file.isEmpty()) {
@@ -284,7 +285,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteImage(Long itemId, Long imageId) {
         WmsItemImage image = wmsItemImageMapper.selectById(imageId);
-        if (image == null || image.getDelFlag() == 1) {
+        if (image == null || image.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("图片不存在");
         }
         if (!image.getItemId().equals(itemId)) {
@@ -292,8 +293,8 @@ public class ItemServiceImpl implements ItemService {
         }
         WmsItemImage updateEntity = new WmsItemImage();
         updateEntity.setId(imageId);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsItemImageMapper.updateById(updateEntity);
     }
 
@@ -310,34 +311,19 @@ public class ItemServiceImpl implements ItemService {
                         .or().like(WmsItem::getItemCode, keyword)
                 )
                 .orderByDesc(WmsItem::getCreateTime)
-                .last("LIMIT 50");
+                .last("LIMIT " + ItemConstants.QUICK_SEARCH_LIMIT);
         List<WmsItem> items = wmsItemMapper.selectList(wrapper);
         return items.stream().map(this::toItemVo).collect(Collectors.toList());
     }
 
     /**
-     * 生成物品编号: WP + 年月日 + 4位流水号
-     * 示例: WP202605140001
+     * 生成物品编号: WP + 年月日 + 4位随机数
+     * 使用时间戳+随机数保证并发安全
      */
     private String generateItemCode() {
         String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        // 查询当天最大编号
-        LambdaQueryWrapper<WmsItem> wrapper = new LambdaQueryWrapper<WmsItem>()
-                .likeRight(WmsItem::getItemCode, ITEM_CODE_PREFIX + datePart)
-                .orderByDesc(WmsItem::getItemCode)
-                .last("LIMIT 1");
-        WmsItem lastItem = wmsItemMapper.selectOne(wrapper);
-        int seq = 1;
-        if (lastItem != null && lastItem.getItemCode() != null) {
-            String lastCode = lastItem.getItemCode();
-            String seqStr = lastCode.substring(lastCode.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return ITEM_CODE_PREFIX + datePart + String.format("%04d", seq);
+        String random = String.format("%04d", new Random().nextInt(10000));
+        return ItemConstants.ITEM_CODE_PREFIX + datePart + random;
     }
 
     /**
@@ -370,8 +356,8 @@ public class ItemServiceImpl implements ItemService {
         for (WmsItemTag oldTag : oldItemTags) {
             WmsItemTag updateTag = new WmsItemTag();
             updateTag.setId(oldTag.getId());
-            updateTag.setDelFlag(1);
-            updateTag.setLastOperType("d");
+            updateTag.setDelFlag(DelFlagConstants.DELETED);
+
             wmsItemTagMapper.updateById(updateTag);
         }
         // 批量插入新的物品标签关联

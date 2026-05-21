@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysSupplierDto;
 import com.wms.system.domain.entity.SysSupplier;
 import com.wms.system.domain.vo.SysSupplierVo;
@@ -54,7 +55,7 @@ public class SysSupplierServiceImpl implements SysSupplierService {
     @Override
     public SysSupplierVo getById(Long id) {
         SysSupplier supplier = sysSupplierMapper.selectById(id);
-        if (supplier == null || supplier.getDelFlag() == 1) {
+        if (supplier == null || supplier.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("供应商不存在");
         }
         return toVo(supplier);
@@ -75,7 +76,7 @@ public class SysSupplierServiceImpl implements SysSupplierService {
     @Transactional(rollbackFor = Exception.class)
     public SysSupplierVo update(Long id, SysSupplierDto dto) {
         SysSupplier existing = sysSupplierMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("供应商不存在");
         }
         // 校验供应商编码唯一性(排除自身)
@@ -90,14 +91,14 @@ public class SysSupplierServiceImpl implements SysSupplierService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysSupplier existing = sysSupplierMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("供应商不存在");
         }
         // 逻辑删除供应商
         SysSupplier updateSupplier = new SysSupplier();
         updateSupplier.setId(id);
-        updateSupplier.setDelFlag(1);
-        updateSupplier.setLastOperType("d");
+        updateSupplier.setDelFlag(DelFlagConstants.DELETED);
+   
         sysSupplierMapper.updateById(updateSupplier);
     }
 

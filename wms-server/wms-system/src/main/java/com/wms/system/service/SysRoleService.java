@@ -1,7 +1,6 @@
 package com.wms.system.service;
 
 import com.wms.system.domain.dto.SysRoleDto;
-import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.vo.SysRoleVo;
 
 import java.util.List;
@@ -15,17 +14,17 @@ public interface SysRoleService {
     /**
      * 获取所有角色列表
      *
-     * @return 角色列表
+     * @return 角色VO列表
      */
-    List<SysRole> listAll();
+    List<SysRoleVo> listAll();
 
     /**
      * 根据ID获取角色详情
      *
      * @param id 角色ID
-     * @return 角色实体
+     * @return 角色VO
      */
-    SysRole getById(Long id);
+    SysRoleVo getById(Long id);
 
     /**
      * 根据用户ID获取角色编码列表

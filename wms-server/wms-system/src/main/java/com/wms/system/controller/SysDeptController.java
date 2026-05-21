@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysDeptDto;
@@ -34,6 +35,7 @@ public class SysDeptController {
     @Operation(summary = "部门列表(树形)")
     @GetMapping
     @PreAuthorize("hasAuthority('system:dept:list')")
+    @DataScope
     public R<List<SysDeptVo>> list() {
         return R.ok(sysDeptService.listTree());
     }
@@ -44,6 +46,7 @@ public class SysDeptController {
     @Operation(summary = "部门树(下拉选择用)")
     @GetMapping("/tree")
     @PreAuthorize("hasAuthority('system:dept:list')")
+    @DataScope
     public R<List<SysDeptVo>> tree() {
         return R.ok(sysDeptService.tree());
     }

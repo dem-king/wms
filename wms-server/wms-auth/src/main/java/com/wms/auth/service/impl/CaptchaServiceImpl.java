@@ -5,6 +5,7 @@ import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.core.img.ImgUtil;
 import com.wms.auth.constant.AuthRedisKey;
 import com.wms.auth.config.AuthProperties;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.domain.vo.CaptchaResp;
 import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.service.CaptchaService;
@@ -25,7 +26,7 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     @Override
     public CaptchaResp generateCaptcha() {
-        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(120, 40, 4, 6);
+        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(AuthConstants.CAPTCHA_WIDTH, AuthConstants.CAPTCHA_HEIGHT, AuthConstants.CAPTCHA_CHAR_COUNT, AuthConstants.CAPTCHA_LINE_COUNT);
         String captchaKey = UUID.randomUUID().toString().replace("-", "");
         String captchaText = captcha.getCode();
 

@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const viewsRoot = path.resolve(currentDir, '..')
 const stylesFile = path.resolve(viewsRoot, '..', 'styles', 'index.scss')
+const rolePageFile = path.resolve(viewsRoot, 'system', 'role', 'index.vue')
+const userPageFile = path.resolve(viewsRoot, 'system', 'user', 'index.vue')
 const actionColumnTagPattern = /<el-table-column\b[^>]*label="操作"[^>]*>/g
 const sharedClassPattern = /class-name="[^"]*\btable-action-column\b[^"]*"/
 const tableActionGroupPattern = /<TableActionGroup\b/
@@ -86,5 +88,13 @@ describe('table action columns', () => {
     expect(source).toContain('flex-wrap: nowrap')
     expect(source).toContain('.table-action-group')
     expect(source).toContain('.table-action-group__more')
+  })
+
+  it('sets explicit min-width on role and user action columns with three inline actions', () => {
+    const roleSource = readFileSync(rolePageFile, 'utf-8')
+    const userSource = readFileSync(userPageFile, 'utf-8')
+
+    expect(roleSource).toMatch(/<el-table-column\b[^>]*label="操作"[^>]*min-width="240"[^>]*>/)
+    expect(userSource).toMatch(/<el-table-column\b[^>]*label="操作"[^>]*min-width="240"[^>]*>/)
   })
 })

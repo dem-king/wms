@@ -1,7 +1,11 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.CabinetDto;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsBin;
@@ -18,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -31,9 +38,7 @@ public class CabinetServiceImpl implements CabinetService {
     private final WmsCabinetMapper wmsCabinetMapper;
     private final WmsAreaMapper wmsAreaMapper;
     private final WmsBinMapper wmsBinMapper;
-
-    /** 存放柜编码前缀 */
-    private static final String CABINET_CODE_PREFIX = "CG";
+    private final SequenceGenerator sequenceGenerator;
 
     @Override
     public List<CabinetVo> listByAreaId(Long areaId) {
@@ -41,21 +46,30 @@ public class CabinetServiceImpl implements CabinetService {
                 .eq(WmsCabinet::getAreaId, areaId)
                 .orderByDesc(WmsCabinet::getCreateTime);
         List<WmsCabinet> list = wmsCabinetMapper.selectList(wrapper);
-        return list.stream().map(this::toCabinetVo).collect(Collectors.toList());
+        // 批量查询区域构建Map，避免N+1查询
+        Set<Long> areaIds = list.stream()
+                .map(WmsCabinet::getAreaId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsArea> areaMap = areaIds.isEmpty()
+                ? Map.of()
+                : wmsAreaMapper.selectBatchIds(areaIds).stream()
+                        .collect(Collectors.toMap(WmsArea::getId, Function.identity()));
+        return list.stream().map(cabinet -> toCabinetVo(cabinet, areaMap)).collect(Collectors.toList());
     }
 
     @Override
     public CabinetVo getById(Long id) {
         WmsCabinet cabinet = wmsCabinetMapper.selectById(id);
-        if (cabinet == null || cabinet.getDelFlag() == 1) {
+        if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("存放柜不存在");
         }
-        CabinetVo vo = toCabinetVo(cabinet);
+        CabinetVo vo = toCabinetVo(cabinet, Map.of());
         // 填充物品数量(占用库位数)
         Long occupiedCount = wmsBinMapper.selectCount(
                 new LambdaQueryWrapper<WmsBin>()
                         .eq(WmsBin::getCabinetId, id)
-                        .eq(WmsBin::getIsOccupied, 1)
+                        .eq(WmsBin::getIsOccupied, WarehouseConstants.IS_OCCUPIED_YES)
         );
         vo.setItemCount(occupiedCount.intValue());
         return vo;
@@ -66,7 +80,7 @@ public class CabinetServiceImpl implements CabinetService {
     public CabinetVo create(CabinetDto dto) {
         // 校验区域存在且启用
         WmsArea area = wmsAreaMapper.selectById(dto.getAreaId());
-        if (area == null || area.getDelFlag() == 1) {
+        if (area == null || area.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("区域不存在");
         }
         WmsCabinet cabinet = new WmsCabinet();
@@ -75,22 +89,22 @@ public class CabinetServiceImpl implements CabinetService {
         cabinet.setCabinetCode(generateCabinetCode());
         // 默认状态为启用
         if (cabinet.getStatus() == null) {
-            cabinet.setStatus(1);
+            cabinet.setStatus(BizConstants.STATUS_ENABLED);
         }
         wmsCabinetMapper.insert(cabinet);
-        return toCabinetVo(cabinet);
+        return toCabinetVo(cabinet, Map.of());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CabinetVo update(Long id, CabinetDto dto) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("存放柜不存在");
         }
         // 校验区域存在
         WmsArea area = wmsAreaMapper.selectById(dto.getAreaId());
-        if (area == null || area.getDelFlag() == 1) {
+        if (area == null || area.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("区域不存在");
         }
         copyDtoToEntity(dto, existing);
@@ -98,21 +112,21 @@ public class CabinetServiceImpl implements CabinetService {
         // 编辑时不修改编码
         existing.setCabinetCode(null);
         wmsCabinetMapper.updateById(existing);
-        return toCabinetVo(existing);
+        return toCabinetVo(existing, Map.of());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("存放柜不存在");
         }
         // 逻辑删除存放柜
         WmsCabinet updateEntity = new WmsCabinet();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+
         wmsCabinetMapper.updateById(updateEntity);
     }
 
@@ -120,7 +134,7 @@ public class CabinetServiceImpl implements CabinetService {
     @Transactional(rollbackFor = Exception.class)
     public void updatePosition(Long id, Integer x, Integer y) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("存放柜不存在");
         }
         WmsCabinet updateEntity = new WmsCabinet();
@@ -132,26 +146,11 @@ public class CabinetServiceImpl implements CabinetService {
 
     /**
      * 生成存放柜编码: CG + 年月日 + 4位流水号
+     * 基于Redis INCR原子操作保证并发安全
      * 示例: CG202605140001
      */
     private String generateCabinetCode() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsCabinet> wrapper = new LambdaQueryWrapper<WmsCabinet>()
-                .likeRight(WmsCabinet::getCabinetCode, CABINET_CODE_PREFIX + datePart)
-                .orderByDesc(WmsCabinet::getCabinetCode)
-                .last("LIMIT 1");
-        WmsCabinet last = wmsCabinetMapper.selectOne(wrapper);
-        int seq = 1;
-        if (last != null && last.getCabinetCode() != null) {
-            String lastCode = last.getCabinetCode();
-            String seqStr = lastCode.substring(lastCode.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return CABINET_CODE_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(WarehouseConstants.CABINET_CODE_PREFIX);
     }
 
     /**
@@ -173,8 +172,11 @@ public class CabinetServiceImpl implements CabinetService {
 
     /**
      * WmsCabinet实体转CabinetVo(填充区域名称)
+     *
+     * @param cabinet 存放柜实体
+     * @param areaMap 区域ID到实体的映射，避免N+1查询
      */
-    private CabinetVo toCabinetVo(WmsCabinet cabinet) {
+    private CabinetVo toCabinetVo(WmsCabinet cabinet, Map<Long, WmsArea> areaMap) {
         CabinetVo vo = new CabinetVo();
         vo.setId(cabinet.getId());
         vo.setAreaId(cabinet.getAreaId());
@@ -189,9 +191,12 @@ public class CabinetServiceImpl implements CabinetService {
         vo.setStatus(cabinet.getStatus());
         vo.setRemark(cabinet.getRemark());
         vo.setCreateTime(cabinet.getCreateTime());
-        // 填充区域名称
+        // 从Map中填充区域名称
         if (cabinet.getAreaId() != null) {
-            WmsArea area = wmsAreaMapper.selectById(cabinet.getAreaId());
+            WmsArea area = areaMap.get(cabinet.getAreaId());
+            if (area == null) {
+                area = wmsAreaMapper.selectById(cabinet.getAreaId());
+            }
             if (area != null) {
                 vo.setAreaName(area.getAreaName());
             }

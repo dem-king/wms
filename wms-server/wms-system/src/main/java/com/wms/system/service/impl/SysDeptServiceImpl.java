@@ -2,6 +2,8 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysDeptDto;
 import com.wms.system.domain.entity.SysDepartment;
 import com.wms.system.domain.vo.SysDeptVo;
@@ -47,7 +49,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         copyDtoToEntity(dto, dept);
         // 新增部门默认启用
         if (dept.getStatus() == null) {
-            dept.setStatus(1);
+            dept.setStatus(BizConstants.STATUS_ENABLED);
         }
         sysDepartmentMapper.insert(dept);
         return toVo(dept);
@@ -57,7 +59,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Transactional(rollbackFor = Exception.class)
     public SysDeptVo update(Long id, SysDeptDto dto) {
         SysDepartment existing = sysDepartmentMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("部门不存在");
         }
         // 校验部门编码唯一性(排除自身)
@@ -72,7 +74,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysDepartment existing = sysDepartmentMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("部门不存在");
         }
         // 校验是否存在子部门
@@ -86,8 +88,8 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 逻辑删除部门
         SysDepartment updateDept = new SysDepartment();
         updateDept.setId(id);
-        updateDept.setDelFlag(1);
-        updateDept.setLastOperType("d");
+        updateDept.setDelFlag(DelFlagConstants.DELETED);
+    
         sysDepartmentMapper.updateById(updateDept);
     }
 
@@ -103,7 +105,7 @@ public class SysDeptServiceImpl implements SysDeptService {
                 .collect(Collectors.groupingBy(SysDeptVo::getParentId));
         voList.forEach(vo -> vo.setChildren(groupedByParent.getOrDefault(vo.getId(), Collections.emptyList())));
         // 返回顶级部门(parentId=0)
-        return groupedByParent.getOrDefault(0L, Collections.emptyList());
+        return groupedByParent.getOrDefault(BizConstants.TOP_PARENT_ID, Collections.emptyList());
     }
 
     /**

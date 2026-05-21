@@ -25,12 +25,54 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, 'src')
       }
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+          silenceDeprecations: ['legacy-js-api']
+        }
+      }
+    },
     server: {
       port: 3000,
       proxy: {
         '/api': {
           target: env.VITE_API_BASE_URL || 'http://localhost:8080',
           changeOrigin: true
+        }
+      }
+    },
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        onwarn(warning, warn) {
+          if (warning.message.includes('contains an annotation that Rollup cannot interpret')) {
+            return
+          }
+          warn(warning)
+        },
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return undefined
+            }
+            if (id.includes('element-plus') || id.includes('@element-plus')) {
+              return 'element-plus'
+            }
+            if (id.includes('vue-router') || id.includes('pinia') || id.includes('/vue/')) {
+              return 'vue-vendor'
+            }
+            if (id.includes('echarts')) {
+              return 'echarts'
+            }
+            if (id.includes('konva') || id.includes('vue-konva')) {
+              return 'konva'
+            }
+            if (id.includes('@zxing')) {
+              return 'zxing'
+            }
+            return 'vendor'
+          }
         }
       }
     }

@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysConfigDto;
@@ -34,6 +35,7 @@ public class SysConfigController {
     @Operation(summary = "配置列表")
     @GetMapping
     @PreAuthorize("hasAuthority('system:config:list')")
+    @DataScope
     public R<List<SysConfigVo>> list() {
         return R.ok(sysConfigService.listAll());
     }
@@ -44,6 +46,7 @@ public class SysConfigController {
     @Operation(summary = "按key查询配置值")
     @GetMapping("/{key}")
     @PreAuthorize("hasAuthority('system:config:list')")
+    @DataScope
     public R<SysConfigVo> getByKey(@PathVariable String key) {
         return R.ok(sysConfigService.getByKey(key));
     }

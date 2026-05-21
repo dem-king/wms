@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysPermissionDto;
@@ -34,6 +35,7 @@ public class SysPermissionController {
     @Operation(summary = "权限列表")
     @GetMapping
     @PreAuthorize("hasAuthority('system:perm:list')")
+    @DataScope
     public R<List<SysPermissionVo>> list() {
         return R.ok(sysPermissionService.listAll());
     }
@@ -44,6 +46,7 @@ public class SysPermissionController {
     @Operation(summary = "权限详情")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:perm:list')")
+    @DataScope
     public R<SysPermissionVo> getById(@PathVariable Long id) {
         return R.ok(sysPermissionService.getById(id));
     }

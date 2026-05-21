@@ -34,7 +34,7 @@
         <el-form-item label="库房名称" prop="warehouseName">
           <el-input v-model="form.warehouseName" placeholder="请输入库房名称" />
         </el-form-item>
-        <el-form-item label="库房编码" prop="warehouseCode">
+        <el-form-item v-if="isEdit" label="库房编码" prop="warehouseCode">
           <el-input v-model="form.warehouseCode" placeholder="请输入库房编码" :disabled="isEdit" />
         </el-form-item>
         <el-form-item label="地址" prop="address">
@@ -42,6 +42,9 @@
         </el-form-item>
         <el-form-item label="负责人" prop="manager">
           <el-input v-model="form.manager" placeholder="请输入负责人" />
+        </el-form-item>
+        <el-form-item label="联系电话" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入联系电话" />
         </el-form-item>
         <el-form-item label="面积(㎡)" prop="area">
           <el-input-number v-model="form.area" :min="0" :precision="2" />
@@ -51,6 +54,9 @@
             <el-radio :value="1">启用</el-radio>
             <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -62,13 +68,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList, addWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouse/warehouse'
 import type { WmsWarehouseVo, WmsWarehouseDto } from '@/types/warehouse'
+import { buildWarehouseSubmitPayload } from './submit-payload'
 
 const loading = ref(false)
 const tableData = ref<WmsWarehouseVo[]>([])
@@ -82,14 +89,16 @@ const form = reactive<WmsWarehouseDto & { id?: number }>({
   warehouseCode: '',
   address: '',
   manager: '',
+  phone: '',
   area: 0,
   status: 1,
+  remark: '',
 })
 
-const rules: FormRules = {
+const rules = computed<FormRules>(() => ({
   warehouseName: [{ required: true, message: '请输入库房名称', trigger: 'blur' }],
-  warehouseCode: [{ required: true, message: '请输入库房编码', trigger: 'blur' }],
-}
+  ...(isEdit.value ? { warehouseCode: [{ required: true, message: '请输入库房编码', trigger: 'blur' }] } : {}),
+}))
 
 async function handleQuery() {
   loading.value = true
@@ -103,13 +112,13 @@ async function handleQuery() {
 
 function handleAdd() {
   isEdit.value = false
-  Object.assign(form, { id: undefined, warehouseName: '', warehouseCode: '', address: '', manager: '', area: 0, status: 1 })
+  Object.assign(form, { id: undefined, warehouseName: '', warehouseCode: '', address: '', manager: '', phone: '', area: 0, status: 1, remark: '' })
   dialogVisible.value = true
 }
 
 function handleEdit(row: WmsWarehouseVo) {
   isEdit.value = true
-  Object.assign(form, { id: row.id, warehouseName: row.warehouseName, warehouseCode: row.warehouseCode, address: row.address, manager: row.manager, area: row.area, status: row.status })
+  Object.assign(form, { id: row.id, warehouseName: row.warehouseName, warehouseCode: row.warehouseCode, address: row.address, manager: row.manager, phone: row.phone ?? '', area: row.area, status: row.status, remark: row.remark ?? '' })
   dialogVisible.value = true
 }
 
@@ -117,7 +126,7 @@ async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto: WmsWarehouseDto = { warehouseName: form.warehouseName, warehouseCode: form.warehouseCode, address: form.address, manager: form.manager, area: form.area, status: form.status }
+    const dto = buildWarehouseSubmitPayload(form, isEdit.value)
     if (isEdit.value && form.id) {
       await updateWarehouse(form.id, dto)
       ElMessage.success('编辑成功')
@@ -140,7 +149,7 @@ async function handleDelete(id: number) {
 
 async function handleStatusChange(row: WmsWarehouseVo, val: boolean) {
   const newStatus = val ? 1 : 0
-  await updateWarehouse(row.id, { warehouseName: row.warehouseName, warehouseCode: row.warehouseCode, address: row.address, manager: row.manager, area: row.area, status: newStatus })
+  await updateWarehouse(row.id, { warehouseName: row.warehouseName, warehouseCode: row.warehouseCode, address: row.address, manager: row.manager, phone: row.phone, area: row.area, status: newStatus, remark: row.remark })
   ElMessage.success('状态修改成功')
   handleQuery()
 }

@@ -1,6 +1,7 @@
 package com.wms.auth.service.impl;
 
 import com.wms.auth.constant.AuthRedisKey;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.service.AuthorizeService;
 import com.wms.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                 if (!permissions.isEmpty()) {
                     String permKey = AuthRedisKey.PERM_PREFIX + userId;
                     stringRedisTemplate.opsForList().rightPushAll(permKey, permissions);
-                    stringRedisTemplate.expire(permKey, 5, TimeUnit.MINUTES);
+                    stringRedisTemplate.expire(permKey, AuthConstants.PERM_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
                 }
             } catch (Exception e) {
                 log.warn("写入权限缓存失败: {}", e.getMessage());

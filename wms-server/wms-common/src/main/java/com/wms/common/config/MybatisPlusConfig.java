@@ -26,16 +26,12 @@ public class MybatisPlusConfig implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "createBy", String.class, getCurrentUser());
         this.strictInsertFill(metaObject, "updateBy", String.class, getCurrentUser());
-        this.strictInsertFill(metaObject, "lastOperTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "lastOperType", String.class, "i");
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
         this.strictUpdateFill(metaObject, "updateBy", String.class, getCurrentUser());
-        this.strictUpdateFill(metaObject, "lastOperTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictUpdateFill(metaObject, "lastOperType", String.class, "u");
     }
 
     private String getCurrentUser() {

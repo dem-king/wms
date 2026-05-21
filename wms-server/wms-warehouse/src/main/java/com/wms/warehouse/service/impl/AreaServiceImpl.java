@@ -1,7 +1,11 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.AreaDto;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
@@ -16,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,9 +35,7 @@ public class AreaServiceImpl implements AreaService {
 
     private final WmsAreaMapper wmsAreaMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
-
-    /** 区域编码前缀 */
-    private static final String AREA_CODE_PREFIX = "QY";
+    private final SequenceGenerator sequenceGenerator;
 
     @Override
     public List<AreaVo> listByWarehouseId(Long warehouseId) {
@@ -39,7 +44,16 @@ public class AreaServiceImpl implements AreaService {
                 .orderByAsc(WmsArea::getSortOrder)
                 .orderByDesc(WmsArea::getCreateTime);
         List<WmsArea> list = wmsAreaMapper.selectList(wrapper);
-        return list.stream().map(this::toAreaVo).collect(Collectors.toList());
+        // 批量查询库房构建Map，避免N+1查询
+        Set<Long> warehouseIds = list.stream()
+                .map(WmsArea::getWarehouseId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsWarehouse> warehouseMap = warehouseIds.isEmpty()
+                ? Map.of()
+                : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
+                        .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
+        return list.stream().map(area -> toAreaVo(area, warehouseMap)).collect(Collectors.toList());
     }
 
     @Override
@@ -47,7 +61,7 @@ public class AreaServiceImpl implements AreaService {
     public AreaVo create(AreaDto dto) {
         // 校验库房存在且启用
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == 1) {
+        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在");
         }
         WmsArea area = new WmsArea();
@@ -56,25 +70,25 @@ public class AreaServiceImpl implements AreaService {
         area.setAreaCode(generateAreaCode());
         // 默认状态为启用
         if (area.getStatus() == null) {
-            area.setStatus(1);
+            area.setStatus(BizConstants.STATUS_ENABLED);
         }
         if (area.getSortOrder() == null) {
-            area.setSortOrder(0);
+            area.setSortOrder(BizConstants.DEFAULT_SORT_ORDER);
         }
         wmsAreaMapper.insert(area);
-        return toAreaVo(area);
+        return toAreaVo(area, Map.of());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AreaVo update(Long id, AreaDto dto) {
         WmsArea existing = wmsAreaMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("区域不存在");
         }
         // 校验库房存在
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == 1) {
+        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房不存在");
         }
         copyDtoToEntity(dto, existing);
@@ -82,46 +96,31 @@ public class AreaServiceImpl implements AreaService {
         // 编辑时不修改编码
         existing.setAreaCode(null);
         wmsAreaMapper.updateById(existing);
-        return toAreaVo(existing);
+        return toAreaVo(existing, Map.of());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsArea existing = wmsAreaMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("区域不存在");
         }
         // 逻辑删除区域
         WmsArea updateEntity = new WmsArea();
         updateEntity.setId(id);
-        updateEntity.setDelFlag(1);
-        updateEntity.setLastOperType("d");
+        updateEntity.setDelFlag(DelFlagConstants.DELETED);
+        
         wmsAreaMapper.updateById(updateEntity);
     }
 
     /**
      * 生成区域编码: QY + 年月日 + 4位流水号
+     * 基于Redis INCR原子操作保证并发安全
      * 示例: QY202605140001
      */
     private String generateAreaCode() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsArea> wrapper = new LambdaQueryWrapper<WmsArea>()
-                .likeRight(WmsArea::getAreaCode, AREA_CODE_PREFIX + datePart)
-                .orderByDesc(WmsArea::getAreaCode)
-                .last("LIMIT 1");
-        WmsArea last = wmsAreaMapper.selectOne(wrapper);
-        int seq = 1;
-        if (last != null && last.getAreaCode() != null) {
-            String lastCode = last.getAreaCode();
-            String seqStr = lastCode.substring(lastCode.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return AREA_CODE_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(WarehouseConstants.AREA_CODE_PREFIX);
     }
 
     /**
@@ -139,8 +138,11 @@ public class AreaServiceImpl implements AreaService {
 
     /**
      * WmsArea实体转AreaVo(填充库房名称)
+     *
+     * @param area 区域实体
+     * @param warehouseMap 库房ID到实体的映射，避免N+1查询
      */
-    private AreaVo toAreaVo(WmsArea area) {
+    private AreaVo toAreaVo(WmsArea area, Map<Long, WmsWarehouse> warehouseMap) {
         AreaVo vo = new AreaVo();
         vo.setId(area.getId());
         vo.setWarehouseId(area.getWarehouseId());
@@ -151,9 +153,12 @@ public class AreaServiceImpl implements AreaService {
         vo.setStatus(area.getStatus());
         vo.setRemark(area.getRemark());
         vo.setCreateTime(area.getCreateTime());
-        // 填充库房名称
+        // 从Map中填充库房名称
         if (area.getWarehouseId() != null) {
-            WmsWarehouse warehouse = wmsWarehouseMapper.selectById(area.getWarehouseId());
+            WmsWarehouse warehouse = warehouseMap.get(area.getWarehouseId());
+            if (warehouse == null) {
+                warehouse = wmsWarehouseMapper.selectById(area.getWarehouseId());
+            }
             if (warehouse != null) {
                 vo.setWarehouseName(warehouse.getWarehouseName());
             }

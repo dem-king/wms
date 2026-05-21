@@ -2,6 +2,7 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysConfigDto;
 import com.wms.system.domain.entity.SysConfig;
 import com.wms.system.domain.vo.SysConfigVo;
@@ -48,7 +49,7 @@ public class SysConfigServiceImpl implements SysConfigService {
     @Transactional(rollbackFor = Exception.class)
     public SysConfigVo update(Long id, SysConfigDto dto) {
         SysConfig existing = sysConfigMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == 1) {
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("配置项不存在");
         }
         // 仅更新非空字段

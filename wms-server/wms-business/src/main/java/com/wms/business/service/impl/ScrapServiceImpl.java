@@ -10,9 +10,14 @@ import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsScrapDetailMapper;
 import com.wms.business.mapper.WmsScrapOrderMapper;
 import com.wms.business.service.ScrapService;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,18 +41,9 @@ public class ScrapServiceImpl implements ScrapService {
     private final WmsScrapDetailMapper wmsScrapDetailMapper;
     private final WmsItemMapper wmsItemMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final SequenceGenerator sequenceGenerator;
 
-    /** 报废单号前缀 */
-    private static final String ORDER_NO_PREFIX = "BF";
 
-    /** 草稿状态 */
-    private static final int STATUS_DRAFT = 0;
-
-    /** 待审核状态 */
-    private static final int STATUS_PENDING = 1;
-
-    /** 已完成状态 */
-    private static final int STATUS_COMPLETED = 5;
 
     /**
      * 分页查询报废单
@@ -91,7 +86,7 @@ public class ScrapServiceImpl implements ScrapService {
     @Override
     public ScrapOrderVo getOrderById(Long id) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("报废单不存在");
         }
         ScrapOrderVo vo = toOrderVo(order);
@@ -112,7 +107,7 @@ public class ScrapServiceImpl implements ScrapService {
         WmsScrapOrder order = new WmsScrapOrder();
         // 生成报废单号：格式为BF + 年月日 + 4位流水号
         order.setOrderNo(generateOrderNo());
-        order.setStatus(STATUS_DRAFT);
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
         order.setScrapReason(dto.getScrapReason());
 
         wmsScrapOrderMapper.insert(order);
@@ -120,7 +115,7 @@ public class ScrapServiceImpl implements ScrapService {
         for (ScrapOrderDto.ScrapDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == 1) {
+            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
             }
             WmsScrapDetail detail = new WmsScrapDetail();
@@ -145,19 +140,19 @@ public class ScrapServiceImpl implements ScrapService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("报废单不存在");
         }
         // 仅草稿状态可提交
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的报废单可以提交");
         }
         // 状态变为待审核
-        order.setStatus(STATUS_PENDING);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsScrapOrderMapper.updateById(order);
 
         // 报废单标记为已完成并发布库存扣减事件
-        order.setStatus(STATUS_COMPLETED);
+        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
         wmsScrapOrderMapper.updateById(order);
 
         // 报废完成后扣减库存(出库)
@@ -167,32 +162,17 @@ public class ScrapServiceImpl implements ScrapService {
         for (WmsScrapDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), order.getWarehouseId(), null,
-                    -detail.getQuantity(), "OUT"));
+                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
         }
     }
 
     /**
      * 生成报废单号: BF + 年月日 + 4位流水号
-     * 示例: BF202605140001
+     * 使用Redis INCR原子操作保证并发安全
+     * 示例: BF202605180001
      */
     private String generateOrderNo() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsScrapOrder> wrapper = new LambdaQueryWrapper<WmsScrapOrder>()
-                .likeRight(WmsScrapOrder::getOrderNo, ORDER_NO_PREFIX + datePart)
-                .orderByDesc(WmsScrapOrder::getOrderNo)
-                .last("LIMIT 1");
-        WmsScrapOrder lastOrder = wmsScrapOrderMapper.selectOne(wrapper);
-        int seq = 1;
-        if (lastOrder != null && lastOrder.getOrderNo() != null) {
-            String lastNo = lastOrder.getOrderNo();
-            String seqStr = lastNo.substring(lastNo.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return ORDER_NO_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(OrderConstants.SCRAP_NO_PREFIX);
     }
 
     /**

@@ -3,7 +3,7 @@ import type { SysRoleVo, SysRoleDto, PageResult, PageParams } from '@/types/syst
 import type { MenuTreeNode } from '@/types/auth'
 
 export function getRoleList(params?: PageParams & { roleName?: string; roleCode?: string; status?: number }) {
-  return get<PageResult<SysRoleVo>>('/system/roles', params as unknown as Record<string, unknown>)
+  return get<PageResult<SysRoleVo> | SysRoleVo[]>('/system/roles', params as unknown as Record<string, unknown>)
 }
 
 export function addRole(data: SysRoleDto) {

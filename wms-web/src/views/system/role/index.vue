@@ -28,7 +28,7 @@
     <el-table v-loading="loading" :data="tableData" border>
       <el-table-column prop="roleName" label="角色名称" min-width="120" />
       <el-table-column prop="roleCode" label="角色编码" min-width="120" />
-      <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+      <el-table-column prop="roleDesc" label="描述" min-width="150" show-overflow-tooltip />
       <el-table-column prop="dataScope" label="数据范围" min-width="120">
         <template #default="{ row }">
           {{ dataScopeMap[row.dataScope] || '未知' }}
@@ -39,7 +39,7 @@
           <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="240">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
@@ -107,8 +107,9 @@ async function handleQuery() {
   loading.value = true
   try {
     const res = await getRoleList(queryParams)
-    tableData.value = res.data.records
-    total.value = res.data.total
+    const roles = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = roles
+    total.value = Array.isArray(res.data) ? roles.length : res.data.total
   } finally {
     loading.value = false
   }

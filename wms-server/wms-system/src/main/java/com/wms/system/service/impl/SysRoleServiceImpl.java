@@ -2,6 +2,8 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysRoleDto;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysRoleMenu;
@@ -35,19 +37,20 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRolePermissionMapper sysRolePermissionMapper;
 
     @Override
-    public List<SysRole> listAll() {
-        return sysRoleMapper.selectList(
+    public List<SysRoleVo> listAll() {
+        List<SysRole> roles = sysRoleMapper.selectList(
                 new LambdaQueryWrapper<SysRole>()
         );
+        return roles.stream().map(this::toVo).collect(Collectors.toList());
     }
 
     @Override
-    public SysRole getById(Long id) {
+    public SysRoleVo getById(Long id) {
         SysRole role = sysRoleMapper.selectById(id);
-        if (role == null || role.getDelFlag() == 1) {
+        if (role == null || role.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("角色不存在");
         }
-        return role;
+        return toVo(role);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         List<SysRole> roles = sysRoleMapper.selectList(
                 new LambdaQueryWrapper<SysRole>()
                         .in(SysRole::getId, roleIds)
-                        .eq(SysRole::getStatus, 1)
+                        .eq(SysRole::getStatus, BizConstants.STATUS_ENABLED)
         );
         return roles.stream().map(SysRole::getRoleCode).collect(Collectors.toList());
     }
@@ -82,7 +85,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         copyDtoToEntity(dto, role);
         // 新增角色默认启用
         if (role.getStatus() == null) {
-            role.setStatus(1);
+            role.setStatus(BizConstants.STATUS_ENABLED);
         }
         sysRoleMapper.insert(role);
         return toVo(role);
@@ -91,7 +94,10 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysRoleVo update(Long id, SysRoleDto dto) {
-        SysRole existing = getById(id);
+        SysRole existing = sysRoleMapper.selectById(id);
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("角色不存在");
+        }
         // 校验角色编码唯一性(排除自身)
         checkRoleCodeUnique(dto.getRoleCode(), id);
         copyDtoToEntity(dto, existing);
@@ -103,12 +109,15 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
-        SysRole existing = getById(id);
+        SysRole existing = sysRoleMapper.selectById(id);
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("角色不存在");
+        }
         // 逻辑删除角色
         SysRole updateRole = new SysRole();
         updateRole.setId(id);
-        updateRole.setDelFlag(1);
-        updateRole.setLastOperType("d");
+        updateRole.setDelFlag(DelFlagConstants.DELETED);
+
         sysRoleMapper.updateById(updateRole);
         // 清理角色关联的用户角色关联
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
@@ -118,8 +127,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (SysUserRole userRole : userRoles) {
             SysUserRole updateUserRole = new SysUserRole();
             updateUserRole.setId(userRole.getId());
-            updateUserRole.setDelFlag(1);
-            updateUserRole.setLastOperType("d");
+            updateUserRole.setDelFlag(DelFlagConstants.DELETED);
+
             sysUserRoleMapper.updateById(updateUserRole);
         }
         // 清理角色关联的角色菜单关联
@@ -130,8 +139,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (SysRoleMenu roleMenu : roleMenus) {
             SysRoleMenu updateMenu = new SysRoleMenu();
             updateMenu.setId(roleMenu.getId());
-            updateMenu.setDelFlag(1);
-            updateMenu.setLastOperType("d");
+            updateMenu.setDelFlag(DelFlagConstants.DELETED);
+        
             sysRoleMenuMapper.updateById(updateMenu);
         }
         // 清理角色关联的角色权限关联
@@ -142,8 +151,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (SysRolePermission rolePerm : rolePerms) {
             SysRolePermission updatePerm = new SysRolePermission();
             updatePerm.setId(rolePerm.getId());
-            updatePerm.setDelFlag(1);
-            updatePerm.setLastOperType("d");
+            updatePerm.setDelFlag(DelFlagConstants.DELETED);
+   
             sysRolePermissionMapper.updateById(updatePerm);
         }
     }
@@ -168,8 +177,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (SysRoleMenu oldMenu : oldRoleMenus) {
             SysRoleMenu updateMenu = new SysRoleMenu();
             updateMenu.setId(oldMenu.getId());
-            updateMenu.setDelFlag(1);
-            updateMenu.setLastOperType("d");
+            updateMenu.setDelFlag(DelFlagConstants.DELETED);
+        
             sysRoleMenuMapper.updateById(updateMenu);
         }
         // 批量插入新的角色菜单关联
@@ -203,8 +212,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         for (SysRolePermission oldPerm : oldRolePerms) {
             SysRolePermission updatePerm = new SysRolePermission();
             updatePerm.setId(oldPerm.getId());
-            updatePerm.setDelFlag(1);
-            updatePerm.setLastOperType("d");
+            updatePerm.setDelFlag(DelFlagConstants.DELETED);
+    
             sysRolePermissionMapper.updateById(updatePerm);
         }
         // 批量插入新的角色权限关联

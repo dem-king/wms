@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop, master]
+
+jobs:
+  backend:
+    name: Java Backend Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wms-server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Maven Verify
+        run: mvn verify --batch-mode --no-transfer-progress -DskipTests=false
+        env:
+          MYSQL_PASSWORD: ci_test
+          REDIS_PASSWORD: ci_test
+          MINIO_ACCESS_KEY: ci_test
+          MINIO_SECRET_KEY: ci_test
+          JWT_SECRET: ci_test_jwt_secret_key_2024
+
+      - name: Upload Backend Artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wms-app-jar
+          path: wms-server/wms-app/target/wms-app-*.jar
+
+  frontend:
+    name: Vue Frontend Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wms-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: wms-web/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npx vue-tsc --noEmit
+
+      - name: Unit Test
+        run: npx vitest run --reporter=verbose
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Frontend Artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wms-web-dist
+          path: wms-web/dist/

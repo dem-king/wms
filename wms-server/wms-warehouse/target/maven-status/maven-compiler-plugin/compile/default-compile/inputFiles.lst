@@ -1,5 +1,6 @@
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\CabinetDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\controller\WarehouseController.java
+D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\constant\WarehouseConstants.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\WarehouseDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\mapper\WmsWarehouseMapper.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\vo\CabinetVo.java

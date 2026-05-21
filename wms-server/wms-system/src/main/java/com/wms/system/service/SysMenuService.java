@@ -1,7 +1,6 @@
 package com.wms.system.service;
 
 import com.wms.system.domain.dto.SysMenuDto;
-import com.wms.system.domain.entity.SysMenu;
 import com.wms.system.domain.vo.MenuTreeVo;
 
 import java.util.List;
@@ -15,34 +14,34 @@ public interface SysMenuService {
     /**
      * 获取所有菜单列表
      *
-     * @return 菜单列表
+     * @return 菜单树列表
      */
-    List<SysMenu> listAll();
+    List<MenuTreeVo> listAll();
 
     /**
      * 根据ID获取菜单详情
      *
      * @param id 菜单ID
-     * @return 菜单实体
+     * @return 菜单树节点VO
      */
-    SysMenu getById(Long id);
+    MenuTreeVo getById(Long id);
 
     /**
      * 新增菜单
      *
      * @param dto 菜单新增参数
-     * @return 新增后的菜单实体
+     * @return 新增后的菜单树节点VO
      */
-    SysMenu create(SysMenuDto dto);
+    MenuTreeVo create(SysMenuDto dto);
 
     /**
      * 更新菜单
      *
      * @param id  菜单ID
      * @param dto 菜单更新参数
-     * @return 更新后的菜单实体
+     * @return 更新后的菜单树节点VO
      */
-    SysMenu update(Long id, SysMenuDto dto);
+    MenuTreeVo update(Long id, SysMenuDto dto);
 
     /**
      * 删除菜单(逻辑删除)

@@ -118,8 +118,9 @@ async function handleQuery() {
   loading.value = true
   try {
     const res = await getConfigList(queryParams)
-    tableData.value = res.data.records
-    total.value = res.data.total
+    const configs = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = configs
+    total.value = Array.isArray(res.data) ? configs.length : res.data.total
   } finally {
     loading.value = false
   }

@@ -7,8 +7,8 @@
       <el-form-item label="角色编码" prop="roleCode">
         <el-input v-model="form.roleCode" placeholder="请输入角色编码" :disabled="isEdit" />
       </el-form-item>
-      <el-form-item label="描述" prop="description">
-        <el-input v-model="form.description" type="textarea" placeholder="请输入描述" :rows="3" />
+      <el-form-item label="描述" prop="roleDesc">
+        <el-input v-model="form.roleDesc" type="textarea" placeholder="请输入描述" :rows="3" />
       </el-form-item>
       <el-form-item label="数据范围" prop="dataScope">
         <el-select v-model="form.dataScope" placeholder="请选择数据范围">
@@ -61,7 +61,7 @@ const submitLoading = ref(false)
 const form = reactive({
   roleName: '',
   roleCode: '',
-  description: '',
+  roleDesc: '',
   dataScope: 1,
   status: 1
 })
@@ -78,7 +78,7 @@ watch(() => props.visible, (val) => {
     Object.assign(form, {
       roleName: props.formData.roleName,
       roleCode: props.formData.roleCode,
-      description: props.formData.description,
+      roleDesc: props.formData.roleDesc,
       dataScope: props.formData.dataScope,
       status: props.formData.status
     })
@@ -107,6 +107,6 @@ async function handleSubmit() {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
-  Object.assign(form, { roleName: '', roleCode: '', description: '', dataScope: 1, status: 1 })
+  Object.assign(form, { roleName: '', roleCode: '', roleDesc: '', dataScope: 1, status: 1 })
 }
 </script>

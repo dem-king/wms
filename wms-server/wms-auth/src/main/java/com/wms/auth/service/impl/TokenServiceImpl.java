@@ -2,6 +2,7 @@ package com.wms.auth.service.impl;
 
 import com.wms.auth.constant.AuthRedisKey;
 import com.wms.auth.config.AuthProperties;
+import com.wms.auth.domain.constant.TokenConstants;
 import com.wms.auth.domain.vo.TokenResp;
 import com.wms.auth.domain.vo.TokenValidateResp;
 import com.wms.auth.enums.AuthErrorCode;
@@ -30,7 +31,7 @@ public class TokenServiceImpl implements TokenService {
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = authProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(Arrays.copyOf(keyBytes, 32));
+        return Keys.hmacShaKeyFor(Arrays.copyOf(keyBytes, TokenConstants.HMAC_KEY_LENGTH));
     }
 
     @Override
@@ -61,7 +62,7 @@ public class TokenServiceImpl implements TokenService {
         TokenResp resp = new TokenResp();
         resp.setAccessToken(accessToken);
         resp.setRefreshToken(refreshToken);
-        resp.setTokenType("Bearer");
+        resp.setTokenType(TokenConstants.TOKEN_TYPE_BEARER);
         resp.setExpiresIn(authProperties.getAccessTokenExpire());
         return resp;
     }
@@ -115,7 +116,7 @@ public class TokenServiceImpl implements TokenService {
                     - System.currentTimeMillis() / 1000;
             if (remainingSeconds > 0) {
                 stringRedisTemplate.opsForValue().set(
-                        AuthRedisKey.TOKEN_PREFIX + jti, "1",
+                        AuthRedisKey.TOKEN_PREFIX + jti, TokenConstants.REVOKE_FLAG,
                         remainingSeconds, TimeUnit.SECONDS);
             }
         } catch (BizException e) {
@@ -137,9 +138,9 @@ public class TokenServiceImpl implements TokenService {
         String sessionKey = AuthRedisKey.SESSION_PREFIX + userId;
         String sessionValue = String.join("|",
                 String.valueOf(userId),
-                accessToken.substring(0, Math.min(8, accessToken.length())),
+                accessToken.substring(0, Math.min(TokenConstants.TOKEN_PREFIX_LENGTH, accessToken.length())),
                 clientIp,
-                userAgent != null ? userAgent.substring(0, Math.min(50, userAgent.length())) : "",
+                userAgent != null ? userAgent.substring(0, Math.min(TokenConstants.SESSION_UA_MAX_LENGTH, userAgent.length())) : "",
                 String.valueOf(System.currentTimeMillis()));
         stringRedisTemplate.opsForValue().set(sessionKey, sessionValue,
                 authProperties.getAccessTokenExpire(), TimeUnit.SECONDS);
@@ -157,7 +158,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public TokenResp refreshToken(String refreshToken) {
         Claims claims = parseToken(refreshToken);
-        if (!"refresh".equals(claims.get("type", String.class))) {
+        if (!TokenConstants.TOKEN_TYPE_REFRESH.equals(claims.get("type", String.class))) {
             throw new BizException(AuthErrorCode.TOKEN_INVALID.getCode(), "非刷新Token");
         }
         String refreshJti = claims.getId();
@@ -169,7 +170,7 @@ public class TokenServiceImpl implements TokenService {
                 - System.currentTimeMillis() / 1000;
         if (remainingSeconds > 0) {
             stringRedisTemplate.opsForValue().set(
-                    AuthRedisKey.TOKEN_PREFIX + refreshJti, "1",
+                    AuthRedisKey.TOKEN_PREFIX + refreshJti, TokenConstants.REVOKE_FLAG,
                     remainingSeconds, TimeUnit.SECONDS);
         }
 

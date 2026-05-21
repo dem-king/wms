@@ -2,6 +2,7 @@ package com.wms.auth.service.impl;
 
 import com.wms.auth.constant.AuthRedisKey;
 import com.wms.auth.config.AuthProperties;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.service.LoginLockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,7 +26,7 @@ public class LoginLockServiceImpl implements LoginLockService {
         }
         if (count != null && count >= authProperties.getLoginFailThreshold()) {
             String lockKey = AuthRedisKey.LOCK_STATE_PREFIX + username;
-            stringRedisTemplate.opsForValue().set(lockKey, "1", authProperties.getLockDuration(), TimeUnit.SECONDS);
+            stringRedisTemplate.opsForValue().set(lockKey, AuthConstants.LOCK_FLAG, authProperties.getLockDuration(), TimeUnit.SECONDS);
         }
     }
 

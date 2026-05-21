@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
@@ -36,6 +37,7 @@ public class SysUserController {
     @Operation(summary = "用户列表(分页)")
     @GetMapping
     @PreAuthorize("hasAuthority('system:user:list')")
+    @DataScope
     public R<PageResult<SysUserVo>> page(PageParam pageParam,
                                          @RequestParam(required = false) String username,
                                          @RequestParam(required = false) String realName,
@@ -49,6 +51,7 @@ public class SysUserController {
     @Operation(summary = "用户详情")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:user:list')")
+    @DataScope
     public R<SysUserVo> getById(@PathVariable Long id) {
         return R.ok(sysUserService.getById(id));
     }
@@ -117,6 +120,7 @@ public class SysUserController {
     @Operation(summary = "查询用户角色")
     @GetMapping("/{id}/roles")
     @PreAuthorize("hasAuthority('system:user:list')")
+    @DataScope
     public R<List<Long>> getUserRoles(@PathVariable Long id) {
         return R.ok(sysUserService.getUserRoles(id));
     }

@@ -1,9 +1,9 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysMenuDto;
-import com.wms.system.domain.entity.SysMenu;
 import com.wms.system.domain.vo.MenuTreeVo;
 import com.wms.system.service.SysMenuService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +35,7 @@ public class SysMenuController {
     @Operation(summary = "菜单列表(树形)")
     @GetMapping
     @PreAuthorize("hasAuthority('system:menu:list')")
+    @DataScope
     public R<List<MenuTreeVo>> list() {
         return R.ok(sysMenuService.buildMenuTree());
     }
@@ -45,7 +46,8 @@ public class SysMenuController {
     @Operation(summary = "菜单详情")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:menu:list')")
-    public R<SysMenu> getById(@PathVariable Long id) {
+    @DataScope
+    public R<MenuTreeVo> getById(@PathVariable Long id) {
         return R.ok(sysMenuService.getById(id));
     }
 
@@ -56,7 +58,7 @@ public class SysMenuController {
     @PostMapping
     @PreAuthorize("hasAuthority('system:menu:add')")
     @OperLog(module = "system", type = "INSERT", desc = "新增菜单")
-    public R<SysMenu> create(@Valid @RequestBody SysMenuDto dto) {
+    public R<MenuTreeVo> create(@Valid @RequestBody SysMenuDto dto) {
         return R.ok(sysMenuService.create(dto));
     }
 
@@ -67,7 +69,7 @@ public class SysMenuController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('system:menu:edit')")
     @OperLog(module = "system", type = "UPDATE", desc = "更新菜单")
-    public R<SysMenu> update(@PathVariable Long id, @Valid @RequestBody SysMenuDto dto) {
+    public R<MenuTreeVo> update(@PathVariable Long id, @Valid @RequestBody SysMenuDto dto) {
         return R.ok(sysMenuService.update(id, dto));
     }
 
@@ -90,6 +92,7 @@ public class SysMenuController {
     @Operation(summary = "菜单树(角色分配用)")
     @GetMapping("/tree")
     @PreAuthorize("hasAuthority('system:role:edit')")
+    @DataScope
     public R<List<MenuTreeVo>> tree() {
         return R.ok(sysMenuService.buildMenuTree());
     }
@@ -100,6 +103,8 @@ public class SysMenuController {
      */
     @Operation(summary = "当前用户菜单树")
     @GetMapping("/userMenuTree")
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
     public R<List<MenuTreeVo>> userMenuTree() {
         return R.ok(sysMenuService.getUserMenuTree());
     }

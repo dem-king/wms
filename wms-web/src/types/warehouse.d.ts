@@ -12,10 +12,14 @@ export interface WmsWarehouseVo {
   address: string
   /** 负责人 */
   manager: string
+  /** 联系电话 */
+  phone?: string
   /** 面积(平方米) */
   area: number
   /** 状态(0-禁用 1-启用) */
   status: number
+  /** 备注 */
+  remark?: string
   /** 创建时间 */
   createTime: string
 }
@@ -25,15 +29,19 @@ export interface WmsWarehouseDto {
   /** 库房名称 */
   warehouseName: string
   /** 库房编码 */
-  warehouseCode: string
+  warehouseCode?: string
   /** 地址 */
   address: string
   /** 负责人 */
   manager: string
+  /** 联系电话 */
+  phone?: string
   /** 面积(平方米) */
   area: number
   /** 状态(0-禁用 1-启用) */
   status: number
+  /** 备注 */
+  remark?: string
 }
 
 /** 区域视图对象 */

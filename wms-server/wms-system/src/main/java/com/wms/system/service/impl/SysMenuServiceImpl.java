@@ -2,8 +2,10 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.dto.SysMenuDto;
+import com.wms.system.domain.constant.SysMenuConstants;
 import com.wms.system.domain.entity.SysMenu;
 import com.wms.system.domain.entity.SysRoleMenu;
 import com.wms.system.domain.entity.SysUserRole;
@@ -32,50 +34,50 @@ public class SysMenuServiceImpl implements SysMenuService {
     private final SysRoleMenuMapper sysRoleMenuMapper;
 
     @Override
-    public List<SysMenu> listAll() {
-        return sysMenuMapper.selectList(
-                new LambdaQueryWrapper<SysMenu>()
-                        .orderByAsc(SysMenu::getSortOrder)
-        );
+    public List<MenuTreeVo> listAll() {
+        return buildMenuTree();
     }
 
     @Override
-    public SysMenu getById(Long id) {
+    public MenuTreeVo getById(Long id) {
         SysMenu menu = sysMenuMapper.selectById(id);
-        if (menu == null || menu.getDelFlag() == 1) {
+        if (menu == null || menu.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("菜单不存在");
         }
-        return menu;
+        return toTreeVo(menu);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysMenu create(SysMenuDto dto) {
+    public MenuTreeVo create(SysMenuDto dto) {
         // 校验菜单编码唯一性
         checkMenuCodeUnique(dto.getMenuCode(), null);
         SysMenu menu = new SysMenu();
         copyDtoToEntity(dto, menu);
         // 新增菜单默认启用
         if (menu.getStatus() == null) {
-            menu.setStatus(1);
+            menu.setStatus(SysMenuConstants.STATUS_ENABLED);
         }
         if (menu.getVisible() == null) {
-            menu.setVisible(1);
+            menu.setVisible(SysMenuConstants.VISIBLE_YES);
         }
         sysMenuMapper.insert(menu);
-        return menu;
+        return toTreeVo(menu);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysMenu update(Long id, SysMenuDto dto) {
-        SysMenu existing = getById(id);
+    public MenuTreeVo update(Long id, SysMenuDto dto) {
+        SysMenu existing = sysMenuMapper.selectById(id);
+        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("菜单不存在");
+        }
         // 校验菜单编码唯一性(排除自身)
         checkMenuCodeUnique(dto.getMenuCode(), id);
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         sysMenuMapper.updateById(existing);
-        return existing;
+        return toTreeVo(existing);
     }
 
     @Override
@@ -92,14 +94,17 @@ public class SysMenuServiceImpl implements SysMenuService {
         // 逻辑删除菜单
         SysMenu menu = new SysMenu();
         menu.setId(id);
-        menu.setDelFlag(1);
-        menu.setLastOperType("d");
+        menu.setDelFlag(DelFlagConstants.DELETED);
+    
         sysMenuMapper.updateById(menu);
     }
 
     @Override
     public List<MenuTreeVo> buildMenuTree() {
-        List<SysMenu> allMenus = listAll();
+        List<SysMenu> allMenus = sysMenuMapper.selectList(
+                new LambdaQueryWrapper<SysMenu>()
+                        .orderByAsc(SysMenu::getSortOrder)
+        );
         return buildTree(allMenus);
     }
 
@@ -139,9 +144,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         List<SysMenu> menus = sysMenuMapper.selectList(
                 new LambdaQueryWrapper<SysMenu>()
                         .in(SysMenu::getId, menuIds)
-                        .in(SysMenu::getMenuType, 1, 2)
-                        .eq(SysMenu::getStatus, 1)
-                        .eq(SysMenu::getVisible, 1)
+                        .in(SysMenu::getMenuType, SysMenuConstants.MENU_TYPE_DIR, SysMenuConstants.MENU_TYPE_MENU)
+                        .eq(SysMenu::getStatus, SysMenuConstants.STATUS_ENABLED)
+                        .eq(SysMenu::getVisible, SysMenuConstants.VISIBLE_YES)
                         .orderByAsc(SysMenu::getSortOrder)
         );
 
@@ -160,7 +165,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                 List<SysMenu> parentMenus = sysMenuMapper.selectList(
                         new LambdaQueryWrapper<SysMenu>()
                                 .in(SysMenu::getId, needAddIds)
-                                .eq(SysMenu::getStatus, 1)
+                                .eq(SysMenu::getStatus, SysMenuConstants.STATUS_ENABLED)
                 );
                 menus.addAll(parentMenus);
                 allMenuIds.addAll(needAddIds);

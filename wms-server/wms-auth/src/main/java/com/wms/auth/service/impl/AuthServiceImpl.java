@@ -12,6 +12,8 @@ import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.enums.AuthOperTypeEnum;
 import com.wms.auth.enums.LoginResultEnum;
 import com.wms.auth.service.*;
+import com.wms.common.constant.BizConstants;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.common.exception.BizException;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.vo.MenuTreeVo;
@@ -67,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
                     AuthErrorCode.CREDENTIAL_INVALID.getMsg());
         }
 
-        if (user.getStatus() != null && user.getStatus() == 0) {
+        if (user.getStatus() != null && user.getStatus() == BizConstants.STATUS_DISABLED) {
             recordLoginFail(user.getUsername(), user.getId(), clientIp, userAgent, "账号禁用");
             throw new BizException(AuthErrorCode.ACCOUNT_DISABLED.getCode(),
                     AuthErrorCode.ACCOUNT_DISABLED.getMsg());
@@ -138,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
             operLog.setUserId(userId);
             operLog.setUsername(claims.get("username", String.class));
             operLog.setOperType(AuthOperTypeEnum.LOGOUT.getCode());
-            operLog.setOperResult(1);
+            operLog.setOperResult(AuthConstants.OPER_RESULT_SUCCESS);
             operLog.setOperTime(LocalDateTime.now());
             authAuditService.recordOperLog(operLog);
         } catch (BizException e) {
@@ -157,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         loginLog.setUserId(userId);
         loginLog.setLoginResult(LoginResultEnum.SUCCESS.getCode());
         loginLog.setLoginIp(ip);
-        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(200, ua.length())) : null);
+        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(AuthConstants.USER_AGENT_MAX_LENGTH, ua.length())) : null);
         loginLog.setLoginTime(LocalDateTime.now());
         authAuditService.recordLoginLog(loginLog);
     }
@@ -168,7 +170,7 @@ public class AuthServiceImpl implements AuthService {
         loginLog.setUserId(userId);
         loginLog.setLoginResult(LoginResultEnum.FAIL.getCode());
         loginLog.setLoginIp(ip);
-        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(200, ua.length())) : null);
+        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(AuthConstants.USER_AGENT_MAX_LENGTH, ua.length())) : null);
         loginLog.setFailReason(reason);
         loginLog.setLoginTime(LocalDateTime.now());
         authAuditService.recordLoginLog(loginLog);

@@ -12,9 +12,15 @@ import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.mapper.WmsReturnDetailMapper;
 import com.wms.business.mapper.WmsReturnOrderMapper;
 import com.wms.business.service.ReturnService;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.OrderStatusEnum;
+import com.wms.common.enums.ItemStatusEnum;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +28,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -40,15 +48,9 @@ public class ReturnServiceImpl implements ReturnService {
     private final WmsOutboundOrderMapper wmsOutboundOrderMapper;
     private final WmsItemMapper wmsItemMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final SequenceGenerator sequenceGenerator;
 
-    /** 归还单号前缀 */
-    private static final String ORDER_NO_PREFIX = "GH";
 
-    /** 草稿状态 */
-    private static final int STATUS_DRAFT = 0;
-
-    /** 待审核状态 */
-    private static final int STATUS_PENDING = 1;
 
     /**
      * 分页查询归还单
@@ -75,7 +77,7 @@ public class ReturnServiceImpl implements ReturnService {
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
         PageResult<ReturnOrderVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(this::toOrderVo).collect(Collectors.toList()));
+        result.setRecords(page.getRecords().stream().map(order -> toOrderVo(order, Map.of())).collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -91,10 +93,10 @@ public class ReturnServiceImpl implements ReturnService {
     @Override
     public ReturnOrderVo getOrderById(Long id) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("归还单不存在");
         }
-        ReturnOrderVo vo = toOrderVo(order);
+        ReturnOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(id));
         return vo;
     }
@@ -111,7 +113,7 @@ public class ReturnServiceImpl implements ReturnService {
     public ReturnOrderVo createOrder(ReturnOrderDto dto) {
         // 校验关联出库单存在
         WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(dto.getOutboundOrderId());
-        if (outboundOrder == null || outboundOrder.getDelFlag() == 1) {
+        if (outboundOrder == null || outboundOrder.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("关联出库单不存在");
         }
 
@@ -119,7 +121,7 @@ public class ReturnServiceImpl implements ReturnService {
         // 生成归还单号：格式为GH + 年月日 + 4位流水号
         order.setOrderNo(generateOrderNo());
         order.setOutboundOrderId(dto.getOutboundOrderId());
-        order.setStatus(STATUS_DRAFT);
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
         order.setReceiver(dto.getReceiver());
         order.setRemark(dto.getRemark());
 
@@ -128,7 +130,7 @@ public class ReturnServiceImpl implements ReturnService {
         for (ReturnOrderDto.ReturnDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == 1) {
+            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
             }
             WmsReturnDetail detail = new WmsReturnDetail();
@@ -136,14 +138,14 @@ public class ReturnServiceImpl implements ReturnService {
             detail.setItemId(detailDto.getItemId());
             detail.setQuantity(detailDto.getQuantity());
             // 默认物品状态为正常
-            detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : 1);
+            detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : ItemStatusEnum.IN_STOCK.getCode());
             wmsReturnDetailMapper.insert(detail);
         }
 
         // 归还单创建时不直接发布库存同步事件，需走审批流程后在submitOrder中发布
         // 审批通过后归还视为入库，触发库存同步
 
-        ReturnOrderVo vo = toOrderVo(order);
+        ReturnOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(order.getId()));
         return vo;
     }
@@ -159,15 +161,15 @@ public class ReturnServiceImpl implements ReturnService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnOrderVo submitOrder(Long id) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("归还单不存在");
         }
         // 只有草稿状态可以提交
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("只有草稿状态的归还单可以提交");
         }
         // 提交归还单，状态改为待审批
-        order.setStatus(STATUS_PENDING);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsReturnOrderMapper.updateById(order);
 
         // 归还提交后发布库存同步事件(归还视为入库)
@@ -177,36 +179,21 @@ public class ReturnServiceImpl implements ReturnService {
         for (WmsReturnDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), outboundOrder.getWarehouseId(), null,
-                    detail.getQuantity(), "IN"));
+                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
         }
 
-        ReturnOrderVo vo = toOrderVo(order);
+        ReturnOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(id));
         return vo;
     }
 
     /**
      * 生成归还单号: GH + 年月日 + 4位流水号
-     * 示例: GH202605140001
+     * 使用Redis INCR原子操作保证并发安全
+     * 示例: GH202605180001
      */
     private String generateOrderNo() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsReturnOrder> wrapper = new LambdaQueryWrapper<WmsReturnOrder>()
-                .likeRight(WmsReturnOrder::getOrderNo, ORDER_NO_PREFIX + datePart)
-                .orderByDesc(WmsReturnOrder::getOrderNo)
-                .last("LIMIT 1");
-        WmsReturnOrder lastOrder = wmsReturnOrderMapper.selectOne(wrapper);
-        int seq = 1;
-        if (lastOrder != null && lastOrder.getOrderNo() != null) {
-            String lastNo = lastOrder.getOrderNo();
-            String seqStr = lastNo.substring(lastNo.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return ORDER_NO_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(OrderConstants.RETURN_NO_PREFIX);
     }
 
     /**
@@ -225,7 +212,7 @@ public class ReturnServiceImpl implements ReturnService {
     /**
      * WmsReturnOrder实体转ReturnOrderVo(填充出库单号)
      */
-    private ReturnOrderVo toOrderVo(WmsReturnOrder order) {
+    private ReturnOrderVo toOrderVo(WmsReturnOrder order, Map<Long, WmsOutboundOrder> outboundOrderMap) {
         ReturnOrderVo vo = new ReturnOrderVo();
         vo.setId(order.getId());
         vo.setOrderNo(order.getOrderNo());

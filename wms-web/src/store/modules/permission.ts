@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import type { RouteComponent, RouteRecordRaw } from 'vue-router'
 import type { MenuTreeNode } from '@/types/auth'
 import router from '@/router'
-import Layout from '@/layouts/DefaultLayout.vue'
+
+const Layout = () => import('@/layouts/DefaultLayout.vue')
 
 /** 动态路由是否已生成 */
 const isRoutesAdded = ref(false)

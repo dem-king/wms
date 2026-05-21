@@ -59,7 +59,7 @@ export interface SysRoleVo {
   /** 角色编码 */
   roleCode: string
   /** 描述 */
-  description: string
+  roleDesc: string
   /** 数据范围(1-全部 2-自定义 3-本部门 4-本部门及以下 5-仅本人) */
   dataScope: number
   /** 状态(0-禁用 1-启用) */
@@ -75,7 +75,7 @@ export interface SysRoleDto {
   /** 角色编码 */
   roleCode: string
   /** 描述 */
-  description: string
+  roleDesc: string
   /** 数据范围 */
   dataScope: number
   /** 状态(0-禁用 1-启用) */

@@ -11,6 +11,7 @@ D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\service\Sys
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\service\impl\SysSupplierServiceImpl.java
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\domain\entity\SysConfig.java
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\domain\entity\SysPermission.java
+D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\domain\constant\SysMenuConstants.java
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\domain\dto\SysPermissionDto.java
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\service\impl\SysPermissionServiceImpl.java
 D:\Codes\WMS_code\wms-server\wms-system\src\main\java\com\wms\system\mapper\SysConfigMapper.java

@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysRoleDto;
@@ -34,18 +35,9 @@ public class SysRoleController {
     @Operation(summary = "角色列表")
     @GetMapping
     @PreAuthorize("hasAuthority('system:role:list')")
+    @DataScope
     public R<List<SysRoleVo>> list() {
-        return R.ok(sysRoleService.listAll().stream().map(role -> {
-            SysRoleVo vo = new SysRoleVo();
-            vo.setId(role.getId());
-            vo.setRoleName(role.getRoleName());
-            vo.setRoleCode(role.getRoleCode());
-            vo.setRoleDesc(role.getRoleDesc());
-            vo.setDataScope(role.getDataScope());
-            vo.setStatus(role.getStatus());
-            vo.setCreateTime(role.getCreateTime());
-            return vo;
-        }).toList());
+        return R.ok(sysRoleService.listAll());
     }
 
     /**
@@ -54,17 +46,9 @@ public class SysRoleController {
     @Operation(summary = "角色详情")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:role:list')")
+    @DataScope
     public R<SysRoleVo> getById(@PathVariable Long id) {
-        SysRoleVo vo = new SysRoleVo();
-        var role = sysRoleService.getById(id);
-        vo.setId(role.getId());
-        vo.setRoleName(role.getRoleName());
-        vo.setRoleCode(role.getRoleCode());
-        vo.setRoleDesc(role.getRoleDesc());
-        vo.setDataScope(role.getDataScope());
-        vo.setStatus(role.getStatus());
-        vo.setCreateTime(role.getCreateTime());
-        return R.ok(vo);
+        return R.ok(sysRoleService.getById(id));
     }
 
     /**
@@ -107,6 +91,7 @@ public class SysRoleController {
     @Operation(summary = "查询角色菜单")
     @GetMapping("/{id}/menus")
     @PreAuthorize("hasAuthority('system:role:list')")
+    @DataScope
     public R<List<Long>> getRoleMenus(@PathVariable Long id) {
         return R.ok(sysRoleService.getRoleMenus(id));
     }
@@ -129,6 +114,7 @@ public class SysRoleController {
     @Operation(summary = "查询角色权限")
     @GetMapping("/{id}/permissions")
     @PreAuthorize("hasAuthority('system:role:list')")
+    @DataScope
     public R<List<Long>> getRolePermissions(@PathVariable Long id) {
         return R.ok(sysRoleService.getRolePermissions(id));
     }

@@ -10,9 +10,14 @@ import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
 import com.wms.business.service.TransferService;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
+import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
@@ -22,9 +27,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -40,18 +47,9 @@ public class TransferServiceImpl implements TransferService {
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final WmsItemMapper wmsItemMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final SequenceGenerator sequenceGenerator;
 
-    /** 调拨单号前缀 */
-    private static final String ORDER_NO_PREFIX = "DB";
 
-    /** 草稿状态 */
-    private static final int STATUS_DRAFT = 0;
-
-    /** 待审核状态 */
-    private static final int STATUS_PENDING = 1;
-
-    /** 已完成状态 */
-    private static final int STATUS_COMPLETED = 5;
 
     /**
      * 分页查询调拨单
@@ -78,7 +76,7 @@ public class TransferServiceImpl implements TransferService {
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
         PageResult<TransferOrderVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(this::toOrderVo).collect(Collectors.toList()));
+        result.setRecords(page.getRecords().stream().map(order -> toOrderVo(order, Map.of())).collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -94,10 +92,10 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public TransferOrderVo getOrderById(Long id) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调拨单不存在");
         }
-        TransferOrderVo vo = toOrderVo(order);
+        TransferOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(id));
         return vo;
     }
@@ -114,12 +112,12 @@ public class TransferServiceImpl implements TransferService {
     public TransferOrderVo createOrder(TransferOrderDto dto) {
         // 校验调出库房存在
         WmsWarehouse fromWarehouse = wmsWarehouseMapper.selectById(dto.getFromWarehouseId());
-        if (fromWarehouse == null || fromWarehouse.getDelFlag() == 1) {
+        if (fromWarehouse == null || fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调出库房不存在或已禁用");
         }
         // 校验调入库房存在
         WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
-        if (toWarehouse == null || toWarehouse.getDelFlag() == 1) {
+        if (toWarehouse == null || toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调入库房不存在或已禁用");
         }
         // 调出库房和调入库房不能相同
@@ -132,7 +130,7 @@ public class TransferServiceImpl implements TransferService {
         order.setOrderNo(generateOrderNo());
         order.setFromWarehouseId(dto.getFromWarehouseId());
         order.setToWarehouseId(dto.getToWarehouseId());
-        order.setStatus(STATUS_DRAFT);
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
         order.setRemark(dto.getRemark());
 
         wmsTransferOrderMapper.insert(order);
@@ -140,7 +138,7 @@ public class TransferServiceImpl implements TransferService {
         for (TransferOrderDto.TransferDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == 1) {
+            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
             }
             WmsTransferDetail detail = new WmsTransferDetail();
@@ -150,7 +148,7 @@ public class TransferServiceImpl implements TransferService {
             wmsTransferDetailMapper.insert(detail);
         }
 
-        TransferOrderVo vo = toOrderVo(order);
+        TransferOrderVo vo = toOrderVo(order, Map.of());
         vo.setDetails(getOrderDetails(order.getId()));
         return vo;
     }
@@ -165,20 +163,20 @@ public class TransferServiceImpl implements TransferService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == 1) {
+        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调拨单不存在");
         }
         // 仅草稿状态可提交
-        if (order.getStatus() != STATUS_DRAFT) {
+        if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的调拨单可以提交");
         }
 
         // 状态变为待审核
-        order.setStatus(STATUS_PENDING);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsTransferOrderMapper.updateById(order);
 
         // 直接标记为已完成并发布库存同步事件(简化流程)
-        order.setStatus(STATUS_COMPLETED);
+        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
         wmsTransferOrderMapper.updateById(order);
 
         // 调拨完成后：调出库房出库(负数)，调入库房入库(正数)
@@ -189,36 +187,21 @@ public class TransferServiceImpl implements TransferService {
             // 调出库房出库
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), order.getFromWarehouseId(), null,
-                    -detail.getQuantity(), "OUT"));
+                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
             // 调入库房入库
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), order.getToWarehouseId(), null,
-                    detail.getQuantity(), "IN"));
+                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
         }
     }
 
     /**
      * 生成调拨单号: DB + 年月日 + 4位流水号
-     * 示例: DB202605140001
+     * 使用Redis INCR原子操作保证并发安全
+     * 示例: DB202605180001
      */
     private String generateOrderNo() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<WmsTransferOrder> wrapper = new LambdaQueryWrapper<WmsTransferOrder>()
-                .likeRight(WmsTransferOrder::getOrderNo, ORDER_NO_PREFIX + datePart)
-                .orderByDesc(WmsTransferOrder::getOrderNo)
-                .last("LIMIT 1");
-        WmsTransferOrder lastOrder = wmsTransferOrderMapper.selectOne(wrapper);
-        int seq = 1;
-        if (lastOrder != null && lastOrder.getOrderNo() != null) {
-            String lastNo = lastOrder.getOrderNo();
-            String seqStr = lastNo.substring(lastNo.length() - 4);
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException e) {
-                seq = 1;
-            }
-        }
-        return ORDER_NO_PREFIX + datePart + String.format("%04d", seq);
+        return sequenceGenerator.next(OrderConstants.TRANSFER_NO_PREFIX);
     }
 
     /**
@@ -237,7 +220,7 @@ public class TransferServiceImpl implements TransferService {
     /**
      * WmsTransferOrder实体转TransferOrderVo(填充库房名称)
      */
-    private TransferOrderVo toOrderVo(WmsTransferOrder order) {
+    private TransferOrderVo toOrderVo(WmsTransferOrder order, Map<Long, WmsWarehouse> warehouseMap) {
         TransferOrderVo vo = new TransferOrderVo();
         vo.setId(order.getId());
         vo.setOrderNo(order.getOrderNo());
@@ -247,16 +230,22 @@ public class TransferServiceImpl implements TransferService {
         vo.setRemark(order.getRemark());
         vo.setCreateTime(order.getCreateTime());
         vo.setCreateBy(order.getCreateBy());
-        // 填充调出库房名称
+        // 从Map中填充调出库房名称
         if (order.getFromWarehouseId() != null) {
-            WmsWarehouse fromWarehouse = wmsWarehouseMapper.selectById(order.getFromWarehouseId());
+            WmsWarehouse fromWarehouse = warehouseMap.get(order.getFromWarehouseId());
+            if (fromWarehouse == null) {
+                fromWarehouse = wmsWarehouseMapper.selectById(order.getFromWarehouseId());
+            }
             if (fromWarehouse != null) {
                 vo.setFromWarehouseName(fromWarehouse.getWarehouseName());
             }
         }
-        // 填充调入库房名称
+        // 从Map中填充调入库房名称
         if (order.getToWarehouseId() != null) {
-            WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(order.getToWarehouseId());
+            WmsWarehouse toWarehouse = warehouseMap.get(order.getToWarehouseId());
+            if (toWarehouse == null) {
+                toWarehouse = wmsWarehouseMapper.selectById(order.getToWarehouseId());
+            }
             if (toWarehouse != null) {
                 vo.setToWarehouseName(toWarehouse.getWarehouseName());
             }

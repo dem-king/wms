@@ -1,5 +1,6 @@
 package com.wms.system.controller;
 
+import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
@@ -34,6 +35,7 @@ public class SysSupplierController {
     @Operation(summary = "供应商列表(分页)")
     @GetMapping
     @PreAuthorize("hasAuthority('system:supplier:list')")
+    @DataScope
     public R<PageResult<SysSupplierVo>> page(PageParam pageParam,
                                               @RequestParam(required = false) String supplierName,
                                               @RequestParam(required = false) String supplierCode) {
@@ -46,6 +48,7 @@ public class SysSupplierController {
     @Operation(summary = "供应商详情")
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('system:supplier:list')")
+    @DataScope
     public R<SysSupplierVo> getById(@PathVariable Long id) {
         return R.ok(sysSupplierService.getById(id));
     }

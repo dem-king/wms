@@ -1,41 +1,33 @@
-JDBC Connection [HikariProxyConnection@300043402 wrapping com.mysql.cj.jdbc.ConnectionImpl@1fedd87] will not be managed by Spring
-==>  Preparing: SELECT id,username,password,real_name,dept_id,phone,email,avatar,status,del_flag,create_time,create_by,update_time,update_by,last_oper_time,last_oper_type FROM sys_user WHERE del_flag=0 AND (username = ? AND del_flag = ?)
-==> Parameters: admin(String), 0(Integer)
-Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@68140a86]
-2026-05-14T09:55:22.752+08:00 ERROR 54688 --- [wms-server] [nio-8080-exec-2] c.w.c.exception.GlobalExceptionHandler   : 系统异常
+2026-05-18T17:28:34.826+08:00 ERROR 63632 --- [wms-server] [nio-8080-exec-2] c.w.c.exception.GlobalExceptionHandler   : 系统异常
 
 org.springframework.jdbc.BadSqlGrammarException: 
-### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'last_oper_time' in 'field list'
-### The error may exist in com/wms/system/mapper/SysUserMapper.java (best guess)
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'manager' in 'field list'
+### The error may exist in com/wms/warehouse/mapper/WmsWarehouseMapper.java (best guess)
 ### The error may involve defaultParameterMap
 ### The error occurred while setting parameters
-### SQL: SELECT  id,username,password,real_name,dept_id,phone,email,avatar,status,del_flag,create_time,create_by,update_time,update_by,last_oper_time,last_oper_type  FROM sys_user  WHERE del_flag=0     AND (username = ? AND del_flag = ?)
-### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'last_oper_time' in 'field list'
+### SQL: SELECT  id,warehouse_name,warehouse_code,address,manager,phone,area,status,remark,del_flag,create_time,create_by,update_time,update_by  FROM wms_warehouse  WHERE del_flag=0       ORDER BY create_time DESC
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'manager' in 'field list'
 ; bad SQL grammar []
 	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:246) ~[spring-jdbc-6.1.6.jar:6.1.6]
 	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.1.6.jar:6.1.6]
 	at org.mybatis.spring.MyBatisExceptionTranslator.translateExceptionIfPossible(MyBatisExceptionTranslator.java:92) ~[mybatis-spring-3.0.3.jar:3.0.3]
 	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:439) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	at jdk.proxy2/jdk.proxy2.$Proxy94.selectList(Unknown Source) ~[na:na]
+	at jdk.proxy2/jdk.proxy2.$Proxy102.selectList(Unknown Source) ~[na:na]
 	at org.mybatis.spring.SqlSessionTemplate.selectList(SqlSessionTemplate.java:224) ~[mybatis-spring-3.0.3.jar:3.0.3]
 	at com.baomidou.mybatisplus.core.override.MybatisMapperMethod.executeForMany(MybatisMapperMethod.java:164) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
 	at com.baomidou.mybatisplus.core.override.MybatisMapperMethod.execute(MybatisMapperMethod.java:77) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
 	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy$PlainMethodInvoker.invoke(MybatisMapperProxy.java:149) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
 	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy.invoke(MybatisMapperProxy.java:90) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at jdk.proxy2/jdk.proxy2.$Proxy102.selectList(Unknown Source) ~[na:na]
-	at com.baomidou.mybatisplus.core.mapper.BaseMapper.selectOne(BaseMapper.java:223) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732) ~[na:na]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy$DefaultMethodInvoker.invoke(MybatisMapperProxy.java:163) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy.invoke(MybatisMapperProxy.java:90) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at jdk.proxy2/jdk.proxy2.$Proxy102.selectOne(Unknown Source) ~[na:na]
-	at com.baomidou.mybatisplus.core.mapper.BaseMapper.selectOne(BaseMapper.java:212) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732) ~[na:na]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy$DefaultMethodInvoker.invoke(MybatisMapperProxy.java:163) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy.invoke(MybatisMapperProxy.java:90) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
-	at jdk.proxy2/jdk.proxy2.$Proxy102.selectOne(Unknown Source) ~[na:na]
-	at com.wms.system.service.impl.SysUserServiceImpl.getByUsername(SysUserServiceImpl.java:18) ~[classes/:na]
-	at com.wms.auth.service.impl.AuthServiceImpl.login(AuthServiceImpl.java:59) ~[classes/:na]
-	at com.wms.auth.controller.AuthController.login(AuthController.java:44) ~[classes/:na]
+	at jdk.proxy2/jdk.proxy2.$Proxy121.selectList(Unknown Source) ~[na:na]
+	at com.wms.warehouse.service.impl.WarehouseServiceImpl.listAll(WarehouseServiceImpl.java:39) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:716) ~[spring-aop-6.1.6.jar:6.1.6]
+	at com.wms.warehouse.service.impl.WarehouseServiceImpl$$SpringCGLIB$$0.listAll(<generated>) ~[classes/:na]
+	at com.wms.warehouse.controller.WarehouseController.listAll(WarehouseController.java:42) ~[classes/:na]
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
@@ -48,7 +40,7 @@ org.springframework.jdbc.BadSqlGrammarException:
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
 	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.6.jar:6.1.6]
-	at com.wms.auth.controller.AuthController$$SpringCGLIB$$0.login(<generated>) ~[classes/:na]
+	at com.wms.warehouse.controller.WarehouseController$$SpringCGLIB$$0.listAll(<generated>) ~[classes/:na]
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
@@ -62,8 +54,8 @@ org.springframework.jdbc.BadSqlGrammarException:
 	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.6.jar:6.1.6]
 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.6.jar:6.1.6]
 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.20.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.20.jar:6.0]
 	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.6.jar:6.1.6]
 	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.20.jar:6.0]
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:206) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
@@ -152,19 +144,13 @@ org.springframework.jdbc.BadSqlGrammarException:
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
 	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'last_oper_time' in 'field list'
+Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'manager' in 'field list'
 	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121) ~[mysql-connector-j-8.3.0.jar:8.3.0]
 	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122) ~[mysql-connector-j-8.3.0.jar:8.3.0]
 	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:912) ~[mysql-connector-j-8.3.0.jar:8.3.0]
 	at com.mysql.cj.jdbc.ClientPreparedStatement.execute(ClientPreparedStatement.java:354) ~[mysql-connector-j-8.3.0.jar:8.3.0]
 	at com.zaxxer.hikari.pool.ProxyPreparedStatement.execute(ProxyPreparedStatement.java:44) ~[HikariCP-5.0.1.jar:na]
 	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute(HikariProxyPreparedStatement.java) ~[HikariCP-5.0.1.jar:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.apache.ibatis.logging.jdbc.PreparedStatementLogger.invoke(PreparedStatementLogger.java:58) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy3/jdk.proxy3.$Proxy149.execute(Unknown Source) ~[na:na]
 	at org.apache.ibatis.executor.statement.PreparedStatementHandler.query(PreparedStatementHandler.java:65) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.executor.statement.RoutingStatementHandler.query(RoutingStatementHandler.java:80) ~[mybatis-3.5.16.jar:3.5.16]
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
@@ -172,14 +158,14 @@ Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'last_oper_time' in 
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
 	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
 	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:61) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy2/jdk.proxy2.$Proxy147.query(Unknown Source) ~[na:na]
+	at jdk.proxy2/jdk.proxy2.$Proxy178.query(Unknown Source) ~[na:na]
 	at org.apache.ibatis.executor.SimpleExecutor.doQuery(SimpleExecutor.java:65) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.executor.BaseExecutor.queryFromDatabase(BaseExecutor.java:336) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.executor.BaseExecutor.query(BaseExecutor.java:158) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.executor.CachingExecutor.query(CachingExecutor.java:110) ~[mybatis-3.5.16.jar:3.5.16]
 	at com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor.intercept(MybatisPlusInterceptor.java:81) ~[mybatis-plus-extension-3.5.6.jar:3.5.6]
 	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:59) ~[mybatis-3.5.16.jar:3.5.16]
-	at jdk.proxy2/jdk.proxy2.$Proxy146.query(Unknown Source) ~[na:na]
+	at jdk.proxy2/jdk.proxy2.$Proxy177.query(Unknown Source) ~[na:na]
 	at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:154) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:147) ~[mybatis-3.5.16.jar:3.5.16]
 	at org.apache.ibatis.session.defaults.DefaultSqlSession.selectList(DefaultSqlSession.java:142) ~[mybatis-3.5.16.jar:3.5.16]
@@ -188,5 +174,5 @@ Caused by: java.sql.SQLSyntaxErrorException: Unknown column 'last_oper_time' in 
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
 	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
 	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:425) ~[mybatis-spring-3.0.3.jar:3.0.3]
-	... 136 common frames omitted
+	... 132 common frames omitted
 

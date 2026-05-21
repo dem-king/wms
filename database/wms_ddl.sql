@@ -31,8 +31,6 @@ CREATE TABLE `sys_department` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_dept_code` (`dept_code`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
@@ -54,8 +52,6 @@ CREATE TABLE `sys_user` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_username` (`username`, `del_flag`),
     KEY `idx_dept_id` (`dept_id`)
@@ -75,8 +71,6 @@ CREATE TABLE `sys_role` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_code` (`role_code`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
@@ -92,8 +86,6 @@ CREATE TABLE `sys_user_role` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_role` (`user_id`, `role_id`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户-角色关联表';
@@ -121,8 +113,6 @@ CREATE TABLE `sys_menu` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_menu_code` (`menu_code`, `del_flag`),
     KEY `idx_parent_id` (`parent_id`)
@@ -139,8 +129,6 @@ CREATE TABLE `sys_role_menu` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_menu` (`role_id`, `menu_id`, `del_flag`),
     KEY `idx_menu_id` (`menu_id`)
@@ -161,8 +149,6 @@ CREATE TABLE `sys_permission` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_perm_code` (`perm_code`, `del_flag`),
     KEY `idx_menu_id` (`menu_id`)
@@ -179,8 +165,6 @@ CREATE TABLE `sys_role_permission` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_perm` (`role_id`, `perm_id`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-权限关联表';
@@ -201,8 +185,6 @@ CREATE TABLE `sys_supplier` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_supplier_code` (`supplier_code`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商表';
@@ -221,8 +203,6 @@ CREATE TABLE `sys_config` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_config_key` (`config_key`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
@@ -248,8 +228,6 @@ CREATE TABLE `wms_warehouse` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_warehouse_code` (`warehouse_code`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库房表';
@@ -272,8 +250,6 @@ CREATE TABLE `wms_area` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_area_code` (`warehouse_id`, `area_code`, `del_flag`),
     KEY `idx_warehouse_id` (`warehouse_id`),
@@ -301,8 +277,6 @@ CREATE TABLE `wms_cabinet` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_cabinet_code` (`area_id`, `cabinet_code`, `del_flag`),
     KEY `idx_area_id` (`area_id`)
@@ -324,8 +298,6 @@ CREATE TABLE `wms_bin` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_bin_code` (`cabinet_id`, `bin_code`, `del_flag`),
     KEY `idx_cabinet_id` (`cabinet_id`)
@@ -350,8 +322,6 @@ CREATE TABLE `wms_category` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_category_code` (`category_code`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='主类目表';
@@ -369,8 +339,6 @@ CREATE TABLE `wms_sub_category` (
     `create_by`           VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`         DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`           VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_sub_category_code` (`category_id`, `sub_category_code`, `del_flag`),
     KEY `idx_category_id` (`category_id`)
@@ -389,10 +357,8 @@ CREATE TABLE `wms_tag` (
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
-    PRIMARY KEY (`id`)
+    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人'
+ (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='自定义标签表';
 
 -- 18. 物品-标签关联表
@@ -406,8 +372,6 @@ CREATE TABLE `wms_item_tag` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_item_tag` (`item_id`, `tag_id`, `del_flag`),
     KEY `idx_tag_id` (`tag_id`)
@@ -446,8 +410,6 @@ CREATE TABLE `wms_item` (
     `create_by`           VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`         DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`           VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_item_code` (`item_code`, `del_flag`),
     KEY `idx_category_id` (`category_id`),
@@ -471,8 +433,6 @@ CREATE TABLE `wms_item_image` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_item_id` (`item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物品图片表';
@@ -500,8 +460,6 @@ CREATE TABLE `wms_electronic_label` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_label_no` (`label_no`, `del_flag`),
     KEY `idx_item_id` (`item_id`),
@@ -528,8 +486,6 @@ CREATE TABLE `wms_stock` (
     `create_by`       VARCHAR(64)   DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)   DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_item_bin` (`item_id`, `bin_id`, `del_flag`),
     KEY `idx_item_id` (`item_id`),
@@ -549,8 +505,6 @@ CREATE TABLE `wms_machine_spare` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_machine_spare` (`machine_id`, `spare_id`, `del_flag`),
     KEY `idx_spare_id` (`spare_id`)
@@ -579,8 +533,6 @@ CREATE TABLE `wms_inbound_order` (
     `create_by`         VARCHAR(64)   DEFAULT ''              COMMENT '创建人',
     `update_time`       DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`         VARCHAR(64)   DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
     KEY `idx_supplier_id` (`supplier_id`),
@@ -604,8 +556,6 @@ CREATE TABLE `wms_inbound_detail` (
     `create_by`       VARCHAR(64)   DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)   DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
@@ -632,8 +582,6 @@ CREATE TABLE `wms_outbound_order` (
     `create_by`         VARCHAR(64)   DEFAULT ''              COMMENT '创建人',
     `update_time`       DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`         VARCHAR(64)   DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
     KEY `idx_applicant_id` (`applicant_id`),
@@ -657,8 +605,6 @@ CREATE TABLE `wms_outbound_detail` (
     `create_by`       VARCHAR(64)   DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)   DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
@@ -681,8 +627,6 @@ CREATE TABLE `wms_return_order` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
     KEY `idx_outbound_id` (`outbound_id`),
@@ -706,8 +650,6 @@ CREATE TABLE `wms_return_detail` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
@@ -730,8 +672,6 @@ CREATE TABLE `wms_scrap_order` (
     `create_by`         VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`         VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
     KEY `idx_applicant_id` (`applicant_id`),
@@ -751,8 +691,6 @@ CREATE TABLE `wms_scrap_detail` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
@@ -779,8 +717,6 @@ CREATE TABLE `wms_transfer_order` (
     `create_by`         VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`         VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
     KEY `idx_applicant_id` (`applicant_id`),
@@ -802,8 +738,6 @@ CREATE TABLE `wms_transfer_detail` (
     `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
     `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
@@ -829,8 +763,6 @@ CREATE TABLE `wms_approval_config` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_biz_type` (`biz_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批流程配置表';
@@ -854,8 +786,6 @@ CREATE TABLE `wms_approval_record` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_biz` (`biz_type`, `biz_id`),
     KEY `idx_approver_id` (`approver_id`)
@@ -881,8 +811,6 @@ CREATE TABLE `wms_operation_log` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_module` (`module`),
@@ -907,8 +835,6 @@ CREATE TABLE `wms_login_log` (
     `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
-    `last_oper_type` VARCHAR(10)  DEFAULT NULL           COMMENT '最后操作类型(i-新增 u-更新 d-删除)',
-    `last_oper_time` DATETIME     DEFAULT NULL           COMMENT '最后操作时间',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_create_time` (`create_time`)
