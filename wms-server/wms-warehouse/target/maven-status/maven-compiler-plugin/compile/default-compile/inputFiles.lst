@@ -4,10 +4,13 @@ D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domai
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\WarehouseDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\mapper\WmsWarehouseMapper.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\vo\CabinetVo.java
+D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\CabinetLayoutItemDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\service\WarehouseService.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\service\AreaService.java
+D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\converter\CabinetConverter.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\entity\WmsBin.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\controller\CabinetController.java
+D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\vo\CabinetLayoutSaveVo.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\mapper\WmsAreaMapper.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\entity\WmsArea.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\mapper\WmsBinMapper.java
@@ -24,6 +27,7 @@ D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domai
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\service\CabinetService.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\BinDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\service\BinService.java
+D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\dto\CabinetLayoutBatchSaveDto.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\controller\AreaController.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\vo\WarehouseVo.java
 D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\service\impl\AreaServiceImpl.java

@@ -2,7 +2,7 @@ import { get, post, put, del } from '../request'
 import type { WmsAreaVo, WmsAreaDto } from '@/types/warehouse'
 
 export function getAreaList(warehouseId: number) {
-  return get<WmsAreaVo[]>('/warehouse/areas', { warehouseId })
+  return get<WmsAreaVo[]>(`/warehouse/areas/warehouse/${warehouseId}`)
 }
 
 export function addArea(data: WmsAreaDto) {

@@ -24,6 +24,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Code Rule Check
+        working-directory: ./
+        continue-on-error: true
+        run: |
+          chmod +x scripts/check-rules.sh
+          bash scripts/check-rules.sh
+
       - name: Maven Verify
         run: mvn verify --batch-mode --no-transfer-progress -DskipTests=false
         env:

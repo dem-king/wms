@@ -21,6 +21,7 @@
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
+              { label: '可视化', type: 'success', icon: DataAnalysis, onClick: () => handleVisualize(row) },
               { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
               { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该库房吗？', onClick: () => handleDelete(row.id) },
             ]"
@@ -69,14 +70,15 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, DataAnalysis } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList, addWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouse/warehouse'
 import type { WmsWarehouseVo, WmsWarehouseDto } from '@/types/warehouse'
-import { buildWarehouseSubmitPayload } from './submit-payload'
 
+const router = useRouter()
 const loading = ref(false)
 const tableData = ref<WmsWarehouseVo[]>([])
 const dialogVisible = ref(false)
@@ -122,11 +124,29 @@ function handleEdit(row: WmsWarehouseVo) {
   dialogVisible.value = true
 }
 
+function handleVisualize(row: WmsWarehouseVo) {
+  router.push({
+    path: '/warehouse/visual',
+    query: {
+      warehouseId: String(row.id),
+    },
+  })
+}
+
 async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto = buildWarehouseSubmitPayload(form, isEdit.value)
+    const dto: WmsWarehouseDto = {
+      warehouseName: form.warehouseName,
+      address: form.address,
+      manager: form.manager,
+      phone: form.phone,
+      area: form.area,
+      status: form.status,
+      remark: form.remark,
+      ...(isEdit.value ? { warehouseCode: form.warehouseCode } : {}),
+    }
     if (isEdit.value && form.id) {
       await updateWarehouse(form.id, dto)
       ElMessage.success('编辑成功')

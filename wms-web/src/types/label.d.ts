@@ -9,19 +9,19 @@ export interface ElectronicLabelVo {
   /** 标签类型(1-二维码 2-条形码 3-RFID) */
   labelType: number
   /** 物品ID */
-  itemId: number
+  itemId: number | null
   /** 物品名称 */
-  itemName: string
+  itemName: string | null
   /** 物品编码 */
-  itemCode: string
+  itemCode: string | null
   /** 批次号 */
-  batchNo: string
+  batchNo: string | null
   /** RFID编码 */
-  rfidCode: string
+  rfidCode: string | null
   /** 二维码内容 */
-  qrContent: string
+  qrContent: string | null
   /** 条形码内容 */
-  barcodeContent: string
+  barcodeContent: string | null
   /** 标签状态(1-在库 2-正在使用 3-已归还 4-报废 5-闲置) */
   labelStatus: number
   /** 绑定类型(1-单品对应 2-批次对应) */
@@ -29,9 +29,9 @@ export interface ElectronicLabelVo {
   /** 打印状态(0-未打印 1-已打印) */
   printStatus: number
   /** 借用时间 */
-  borrowTime: string
+  borrowTime: string | null
   /** 预计归还时间 */
-  expectedReturn: string
+  expectedReturn: string | null
   /** 创建时间 */
   createTime: string
 }
@@ -46,6 +46,20 @@ export interface LabelGenerateDto {
   labelType: number
   /** 绑定类型(1-单品对应 2-批次对应) */
   bindType: number
+}
+
+/** 标签列表查询参数 */
+export interface LabelListParams {
+  /** 页码 */
+  page?: number
+  /** 每页数量 */
+  size?: number
+  /** 物品ID */
+  itemId?: number
+  /** 标签类型 */
+  labelType?: number
+  /** 标签状态 */
+  labelStatus?: number
 }
 
 /** 标签绑定DTO */

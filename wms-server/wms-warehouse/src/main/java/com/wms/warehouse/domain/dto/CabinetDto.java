@@ -51,6 +51,10 @@ public class CabinetDto {
     @Schema(description = "列数")
     private Integer cols;
 
+    /** 排序号 */
+    @Schema(description = "排序号")
+    private Integer sortOrder;
+
     /** 状态(1-启用 0-禁用) */
     @Schema(description = "状态(1-启用 0-禁用)")
     private Integer status;

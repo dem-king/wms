@@ -179,21 +179,26 @@
           <el-descriptions-item label="预计归还">{{ detailData.expectedReturn || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ detailData.createTime }}</el-descriptions-item>
         </el-descriptions>
-        <div class="detail-code" v-if="detailData.labelType === 1 || detailData.labelType === 2">
+        <div class="detail-code" v-if="detailCodeDisplay">
           <h4>编码预览</h4>
           <QrBarCode
-            v-if="detailData.labelType === 1"
-            :value="detailData.qrContent || detailData.labelNo"
-            type="qr"
-            :width="180"
-            :height="180"
+            v-if="detailCodeDisplay.mode === 'render' && detailCodeDisplay.codeType"
+            :value="detailCodeDisplay.codeValue"
+            :type="detailCodeDisplay.codeType"
+            :width="detailCodeDisplay.codeType === 'qr' ? 180 : 240"
+            :height="detailCodeDisplay.codeType === 'qr' ? 180 : 100"
           />
-          <QrBarCode
+          <div v-else-if="detailCodeDisplay.mode === 'text'" class="detail-code__text">
+            <span class="detail-code__label">RFID编码</span>
+            <span>{{ detailCodeDisplay.textValue }}</span>
+          </div>
+          <el-alert
             v-else
-            :value="detailData.barcodeContent || detailData.labelNo"
-            type="barcode"
-            :width="240"
-            :height="100"
+            :title="detailCodeDisplay.errorMessage"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="detail-code__alert"
           />
         </div>
       </template>
@@ -250,6 +255,8 @@ import { getLabelList, getLabel, generateLabels, updateLabelStatus, batchPrintLa
 import { searchItem } from '@/api/item/item'
 import type { ElectronicLabelVo, LabelGenerateDto, LabelStatusDto } from '@/types/label'
 import type { WmsItemVo } from '@/types/item'
+import { resolveLabelCodeDisplay } from './code-display'
+import { syncPrintedLabelStatus } from './print-status-sync'
 
 /** 状态映射 */
 const labelTypeMap: Record<number, string> = { 1: '二维码', 2: '条形码', 3: 'RFID' }
@@ -446,11 +453,16 @@ function handleStatusClose() {
 /** 详情弹窗 */
 const detailVisible = ref(false)
 const detailData = ref<ElectronicLabelVo | null>(null)
+const detailCodeDisplay = computed(() => (detailData.value ? resolveLabelCodeDisplay(detailData.value) : null))
 
 async function handleView(row: ElectronicLabelVo) {
-  const res = await getLabel(row.id)
-  detailData.value = res.data
-  detailVisible.value = true
+  try {
+    const res = await getLabel(row.id)
+    detailData.value = res.data
+    detailVisible.value = true
+  } catch {
+    ElMessage.error('标签详情加载失败，请稍后重试')
+  }
 }
 
 /** 闲置标签 */
@@ -481,13 +493,17 @@ function handleBatchPrint() {
 }
 
 async function handlePrinted() {
-  try {
-    await batchPrintLabels({ labelIds: selectedIds.value })
-    ElMessage.success('打印状态已更新')
-    handleQuery()
-  } catch {
-    // 打印状态更新失败不影响用户
+  const feedback = await syncPrintedLabelStatus(selectedIds.value, {
+    syncLabels: batchPrintLabels,
+    onSuccess: handleQuery,
+  })
+
+  if (feedback.type === 'success') {
+    ElMessage.success(feedback.message)
+    return
   }
+
+  ElMessage.error(feedback.message)
 }
 
 onMounted(() => {
@@ -521,5 +537,29 @@ onMounted(() => {
     margin-bottom: 8px;
     color: #606266;
   }
+}
+
+.detail-code__text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 240px;
+  padding: 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  color: #303133;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.detail-code__label {
+  color: #909399;
+  font-size: 12px;
+}
+
+.detail-code__alert {
+  margin: 0 auto;
+  max-width: 320px;
+  text-align: left;
 }
 </style>

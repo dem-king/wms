@@ -2,7 +2,7 @@ import { get, post, put, del } from '../request'
 import type { WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
 
 export function getBinList(cabinetId: number) {
-  return get<WmsBinVo[]>('/warehouse/bins', { cabinetId })
+  return get<WmsBinVo[]>(`/warehouse/bins/cabinet/${cabinetId}`)
 }
 
 export function addBin(data: WmsBinDto) {

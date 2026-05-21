@@ -44,15 +44,41 @@
     </el-form>
 
     <el-divider content-position="left">出库明细</el-divider>
-    <el-row class="mb8">
+    <div class="detail-toolbar">
       <el-button type="primary" plain :icon="Plus" @click="addDetailRow">新增行</el-button>
-    </el-row>
+      <el-input
+        v-model="scanCode"
+        class="scan-input"
+        clearable
+        placeholder="扫码枪输入标签编码后回车"
+        @keyup.enter="handleScan"
+      >
+        <template #append>
+          <el-button :loading="scanLoading" @click="handleScan">扫码识别</el-button>
+        </template>
+      </el-input>
+    </div>
+    <el-alert
+      v-if="scanFeedback.message"
+      :title="scanFeedback.message"
+      :type="scanFeedback.type"
+      :closable="false"
+      show-icon
+      class="scan-feedback"
+    />
     <el-table :data="form.details" border>
       <el-table-column label="物品" min-width="200">
         <template #default="{ row }">
-          <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: number) => handleItemChange(row, val)">
-            <el-option v-for="item in itemList" :key="item.id" :label="`${item.itemCode} - ${item.itemName}`" :value="item.id" />
-          </el-select>
+          <div class="item-cell">
+            <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: number) => handleItemChange(row, val)">
+              <el-option v-for="item in itemList" :key="item.id" :label="`${item.itemCode} - ${item.itemName}`" :value="item.id" />
+            </el-select>
+            <div v-if="row.scannedLabels?.length" class="scan-tags">
+              <el-tag v-for="label in row.scannedLabels" :key="label.labelId" size="small" type="success">
+                {{ label.labelNo }}
+              </el-tag>
+            </div>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="specModel" label="规格型号" min-width="120" />
@@ -92,17 +118,25 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { addOutboundOrder, updateOutboundOrder } from '@/api/business/outbound'
+import { addOutboundOrder, scanOutboundOrder, updateOutboundOrder } from '@/api/business/outbound'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getItemList } from '@/api/item/item'
-import type { OutboundOrderVo, OutboundOrderDto, OutboundDetailDto } from '@/types/business'
+import { collectScannedLabelIds, mergeScannedDetail } from '@/views/business/order-scan'
+import type {
+  OrderScanDetailRow,
+  OutboundOrderVo,
+  OutboundOrderDto,
+  OutboundDetailDto,
+  OutboundType,
+} from '@/types/business'
 import type { WmsWarehouseVo } from '@/types/warehouse'
 import type { WmsItemVo } from '@/types/item'
 
-interface DetailRow extends OutboundDetailDto {
-  specModel?: string
-  unit?: string
-  amount?: number
+interface DetailRow extends OutboundDetailDto, OrderScanDetailRow {}
+
+interface ScanFeedback {
+  type: 'success' | 'warning' | 'error'
+  message: string
 }
 
 const props = defineProps<{
@@ -120,10 +154,13 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
+const scanCode = ref('')
+const scanLoading = ref(false)
+const scanFeedback = ref<ScanFeedback>({ type: 'success', message: '' })
 
 const form = reactive<{
   warehouseId: number | undefined
-  outboundType: string
+  outboundType: OutboundType | ''
   recipient: string
   purpose: string
   returnDate: string
@@ -149,6 +186,7 @@ watch(() => props.visible, async (val) => {
   dialogVisible.value = val
   if (val) {
     await loadOptions()
+    resetScanState()
     if (props.isEdit && props.formData) {
       Object.assign(form, {
         warehouseId: props.formData.warehouseId,
@@ -166,6 +204,7 @@ watch(() => props.visible, async (val) => {
           amount: d.amount,
         })),
       })
+      form.details.forEach((detail) => syncDetailRowFromItem(detail))
     }
   }
 })
@@ -181,16 +220,71 @@ function addDetailRow() {
   form.details.push({ itemId: undefined as unknown as number, quantity: 1, unitPrice: 0, specModel: '', unit: '', amount: 0 })
 }
 
-function handleItemChange(row: DetailRow, itemId: number) {
-  const item = itemList.value.find(i => i.id === itemId)
+function syncDetailRowFromItem(row: DetailRow) {
+  const item = itemList.value.find(i => i.id === row.itemId)
   if (item) {
+    row.itemName = item.itemName
+    row.itemCode = item.itemCode
     row.specModel = item.specModel
     row.unit = item.unit
   }
 }
 
+function handleItemChange(row: DetailRow, itemId: number) {
+  row.itemId = itemId
+  syncDetailRowFromItem(row)
+}
+
 function calcAmount(row: DetailRow) {
   row.amount = row.quantity * row.unitPrice
+}
+
+function resetScanState() {
+  scanCode.value = ''
+  scanLoading.value = false
+  scanFeedback.value = { type: 'success', message: '' }
+}
+
+function resolveErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
+function applyScannedResult(result: Awaited<ReturnType<typeof scanOutboundOrder>>['data']) {
+  const mergedDetails = mergeScannedDetail(form.details, result)
+  form.details.splice(0, form.details.length, ...mergedDetails.map(detail => ({ ...detail })))
+  form.details.forEach((detail) => {
+    syncDetailRowFromItem(detail)
+    calcAmount(detail)
+  })
+}
+
+async function handleScan() {
+  const code = scanCode.value.trim()
+  if (!code) {
+    scanFeedback.value = { type: 'warning', message: '请输入标签编码后再扫码识别' }
+    return
+  }
+
+  scanLoading.value = true
+  try {
+    const res = await scanOutboundOrder({
+      code,
+      currentLabelIds: collectScannedLabelIds(form.details),
+    })
+    applyScannedResult(res.data)
+    scanFeedback.value = {
+      type: 'success',
+      message: `已识别标签 ${res.data.labelNo}，已回填 ${res.data.itemName || res.data.itemCode}`,
+    }
+    scanCode.value = ''
+  } catch (error) {
+    scanFeedback.value = {
+      type: 'error',
+      message: resolveErrorMessage(error, '出库扫码失败，请稍后重试'),
+    }
+  } finally {
+    scanLoading.value = false
+  }
 }
 
 async function handleSubmit() {
@@ -203,12 +297,12 @@ async function handleSubmit() {
   try {
     const dto: OutboundOrderDto = {
       warehouseId: form.warehouseId!,
-      outboundType: form.outboundType,
+      outboundType: form.outboundType as OutboundType,
       recipient: form.recipient,
       purpose: form.purpose,
       returnDate: form.returnDate,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice })),
+      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice, binId: d.binId })),
     }
     if (props.isEdit && props.formData) {
       await updateOutboundOrder(props.formData.id, dto)
@@ -228,6 +322,7 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { warehouseId: undefined, outboundType: '', recipient: '', purpose: '', returnDate: '', remark: '', details: [] })
+  resetScanState()
 }
 </script>
 
@@ -235,5 +330,31 @@ function handleClose() {
 .mb8 {
   margin-bottom: 8px;
 }
-</style>
 
+.detail-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.scan-input {
+  max-width: 360px;
+}
+
+.scan-feedback {
+  margin-bottom: 12px;
+}
+
+.item-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scan-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+</style>

@@ -2,9 +2,11 @@ package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.enums.LabelStatusEnum;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SequenceGenerator;
 import com.wms.item.converter.ElectronicLabelConverter;
 import com.wms.item.domain.constant.LabelConstants;
 import com.wms.item.domain.dto.LabelBindDto;
@@ -38,23 +40,7 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
     private final WmsElectronicLabelMapper labelMapper;
     private final WmsItemMapper wmsItemMapper;
     private final ElectronicLabelConverter converter;
-
-    /**
-     * 合法状态流转映射
-     * key: 当前状态, value: 允许流转的目标状态集合
-     */
-    private static final Map<Integer, Set<Integer>> STATUS_TRANSITIONS = new HashMap<>();
-
-    static {
-        // 在库 → 正在使用
-        STATUS_TRANSITIONS.put(LabelStatusEnum.IN_STOCK.getCode(), Set.of(LabelStatusEnum.IN_USE.getCode(), LabelStatusEnum.IDLE.getCode()));
-        // 正在使用 → 已归还、报废
-        STATUS_TRANSITIONS.put(LabelStatusEnum.IN_USE.getCode(), Set.of(LabelStatusEnum.RETURNED.getCode(), LabelStatusEnum.SCRAPPED.getCode()));
-        // 已归还 → 在库、闲置
-        STATUS_TRANSITIONS.put(LabelStatusEnum.RETURNED.getCode(), Set.of(LabelStatusEnum.IN_STOCK.getCode(), LabelStatusEnum.IDLE.getCode()));
-        // 闲置 → 在库
-        STATUS_TRANSITIONS.put(LabelStatusEnum.IDLE.getCode(), Set.of(LabelStatusEnum.IN_STOCK.getCode()));
-    }
+    private final SequenceGenerator sequenceGenerator;
 
     @Override
     public Page<ElectronicLabelVo> page(Page<ElectronicLabelVo> page, Long itemId, Integer labelType, Integer labelStatus) {
@@ -139,10 +125,8 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
             }
             labels.add(label);
         }
-        // 批量插入标签
-        for (WmsElectronicLabel label : labels) {
-            labelMapper.insert(label);
-        }
+        // 批量插入标签，使用MyBatis-Plus Db.saveBatch替代逐条insert
+        Db.saveBatch(labels);
 
         // 转换为VO并填充物品信息
         return labels.stream()
@@ -212,13 +196,14 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         }
         // 批量查询并更新打印状态
         List<WmsElectronicLabel> labels = labelMapper.selectBatchIds(labelIds);
-        for (WmsElectronicLabel label : labels) {
-            if (label.getPrintStatus() == LabelConstants.PRINT_STATUS_DONE) {
-                // 已打印的跳过
-                continue;
-            }
-            label.setPrintStatus(LabelConstants.PRINT_STATUS_DONE);
-            labelMapper.updateById(label);
+        // 过滤出未打印的标签，设置打印状态为已打印
+        List<WmsElectronicLabel> toUpdate = labels.stream()
+                .filter(label -> label.getPrintStatus() != LabelConstants.PRINT_STATUS_DONE)
+                .peek(label -> label.setPrintStatus(LabelConstants.PRINT_STATUS_DONE))
+                .collect(Collectors.toList());
+        // 批量更新打印状态，跳过已打印标签
+        if (!toUpdate.isEmpty()) {
+            Db.updateBatchById(toUpdate);
         }
     }
 
@@ -272,15 +257,13 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
     }
 
     /**
-     * 生成标签编号: BQ + 年月日 + 4位随机数
-     * 使用时间戳+随机数保证并发安全
+     * 生成标签编号: BQ + 年月日 + 4位递增流水号
+     * 使用SequenceGenerator基于Redis INCR原子操作保证并发安全
      *
-     * @return 标签编号
+     * @return 标签编号，格式如 BQ202605210001
      */
     private String generateLabelNo() {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String random = String.format("%04d", new Random().nextInt(LabelConstants.LABEL_NO_RANDOM_RANGE));
-        return LabelConstants.LABEL_NO_PREFIX + datePart + random;
+        return sequenceGenerator.next(LabelConstants.LABEL_NO_PREFIX);
     }
 
     /**
@@ -307,7 +290,7 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         if (currentStatus == targetStatus) {
             return;
         }
-        Set<Integer> allowedTargets = STATUS_TRANSITIONS.get(currentStatus);
+        Set<Integer> allowedTargets = LabelConstants.STATUS_TRANSITIONS.get(currentStatus);
         if (allowedTargets == null || !allowedTargets.contains(targetStatus)) {
             throw new BizException("标签状态不允许从" + currentStatus + "变更为" + targetStatus);
         }

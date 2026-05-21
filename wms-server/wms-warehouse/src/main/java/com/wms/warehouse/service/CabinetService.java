@@ -1,6 +1,8 @@
 package com.wms.warehouse.service;
 
 import com.wms.warehouse.domain.dto.CabinetDto;
+import com.wms.warehouse.domain.dto.CabinetLayoutBatchSaveDto;
+import com.wms.warehouse.domain.vo.CabinetLayoutSaveVo;
 import com.wms.warehouse.domain.vo.CabinetVo;
 
 import java.util.List;
@@ -60,4 +62,13 @@ public interface CabinetService {
      * @param y  Y坐标
      */
     void updatePosition(Long id, Integer x, Integer y);
+
+    /**
+     * 批量保存存放柜布局
+     * 保存区域下多个存放柜的位置与排序，并返回保存后的布局结果
+     *
+     * @param dto 存放柜布局批量保存参数
+     * @return 保存后的布局结果
+     */
+    CabinetLayoutSaveVo saveLayout(CabinetLayoutBatchSaveDto dto);
 }

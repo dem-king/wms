@@ -19,6 +19,12 @@ const staticRoutes: RouteRecordRaw[] = [
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
         meta: { title: '首页', icon: 'HomeFilled', affix: true }
+      },
+      {
+        path: 'warehouse/visual',
+        name: 'WarehouseVisual',
+        component: () => import('@/views/warehouse/visual/index.vue'),
+        meta: { title: '库房可视化', hidden: true }
       }
     ]
   },

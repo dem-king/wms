@@ -4,6 +4,8 @@ import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.warehouse.domain.dto.CabinetDto;
+import com.wms.warehouse.domain.dto.CabinetLayoutBatchSaveDto;
+import com.wms.warehouse.domain.vo.CabinetLayoutSaveVo;
 import com.wms.warehouse.domain.vo.CabinetVo;
 import com.wms.warehouse.service.CabinetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -97,5 +99,16 @@ public class CabinetController {
                                   @RequestParam Integer y) {
         cabinetService.updatePosition(id, x, y);
         return R.ok();
+    }
+
+    /**
+     * 批量保存存放柜布局
+     */
+    @Operation(summary = "批量保存存放柜布局")
+    @PostMapping("/layout")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "warehouse", type = "更新", desc = "批量保存存放柜布局")
+    public R<CabinetLayoutSaveVo> saveLayout(@Valid @RequestBody CabinetLayoutBatchSaveDto dto) {
+        return R.ok(cabinetService.saveLayout(dto));
     }
 }

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.wms.business.service.impl.OutboundScanServiceImplTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.wms.business.service.impl.OutboundScanServiceImplTest

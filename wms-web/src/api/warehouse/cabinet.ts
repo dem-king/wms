@@ -1,8 +1,13 @@
 import { get, post, put, del } from '../request'
-import type { WmsCabinetVo, WmsCabinetDto } from '@/types/warehouse'
+import type {
+  WmsCabinetVo,
+  WmsCabinetDto,
+  WmsCabinetLayoutBatchSaveDto,
+  WmsCabinetLayoutSaveVo,
+} from '@/types/warehouse'
 
 export function getCabinetList(areaId: number) {
-  return get<WmsCabinetVo[]>('/warehouse/cabinets', { areaId })
+  return get<WmsCabinetVo[]>(`/warehouse/cabinets/area/${areaId}`)
 }
 
 export function getCabinet(id: number) {
@@ -23,4 +28,8 @@ export function deleteCabinet(id: number) {
 
 export function updateCabinetPosition(id: number, data: { rows: number; cols: number }) {
   return put<WmsCabinetVo>(`/warehouse/cabinets/${id}/position`, data)
+}
+
+export function saveCabinetLayout(data: WmsCabinetLayoutBatchSaveDto) {
+  return post<WmsCabinetLayoutSaveVo>('/warehouse/cabinets/layout', data)
 }

@@ -1,10 +1,18 @@
 import { get, post, put } from '../request'
-import type { ElectronicLabelVo, LabelGenerateDto, LabelBindDto, LabelStatusDto, LabelBatchPrintDto, LabelScanResultVo } from '@/types/label'
-import type { PageResult, PageParams } from '@/types/system'
+import type {
+  ElectronicLabelVo,
+  LabelGenerateDto,
+  LabelBindDto,
+  LabelStatusDto,
+  LabelBatchPrintDto,
+  LabelScanResultVo,
+  LabelListParams,
+} from '@/types/label'
+import type { PageResult } from '@/types/system'
 
 /** 标签列表(分页) */
-export function getLabelList(params?: PageParams & { itemId?: number; labelType?: number; labelStatus?: number }) {
-  return get<PageResult<ElectronicLabelVo>>('/labels', params as unknown as Record<string, unknown>)
+export function getLabelList(params?: LabelListParams) {
+  return get<PageResult<ElectronicLabelVo>>('/labels', params as Record<string, unknown> | undefined)
 }
 
 /** 标签详情 */
@@ -29,12 +37,12 @@ export function updateLabelStatus(id: number, data: LabelStatusDto) {
 
 /** 批量打印标签 */
 export function batchPrintLabels(data: LabelBatchPrintDto) {
-  return post<void>('/labels/print', data)
+  return post<void>('/labels/print', data.labelIds)
 }
 
 /** 扫码查询 */
 export function scanLabel(code: string) {
-  return get<LabelScanResultVo>('/labels/scan', { code })
+  return get<LabelScanResultVo>(`/labels/scan/${encodeURIComponent(code)}`)
 }
 
 /** 查询长期闲置标签 */

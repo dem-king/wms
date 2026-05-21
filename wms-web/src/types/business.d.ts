@@ -3,6 +3,84 @@
 /** 单据状态枚举 */
 export type OrderStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'COMPLETED' | 'REJECTED'
 
+/** 入库类型枚举 */
+export type InboundType = 'PURCHASE' | 'RETURN' | 'TRANSFER'
+
+/** 出库类型枚举 */
+export type OutboundType = 'BORROW' | 'TRANSFER' | 'SCRAP'
+
+/** 扫码标签元数据 */
+export interface ScannedLabelMeta {
+  /** 标签ID */
+  labelId: number
+  /** 标签编号 */
+  labelNo: string
+}
+
+/** 单据扫码结果中的明细建议 */
+export interface OrderScanResultDetail {
+  /** 物品ID */
+  itemId: number
+  /** 数量 */
+  quantity: number
+}
+
+/** 单据扫码结果 */
+export interface OrderScanResult {
+  /** 标签ID */
+  labelId: number
+  /** 标签编号 */
+  labelNo: string
+  /** 标签状态 */
+  labelStatus: number
+  /** 物品ID */
+  itemId: number
+  /** 物品名称 */
+  itemName: string
+  /** 物品编码 */
+  itemCode: string
+  /** 建议回填的明细 */
+  detail: OrderScanResultDetail
+}
+
+/** 单据扫码请求 */
+export interface OrderScanRequest {
+  /** 扫码内容 */
+  code: string
+  /** 当前单据中已扫描的标签ID */
+  currentLabelIds?: number[]
+}
+
+/** 入库扫码请求 */
+export type InboundScanRequest = OrderScanRequest
+
+/** 出库扫码请求 */
+export type OutboundScanRequest = OrderScanRequest
+
+/** 表单中的扫码明细行 */
+export interface OrderScanDetailRow {
+  /** 物品ID */
+  itemId: number
+  /** 数量 */
+  quantity: number
+  /** 单价 */
+  unitPrice: number
+  /** 库位ID */
+  binId?: number
+  /** 物品名称 */
+  itemName?: string
+  /** 物品编码 */
+  itemCode?: string
+  /** 规格型号 */
+  specModel?: string
+  /** 单位 */
+  unit?: string
+  /** 金额 */
+  amount?: number
+  /** 该行已扫描标签 */
+  scannedLabels?: ScannedLabelMeta[]
+}
+
 /** 入库单视图对象 */
 export interface InboundOrderVo {
   /** 入库单ID */
@@ -62,7 +140,7 @@ export interface InboundOrderDto {
   /** 供应商ID */
   supplierId: number
   /** 入库类型 */
-  inboundType: string
+  inboundType: InboundType
   /** 备注 */
   remark: string
   /** 明细列表 */
@@ -77,6 +155,8 @@ export interface InboundDetailDto {
   quantity: number
   /** 单价 */
   unitPrice: number
+  /** 入库库位ID */
+  binId?: number
 }
 
 /** 出库单视图对象 */
@@ -138,7 +218,7 @@ export interface OutboundOrderDto {
   /** 库房ID */
   warehouseId: number
   /** 出库类型 */
-  outboundType: string
+  outboundType: OutboundType
   /** 领用人 */
   recipient: string
   /** 用途 */
@@ -159,6 +239,8 @@ export interface OutboundDetailDto {
   quantity: number
   /** 单价 */
   unitPrice: number
+  /** 库位ID */
+  binId?: number
 }
 
 /** 归还单视图对象 */

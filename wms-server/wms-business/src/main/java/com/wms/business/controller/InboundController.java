@@ -1,7 +1,10 @@
 package com.wms.business.controller;
 
 import com.wms.business.domain.dto.InboundOrderDto;
+import com.wms.business.domain.dto.InboundScanDto;
 import com.wms.business.domain.vo.InboundOrderVo;
+import com.wms.business.domain.vo.InboundScanResultVo;
+import com.wms.business.service.InboundScanService;
 import com.wms.business.service.InboundService;
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class InboundController {
 
     private final InboundService inboundService;
+    private final InboundScanService inboundScanService;
 
     /**
      * 入库单分页列表
@@ -75,6 +79,17 @@ public class InboundController {
     @OperLog(module = "business", type = "更新", desc = "更新入库单")
     public R<InboundOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody InboundOrderDto dto) {
         return R.ok(inboundService.updateOrder(id, dto));
+    }
+
+    /**
+     * 入库单扫码识别
+     */
+    @Operation(summary = "入库单扫码识别")
+    @PostMapping("/scan")
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<InboundScanResultVo> scan(@Valid @RequestBody InboundScanDto dto) {
+        return R.ok(inboundScanService.scan(dto));
     }
 
     /**

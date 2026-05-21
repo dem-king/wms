@@ -82,10 +82,20 @@ export interface WmsCabinetVo {
   id: number
   /** 区域ID */
   areaId: number
+  /** 所属库房ID */
+  warehouseId?: number
+  /** 区域名称 */
+  areaName?: string
   /** 存放柜名称 */
   cabinetName: string
   /** 存放柜编码 */
   cabinetCode: string
+  /** X坐标(可视化位置) */
+  positionX?: number
+  /** Y坐标(可视化位置) */
+  positionY?: number
+  /** 存放柜类型 */
+  cabinetType?: number
   /** 行数 */
   rows: number
   /** 列数 */
@@ -94,6 +104,10 @@ export interface WmsCabinetVo {
   sortOrder: number
   /** 状态(0-禁用 1-启用) */
   status: number
+  /** 备注 */
+  remark?: string
+  /** 物品数量 */
+  itemCount?: number
   /** 创建时间 */
   createTime: string
 }
@@ -114,6 +128,34 @@ export interface WmsCabinetDto {
   sortOrder: number
   /** 状态(0-禁用 1-启用) */
   status: number
+}
+
+/** 存放柜布局项DTO */
+export interface WmsCabinetLayoutItemDto {
+  /** 存放柜ID */
+  id: number
+  /** X坐标 */
+  positionX: number
+  /** Y坐标 */
+  positionY: number
+  /** 排序号 */
+  sortOrder: number
+}
+
+/** 存放柜布局批量保存DTO */
+export interface WmsCabinetLayoutBatchSaveDto {
+  /** 区域ID */
+  areaId: number
+  /** 布局项列表 */
+  cabinets: WmsCabinetLayoutItemDto[]
+}
+
+/** 存放柜布局保存结果VO */
+export interface WmsCabinetLayoutSaveVo {
+  /** 区域ID */
+  areaId: number
+  /** 已保存的存放柜列表 */
+  cabinets: WmsCabinetVo[]
 }
 
 /** 库位视图对象 */
