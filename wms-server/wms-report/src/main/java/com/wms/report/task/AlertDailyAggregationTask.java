@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.report.domain.constant.ReportConstants;
 import com.wms.report.domain.entity.MonitorStockAlert;
 import com.wms.report.domain.entity.ReportAlertDaily;
-import com.wms.report.mapper.MonitorStockAlertMapper;
+import com.wms.report.mapper.ReportMonitorStockAlertMapper;
 import com.wms.report.mapper.ReportAlertDailyMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AlertDailyAggregationTask {
 
-    private final MonitorStockAlertMapper monitorStockAlertMapper;
+    private final ReportMonitorStockAlertMapper reportMonitorStockAlertMapper;
     private final ReportAlertDailyMapper reportAlertDailyMapper;
 
     /**
@@ -47,7 +47,7 @@ public class AlertDailyAggregationTask {
             LambdaQueryWrapper<MonitorStockAlert> alertWrapper = new LambdaQueryWrapper<>();
             alertWrapper.ge(MonitorStockAlert::getCreateTime, dayStart)
                     .lt(MonitorStockAlert::getCreateTime, dayEnd);
-            List<MonitorStockAlert> alerts = monitorStockAlertMapper.selectList(alertWrapper);
+            List<MonitorStockAlert> alerts = reportMonitorStockAlertMapper.selectList(alertWrapper);
 
             if (alerts.isEmpty()) {
                 log.info("预警日聚合完成，无预警记录，统计日期: {}", statDate);

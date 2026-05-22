@@ -104,6 +104,7 @@ const submitLoading = ref(false)
 
 const form = reactive<WmsCabinetDto & { id?: EntityId }>({
   areaId: '',
+  warehouseId: '',
   cabinetName: '',
   cabinetCode: '',
   rows: 1,
@@ -137,13 +138,13 @@ async function handleAreaChange(areaId: EntityId) {
 
 function handleAdd() {
   isEdit.value = false
-  Object.assign(form, { id: undefined, areaId: selectedAreaId.value, cabinetName: '', cabinetCode: '', rows: 1, cols: 1, sortOrder: 0, status: 1 })
+  Object.assign(form, { id: undefined, areaId: selectedAreaId.value, warehouseId: selectedWarehouseId.value, cabinetName: '', cabinetCode: '', rows: 1, cols: 1, sortOrder: 0, status: 1 })
   dialogVisible.value = true
 }
 
 function handleEdit(row: WmsCabinetVo) {
   isEdit.value = true
-  Object.assign(form, { id: row.id, areaId: row.areaId, cabinetName: row.cabinetName, cabinetCode: row.cabinetCode, rows: row.rows, cols: row.cols, sortOrder: row.sortOrder, status: row.status })
+  Object.assign(form, { id: row.id, areaId: row.areaId, warehouseId: row.warehouseId ?? selectedWarehouseId.value, cabinetName: row.cabinetName, cabinetCode: row.cabinetCode, rows: row.rows, cols: row.cols, sortOrder: row.sortOrder, status: row.status })
   dialogVisible.value = true
 }
 
@@ -151,7 +152,7 @@ async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto: WmsCabinetDto = { areaId: form.areaId, cabinetName: form.cabinetName, cabinetCode: form.cabinetCode, rows: form.rows, cols: form.cols, sortOrder: form.sortOrder, status: form.status }
+    const dto: WmsCabinetDto = { areaId: form.areaId, warehouseId: form.warehouseId, cabinetName: form.cabinetName, cabinetCode: form.cabinetCode, rows: form.rows, cols: form.cols, sortOrder: form.sortOrder, status: form.status }
     if (isEdit.value && form.id) {
       await updateCabinet(form.id, dto)
       ElMessage.success('编辑成功')

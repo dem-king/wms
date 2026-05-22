@@ -31,6 +31,78 @@ const staticRoutes: RouteRecordRaw[] = [
         name: 'Profile',
         component: () => import('@/views/profile/index.vue'),
         meta: { title: '个人中心', hidden: true }
+      },
+      {
+        path: 'report/inbound',
+        name: 'ReportInbound',
+        component: () => import('@/views/report/inbound/index.vue'),
+        meta: { title: '入库统计', hidden: true }
+      },
+      {
+        path: 'report/outbound',
+        name: 'ReportOutbound',
+        component: () => import('@/views/report/outbound/index.vue'),
+        meta: { title: '出库统计', hidden: true }
+      },
+      {
+        path: 'report/stock',
+        name: 'ReportStock',
+        component: () => import('@/views/report/stock/index.vue'),
+        meta: { title: '库存统计', hidden: true }
+      },
+      {
+        path: 'report/borrow-return',
+        name: 'ReportBorrowReturn',
+        component: () => import('@/views/report/borrow-return/index.vue'),
+        meta: { title: '借还统计', hidden: true }
+      },
+      {
+        path: 'report/scrap',
+        name: 'ReportScrap',
+        component: () => import('@/views/report/scrap/index.vue'),
+        meta: { title: '报废报表', hidden: true }
+      },
+      {
+        path: 'report/transfer',
+        name: 'ReportTransfer',
+        component: () => import('@/views/report/transfer/index.vue'),
+        meta: { title: '调拨报表', hidden: true }
+      },
+      {
+        path: 'report/alert',
+        name: 'ReportAlert',
+        component: () => import('@/views/report/alert/index.vue'),
+        meta: { title: '预警报表', hidden: true }
+      },
+      {
+        path: 'report/cost',
+        name: 'ReportCost',
+        component: () => import('@/views/report/cost/index.vue'),
+        meta: { title: '费用核算', hidden: true }
+      },
+      {
+        path: 'monitor/stock-alert',
+        name: 'MonitorStockAlert',
+        component: () => import('@/views/monitor/stock-alert/index.vue'),
+        meta: { title: '库存预警', hidden: true }
+      },
+      {
+        path: 'monitor/overdue-return',
+        name: 'MonitorOverdueReturn',
+        component: () => import('@/views/monitor/overdue-return/index.vue'),
+        meta: { title: '逾期归还', hidden: true }
+      },
+      {
+        path: 'log/operation',
+        name: 'LogOperation',
+        component: () => import('@/views/log/operation/index.vue'),
+        meta: { title: '操作日志', hidden: true }
+      },
+      {
+        path: 'log/login',
+        name: 'LogLogin',
+        component: () => import('@/views/log/login/index.vue'),
+        meta: { title: '登录日志', hidden: true }
       }
     ]
   },

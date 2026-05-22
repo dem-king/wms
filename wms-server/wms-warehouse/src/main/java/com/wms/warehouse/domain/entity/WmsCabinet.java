@@ -1,5 +1,6 @@
 package com.wms.warehouse.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -45,10 +46,12 @@ public class WmsCabinet extends BaseEntity {
 
     /** 行数 */
     @Schema(description = "行数")
+    @TableField("`rows`")
     private Integer rows;
 
     /** 列数 */
     @Schema(description = "列数")
+    @TableField("`cols`")
     private Integer cols;
 
     /** 排序号 */

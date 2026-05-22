@@ -100,7 +100,7 @@ function clearAuthAndRedirect() {
 
 export default service
 
-export function get<T = unknown>(url: string, params?: Record<string, unknown>, config?: AxiosRequestConfig): Promise<R<T>> {
+export function get<T = unknown>(url: string, params?: Record<string, unknown> | object, config?: AxiosRequestConfig): Promise<R<T>> {
   return service.get(url, { params, ...config })
 }
 

@@ -9,8 +9,8 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.property.TextAlignment;
-import com.itextpdf.layout.property.UnitValue;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -64,7 +64,10 @@ public class PdfExporter {
             document.add(new Paragraph("\n"));
 
             // 创建表格
-            float[] widths = columns.stream().mapToInt(c -> c.getColumnWidth()).asDoubleStream().toArray();
+            float[] widths = new float[columns.size()];
+            for (int i = 0; i < columns.size(); i++) {
+                widths[i] = columns.get(i).getColumnWidth();
+            }
             Table table = new Table(UnitValue.createPointArray(widths));
             table.useAllAvailableWidth();
 

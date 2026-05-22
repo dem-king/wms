@@ -69,8 +69,8 @@ public class BinServiceImpl implements BinService {
             bin.setBinCode(generateBinCode(cabinet.getCabinetCode(), bin.getRowNum(), bin.getColNum()));
         }
         // 默认状态为启用
-        if (bin.getStatus() == null) {
-            bin.setStatus(BizConstants.STATUS_ENABLED);
+        if (bin.getBinStatus() == null) {
+            bin.setBinStatus(BizConstants.STATUS_ENABLED);
         }
         // 默认为空闲
         if (bin.getIsOccupied() == null) {
@@ -144,7 +144,7 @@ public class BinServiceImpl implements BinService {
                 bin.setRowNum(row);
                 bin.setColNum(col);
                 bin.setIsOccupied(WarehouseConstants.IS_OCCUPIED_NO);
-                bin.setStatus(BizConstants.STATUS_ENABLED);
+                bin.setBinStatus(BizConstants.STATUS_ENABLED);
                 binList.add(bin);
             }
         }
@@ -182,8 +182,9 @@ public class BinServiceImpl implements BinService {
         entity.setRowNum(dto.getRowNum());
         entity.setColNum(dto.getColNum());
         entity.setIsOccupied(dto.getIsOccupied());
-        entity.setStatus(dto.getStatus());
-        entity.setRemark(dto.getRemark());
+        entity.setCapacity(dto.getCapacity());
+        entity.setUsedCapacity(dto.getUsedCapacity());
+        entity.setBinStatus(dto.getBinStatus());
     }
 
     /**
@@ -203,8 +204,9 @@ public class BinServiceImpl implements BinService {
         vo.setIsOccupied(bin.getIsOccupied());
         // 占用状态描述
         vo.setOccupiedDesc(bin.getIsOccupied() != null && bin.getIsOccupied() == WarehouseConstants.IS_OCCUPIED_YES ? "占用" : "空闲");
-        vo.setStatus(bin.getStatus());
-        vo.setRemark(bin.getRemark());
+        vo.setCapacity(bin.getCapacity());
+        vo.setUsedCapacity(bin.getUsedCapacity());
+        vo.setBinStatus(bin.getBinStatus());
         vo.setCreateTime(bin.getCreateTime());
         // 从Map中填充存放柜名称
         if (bin.getCabinetId() != null) {
