@@ -257,6 +257,7 @@ wms-item/src/main/java/com/wms/item/controller/CategoryController.java
 wms-item/src/main/java/com/wms/item/mapper/WmsItemImageMapper.java
 wms-system/src/main/java/com/wms/system/domain/entity/SysDepartment.java
 wms-warehouse/src/main/java/com/wms/warehouse/service/impl/BinServiceImpl.java
+wms-item/src/main/java/com/wms/item/domain/dto/StockThresholdDto.java
 wms-item/src/main/java/com/wms/item/service/impl/CategoryServiceImpl.java
 wms-item/src/main/java/com/wms/item/domain/dto/LabelStatusDto.java
 wms-approval/src/main/java/com/wms/approval/mapper/WmsApprovalConfigMapper.java

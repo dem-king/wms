@@ -5,10 +5,12 @@ import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
+import com.wms.item.domain.dto.StockThresholdDto;
 import com.wms.item.domain.vo.StockVo;
 import com.wms.item.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +20,7 @@ import java.util.List;
 
 /**
  * 库存管理控制器
- * 提供库存分页查询、物品库存详情、库存预警等接口
+ * 提供库存分页查询、物品库存详情、库存预警、阈值设置等接口
  */
 @Tag(name = "库存管理")
 @RestController
@@ -63,5 +65,18 @@ public class StockController {
     @DataScope
     public R<List<StockVo>> getAlertList() {
         return R.ok(stockService.getAlertList());
+    }
+
+    /**
+     * 设置物品库存预警阈值
+     * 更新安全库存(下限)、最大库存(上限)和补货阈值
+     */
+    @Operation(summary = "设置库存预警阈值")
+    @PutMapping("/{itemId}/threshold")
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "stock", type = "更新", desc = "设置库存预警阈值")
+    public R<StockVo> updateThreshold(@PathVariable Long itemId,
+                                      @Valid @RequestBody StockThresholdDto dto) {
+        return R.ok(stockService.updateThreshold(itemId, dto));
     }
 }

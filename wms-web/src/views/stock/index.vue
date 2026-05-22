@@ -10,9 +10,8 @@
         </el-select>
       </el-form-item>
       <el-form-item label="预警筛选">
-        <el-select v-model="queryParams.isAlert" placeholder="全部" clearable>
+        <el-select v-model="queryParams.alertOnly" placeholder="全部" clearable>
           <el-option label="仅预警" :value="true" />
-          <el-option label="非预警" :value="false" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -27,10 +26,16 @@
       <el-table-column prop="warehouseName" label="库房" min-width="120" />
       <el-table-column prop="binCode" label="库位" min-width="100" />
       <el-table-column prop="quantity" label="数量" min-width="80" />
-      <el-table-column prop="safetyStock" label="安全库存" min-width="100" />
+      <el-table-column prop="stockLowerLimit" label="安全库存" min-width="100" />
+      <el-table-column prop="stockUpperLimit" label="最大库存" min-width="100" />
       <el-table-column label="状态" min-width="80">
         <template #default="{ row }">
-          <el-tag :type="row.isAlert ? 'danger' : 'success'">{{ row.isAlert ? '预警' : '正常' }}</el-tag>
+          <el-tag :type="row.alert ? 'danger' : 'success'">{{ row.alert ? '预警' : '正常' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" width="120">
+        <template #default="{ row }">
+          <el-button type="primary" link @click="handleEditThreshold(row)">阈值设置</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -45,13 +50,36 @@
       @size-change="handleQuery"
       @current-change="handleQuery"
     />
+
+    <el-dialog v-model="thresholdDialogVisible" title="预警阈值设置" width="450px" @close="resetThresholdForm">
+      <el-form ref="thresholdFormRef" :model="thresholdForm" label-width="100px">
+        <el-form-item label="物品">
+          <span>{{ thresholdForm.itemName }} ({{ thresholdForm.itemCode }})</span>
+        </el-form-item>
+        <el-form-item label="安全库存(下限)" prop="stockLowerLimit">
+          <el-input-number v-model="thresholdForm.stockLowerLimit" :min="0" controls-position="right" />
+        </el-form-item>
+        <el-form-item label="最大库存(上限)" prop="stockUpperLimit">
+          <el-input-number v-model="thresholdForm.stockUpperLimit" :min="0" controls-position="right" />
+        </el-form-item>
+        <el-form-item label="补货阈值" prop="replenishThreshold">
+          <el-input-number v-model="thresholdForm.replenishThreshold" :min="0" controls-position="right" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="thresholdDialogVisible = false">取 消</el-button>
+        <el-button type="primary" :loading="thresholdLoading" @click="handleThresholdSubmit">确 定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import type { FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
-import { getStockList } from '@/api/item/stock'
+import { getStockList, updateThreshold } from '@/api/item/stock'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import type { WmsStockVo } from '@/types/item'
 import type { WmsWarehouseVo } from '@/types/warehouse'
@@ -66,7 +94,19 @@ const queryParams = reactive({
   size: 20,
   itemName: '',
   warehouseId: undefined as number | undefined,
-  isAlert: undefined as boolean | undefined
+  alertOnly: undefined as boolean | undefined
+})
+
+const thresholdDialogVisible = ref(false)
+const thresholdLoading = ref(false)
+const thresholdFormRef = ref<FormInstance>()
+const thresholdForm = reactive({
+  itemId: 0,
+  itemCode: '',
+  itemName: '',
+  stockLowerLimit: 0,
+  stockUpperLimit: 0,
+  replenishThreshold: 0
 })
 
 async function handleQuery() {
@@ -83,13 +123,45 @@ async function handleQuery() {
 function handleReset() {
   queryParams.itemName = ''
   queryParams.warehouseId = undefined
-  queryParams.isAlert = undefined
+  queryParams.alertOnly = undefined
   queryParams.page = 1
   handleQuery()
 }
 
 function tableRowClassName({ row }: { row: WmsStockVo }) {
-  return row.isAlert ? 'alert-row' : ''
+  return row.alert ? 'alert-row' : ''
+}
+
+function handleEditThreshold(row: WmsStockVo) {
+  Object.assign(thresholdForm, {
+    itemId: row.itemId,
+    itemCode: row.itemCode,
+    itemName: row.itemName,
+    stockLowerLimit: row.stockLowerLimit ?? 0,
+    stockUpperLimit: row.stockUpperLimit ?? 0,
+    replenishThreshold: 0
+  })
+  thresholdDialogVisible.value = true
+}
+
+async function handleThresholdSubmit() {
+  thresholdLoading.value = true
+  try {
+    await updateThreshold(thresholdForm.itemId, {
+      stockLowerLimit: thresholdForm.stockLowerLimit,
+      stockUpperLimit: thresholdForm.stockUpperLimit,
+      replenishThreshold: thresholdForm.replenishThreshold
+    })
+    ElMessage.success('阈值设置成功')
+    thresholdDialogVisible.value = false
+    handleQuery()
+  } finally {
+    thresholdLoading.value = false
+  }
+}
+
+function resetThresholdForm() {
+  thresholdFormRef.value?.resetFields()
 }
 
 onMounted(async () => {

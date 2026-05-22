@@ -247,7 +247,7 @@ async function handleSubSubmit() {
       await updateSubCategory(subForm.id, dto)
       ElMessage.success('编辑成功')
     } else {
-      await addSubCategory(dto)
+      await addSubCategory(subForm.categoryId, dto)
       ElMessage.success('新增成功')
     }
     subDialogVisible.value = false

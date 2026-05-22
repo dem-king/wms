@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.exception.BizException;
+import com.wms.item.domain.dto.StockThresholdDto;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsStock;
 import com.wms.item.domain.vo.StockVo;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * 库存服务实现类
- * 处理库存分页查询、物品库存详情、库存预警等业务逻辑
+ * 处理库存分页查询、物品库存详情、库存预警、阈值设置等业务逻辑
  */
 @Service
 @RequiredArgsConstructor
@@ -108,6 +110,56 @@ public class StockServiceImpl implements StockService {
         return stocks.stream()
                 .map(stock -> toStockVo(stock, itemMap))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 更新物品库存预警阈值
+     * 校验物品存在性，更新安全库存/最大库存/补货阈值，返回更新后的库存信息
+     *
+     * @param itemId 物品ID
+     * @param dto    阈值设置参数
+     * @return 更新后的库存VO
+     */
+    @Override
+    public StockVo updateThreshold(Long itemId, StockThresholdDto dto) {
+        WmsItem item = wmsItemMapper.selectById(itemId);
+        if (item == null) {
+            throw new BizException("物品不存在: itemId=" + itemId);
+        }
+        // 按需更新阈值字段
+        if (dto.getStockLowerLimit() != null) {
+            item.setStockLowerLimit(dto.getStockLowerLimit());
+        }
+        if (dto.getStockUpperLimit() != null) {
+            item.setStockUpperLimit(dto.getStockUpperLimit());
+        }
+        if (dto.getReplenishThreshold() != null) {
+            item.setReplenishThreshold(dto.getReplenishThreshold());
+        }
+        // 校验上限不小于下限
+        if (item.getStockLowerLimit() != null && item.getStockUpperLimit() != null
+                && item.getStockUpperLimit() < item.getStockLowerLimit()) {
+            throw new BizException("最大库存不能小于安全库存");
+        }
+        wmsItemMapper.updateById(item);
+
+        // 查询该物品的第一条库存记录，构建返回VO
+        WmsStock stock = wmsStockMapper.selectOne(
+                new LambdaQueryWrapper<WmsStock>()
+                        .eq(WmsStock::getItemId, itemId)
+                        .orderByDesc(WmsStock::getUpdateTime)
+                        .last("LIMIT 1")
+        );
+        if (stock == null) {
+            StockVo vo = new StockVo();
+            vo.setItemId(itemId);
+            vo.setItemCode(item.getItemCode());
+            vo.setItemName(item.getItemName());
+            vo.setStockLowerLimit(item.getStockLowerLimit());
+            vo.setStockUpperLimit(item.getStockUpperLimit());
+            return vo;
+        }
+        return toStockVo(stock);
     }
 
     /**

@@ -28,9 +28,31 @@
       <el-col :span="1.5">
         <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
+      <el-col :span="6">
+        <el-input
+          v-model="quickSearchKeyword"
+          placeholder="快速搜索：输入编码/名称/拼音首字母"
+          clearable
+          :prefix-icon="Search"
+          @keyup.enter="handleQuickSearch"
+          @clear="handleQuery"
+        />
+      </el-col>
     </el-row>
 
     <el-table v-loading="loading" :data="tableData" border>
+      <el-table-column label="图片" width="70">
+        <template #default="{ row }">
+          <el-image
+            v-if="row.images && row.images.length > 0"
+            :src="row.images[0].imageUrl"
+            :preview-src-list="row.images.map((img: any) => img.imageUrl)"
+            fit="cover"
+            style="width: 40px; height: 40px; border-radius: 4px"
+          />
+          <span v-else style="color: #c0c4cc; font-size: 12px">无图</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="itemCode" label="编码" min-width="120" />
       <el-table-column prop="itemName" label="名称" min-width="150" />
       <el-table-column prop="specModel" label="规格型号" min-width="120" />
@@ -65,7 +87,7 @@
       @current-change="handleQuery"
     />
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑物品' : '新增物品'" width="700px" @close="handleClose">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑物品' : '新增物品'" width="750px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
@@ -124,11 +146,23 @@
           </el-col>
         </el-row>
         <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="安全库存" prop="safetyStock">
-              <el-input-number v-model="form.safetyStock" :min="0" />
+          <el-col :span="8">
+            <el-form-item label="安全库存" prop="stockLowerLimit">
+              <el-input-number v-model="form.stockLowerLimit" :min="0" controls-position="right" />
             </el-form-item>
           </el-col>
+          <el-col :span="8">
+            <el-form-item label="最大库存" prop="stockUpperLimit">
+              <el-input-number v-model="form.stockUpperLimit" :min="0" controls-position="right" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="补货阈值" prop="replenishThreshold">
+              <el-input-number v-model="form.replenishThreshold" :min="0" controls-position="right" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="状态" prop="status">
               <el-radio-group v-model="form.status">
@@ -138,6 +172,28 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-form-item label="物品图片">
+          <div class="image-upload-area">
+            <div v-for="(img, index) in form.imageList" :key="img.id || index" class="image-item">
+              <el-image :src="img.imageUrl" fit="cover" style="width: 100px; height: 100px; border-radius: 4px" />
+              <div class="image-actions">
+                <el-button type="danger" :icon="Delete" circle size="small" @click="handleRemoveImage(index)" />
+              </div>
+            </div>
+            <el-upload
+              :action="''"
+              :auto-upload="false"
+              :show-file-list="false"
+              accept="image/*"
+              @change="handleImageChange"
+            >
+              <div class="image-upload-btn">
+                <el-icon :size="24"><Plus /></el-icon>
+                <span>上传图片</span>
+              </div>
+            </el-upload>
+          </div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="handleClose">取 消</el-button>
@@ -149,16 +205,16 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getItemList, addItem, updateItem, deleteItem } from '@/api/item/item'
+import { getItemList, addItem, updateItem, deleteItem, searchItem, uploadItemImage, deleteItemImage } from '@/api/item/item'
 import { getCategoryList } from '@/api/item/category'
 import { getSubCategories } from '@/api/item/category'
 import { getTagList } from '@/api/item/tag'
 import { getSupplierList } from '@/api/system/supplier'
-import type { WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo } from '@/types/item'
+import type { WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
 import type { SysSupplierVo } from '@/types/system'
 
 const loading = ref(false)
@@ -168,6 +224,7 @@ const categoryList = ref<WmsCategoryVo[]>([])
 const subCategoryOptions = ref<WmsSubCategoryVo[]>([])
 const tagList = ref<WmsTagVo[]>([])
 const supplierList = ref<SysSupplierVo[]>([])
+const quickSearchKeyword = ref('')
 
 const queryParams = reactive({
   page: 1,
@@ -183,7 +240,7 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsItemDto & { id?: number }>({
+const form = reactive<WmsItemDto & { id?: number; imageList: ItemImageVo[] }>({
   itemCode: '',
   itemName: '',
   specModel: '',
@@ -192,8 +249,11 @@ const form = reactive<WmsItemDto & { id?: number }>({
   subCategoryId: undefined as unknown as number,
   tagIds: [],
   supplierId: undefined as unknown as number,
-  safetyStock: 0,
-  status: 1
+  stockLowerLimit: 0,
+  stockUpperLimit: 0,
+  replenishThreshold: 0,
+  status: 1,
+  imageList: []
 })
 
 const rules: FormRules = {
@@ -214,24 +274,47 @@ async function handleQuery() {
   }
 }
 
+async function handleQuickSearch() {
+  if (!quickSearchKeyword.value.trim()) return handleQuery()
+  loading.value = true
+  try {
+    const res = await searchItem(quickSearchKeyword.value.trim())
+    tableData.value = res.data
+    total.value = res.data.length
+  } finally {
+    loading.value = false
+  }
+}
+
 function handleReset() {
   queryParams.itemCode = ''
   queryParams.itemName = ''
   queryParams.categoryId = undefined
   queryParams.status = undefined
   queryParams.page = 1
+  quickSearchKeyword.value = ''
   handleQuery()
 }
 
 function handleAdd() {
   isEdit.value = false
-  Object.assign(form, { id: undefined, itemCode: '', itemName: '', specModel: '', unit: '', categoryId: undefined, subCategoryId: undefined, tagIds: [], supplierId: undefined, safetyStock: 0, status: 1 })
+  Object.assign(form, {
+    id: undefined, itemCode: '', itemName: '', specModel: '', unit: '',
+    categoryId: undefined, subCategoryId: undefined, tagIds: [], supplierId: undefined,
+    stockLowerLimit: 0, stockUpperLimit: 0, replenishThreshold: 0, status: 1, imageList: []
+  })
   dialogVisible.value = true
 }
 
 function handleEdit(row: WmsItemVo) {
   isEdit.value = true
-  Object.assign(form, { id: row.id, itemCode: row.itemCode, itemName: row.itemName, specModel: row.specModel, unit: row.unit, categoryId: row.categoryId, subCategoryId: row.subCategoryId, tagIds: row.tagIds || [], supplierId: row.supplierId, safetyStock: row.safetyStock, status: row.status })
+  Object.assign(form, {
+    id: row.id, itemCode: row.itemCode, itemName: row.itemName, specModel: row.specModel, unit: row.unit,
+    categoryId: row.categoryId, subCategoryId: row.subCategoryId, tagIds: row.tagIds || [],
+    supplierId: row.supplierId, stockLowerLimit: row.stockLowerLimit ?? 0,
+    stockUpperLimit: row.stockUpperLimit ?? 0, replenishThreshold: row.replenishThreshold ?? 0,
+    status: row.status, imageList: row.images || []
+  })
   if (row.categoryId) handleCategoryChange(row.categoryId)
   dialogVisible.value = true
 }
@@ -242,11 +325,38 @@ async function handleCategoryChange(categoryId: number) {
   subCategoryOptions.value = res.data
 }
 
+async function handleImageChange(uploadFile: UploadFile) {
+  if (!uploadFile.raw || !form.id) {
+    ElMessage.warning('请先保存物品后再上传图片')
+    return
+  }
+  try {
+    const res = await uploadItemImage(form.id, uploadFile.raw)
+    form.imageList.push(res.data)
+    ElMessage.success('图片上传成功')
+  } catch {
+    ElMessage.error('图片上传失败')
+  }
+}
+
+async function handleRemoveImage(index: number) {
+  const img = form.imageList[index]
+  if (form.id && img.id) {
+    await deleteItemImage(form.id, img.id)
+  }
+  form.imageList.splice(index, 1)
+}
+
 async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto: WmsItemDto = { itemCode: form.itemCode, itemName: form.itemName, specModel: form.specModel, unit: form.unit, categoryId: form.categoryId, subCategoryId: form.subCategoryId, tagIds: form.tagIds, supplierId: form.supplierId, safetyStock: form.safetyStock, status: form.status }
+    const dto: WmsItemDto = {
+      itemCode: form.itemCode, itemName: form.itemName, specModel: form.specModel, unit: form.unit,
+      categoryId: form.categoryId, subCategoryId: form.subCategoryId, tagIds: form.tagIds,
+      supplierId: form.supplierId, stockLowerLimit: form.stockLowerLimit,
+      stockUpperLimit: form.stockUpperLimit, replenishThreshold: form.replenishThreshold, status: form.status
+    }
     if (isEdit.value && form.id) {
       await updateItem(form.id, dto)
       ElMessage.success('编辑成功')
@@ -302,5 +412,48 @@ onMounted(() => {
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
+}
+
+.image-upload-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+
+  .image-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .image-actions {
+    opacity: 1;
+  }
+}
+
+.image-upload-btn {
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8c939d;
+  font-size: 12px;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+  }
 }
 </style>

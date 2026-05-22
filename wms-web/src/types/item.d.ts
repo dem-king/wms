@@ -120,14 +120,36 @@ export interface WmsItemVo {
   supplierId: number
   /** 供应商名称 */
   supplierName: string
-  /** 安全库存 */
-  safetyStock: number
+  /** 安全库存(下限) */
+  stockLowerLimit: number
+  /** 最大库存(上限) */
+  stockUpperLimit: number
+  /** 补货阈值 */
+  replenishThreshold: number
   /** 当前库存 */
   currentStock: number
+  /** 物品图片列表 */
+  images: ItemImageVo[]
+  /** 拼音首字母 */
+  pinyinInitial: string
   /** 状态(0-禁用 1-启用) */
   status: number
   /** 创建时间 */
   createTime: string
+}
+
+/** 物品图片视图对象 */
+export interface ItemImageVo {
+  /** 图片ID */
+  id: number
+  /** 物品ID */
+  itemId: number
+  /** 图片URL */
+  imageUrl: string
+  /** 图片名称 */
+  imageName: string
+  /** 排序号 */
+  sortOrder: number
 }
 
 /** 物品新增/编辑DTO */
@@ -148,8 +170,12 @@ export interface WmsItemDto {
   tagIds: number[]
   /** 供应商ID */
   supplierId: number
-  /** 安全库存 */
-  safetyStock: number
+  /** 安全库存(下限) */
+  stockLowerLimit: number
+  /** 最大库存(上限) */
+  stockUpperLimit: number
+  /** 补货阈值 */
+  replenishThreshold: number
   /** 状态(0-禁用 1-启用) */
   status: number
 }
@@ -168,14 +194,28 @@ export interface WmsStockVo {
   warehouseId: number
   /** 库房名称 */
   warehouseName: string
+  /** 区域ID */
+  areaId: number
+  /** 存放柜ID */
+  cabinetId: number
   /** 库位ID */
   binId: number
   /** 库位编码 */
   binCode: string
   /** 数量 */
   quantity: number
-  /** 安全库存 */
-  safetyStock: number
-  /** 是否预警 */
-  isAlert: boolean
+  /** 锁定数量(审批中) */
+  lockedQuantity: number
+  /** 库存金额 */
+  amount: number
+  /** 最后入库时间 */
+  lastInboundTime: string
+  /** 最后出库时间 */
+  lastOutboundTime: string
+  /** 安全库存(下限) */
+  stockLowerLimit: number
+  /** 最大库存(上限) */
+  stockUpperLimit: number
+  /** 是否预警(quantity < stockLowerLimit) */
+  alert: boolean
 }
