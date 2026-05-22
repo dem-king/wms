@@ -1,3 +1,4 @@
+import type { EntityId } from '@/types/warehouse'
 import type { WarehouseVisualLocationMatch, WarehouseVisualModel } from './visual-layout'
 
 export type VisualViewMode = '2d' | '2.5d'
@@ -5,19 +6,19 @@ export type VisualViewMode = '2d' | '2.5d'
 const DEFAULT_VIEW_MODE: VisualViewMode = '2d'
 
 export interface VisualSelectionState {
-  selectedAreaId: number | null
-  selectedCabinetId: number | null
-  selectedBinId: number | null
-  highlightedAreaId: number | null
-  highlightedCabinetId: number | null
-  highlightedBinId: number | null
+  selectedAreaId: EntityId | null
+  selectedCabinetId: EntityId | null
+  selectedBinId: EntityId | null
+  highlightedAreaId: EntityId | null
+  highlightedCabinetId: EntityId | null
+  highlightedBinId: EntityId | null
   viewMode: VisualViewMode
 }
 
 export type VisualSelectionAction =
-  | { type: 'select-area'; areaId: number }
-  | { type: 'select-cabinet'; cabinetId: number }
-  | { type: 'select-bin'; cabinetId: number; binId: number }
+  | { type: 'select-area'; areaId: EntityId }
+  | { type: 'select-cabinet'; cabinetId: EntityId }
+  | { type: 'select-bin'; cabinetId: EntityId; binId: EntityId }
   | { type: 'set-view-mode'; viewMode: VisualViewMode }
   | { type: 'locate-match'; match: WarehouseVisualLocationMatch }
   | { type: 'reset' }

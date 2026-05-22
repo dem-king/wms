@@ -48,3 +48,4 @@ redis/
 # Maven/Gradle build output
 target/
 !**/src/**/target/
+.worktrees/

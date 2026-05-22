@@ -1,4 +1,5 @@
 import type {
+  EntityId,
   WmsAreaVo,
   WmsBinVo,
   WmsCabinetLayoutSaveVo,
@@ -48,8 +49,8 @@ export interface WarehouseVisualSummary {
 }
 
 export interface WarehouseVisualBinNode {
-  id: number
-  cabinetId: number
+  id: EntityId
+  cabinetId: EntityId
   binCode: string
   row: number
   col: number
@@ -57,8 +58,8 @@ export interface WarehouseVisualBinNode {
 }
 
 export interface WarehouseVisualCabinetNode {
-  id: number
-  areaId: number
+  id: EntityId
+  areaId: EntityId
   cabinetName: string
   cabinetCode: string
   sortOrder: number
@@ -71,17 +72,17 @@ export interface WarehouseVisualCabinetNode {
   height: number
   gridRowCount: number
   gridColCount: number
-  binIds: number[]
+  binIds: EntityId[]
   cells: Array<Array<WarehouseVisualBinNode | null>>
 }
 
 export interface WarehouseVisualAreaNode {
-  id: number
+  id: EntityId
   areaName: string
   areaCode: string
   sortOrder: number
   status: number
-  cabinetIds: number[]
+  cabinetIds: EntityId[]
   x: number
   y: number
   width: number
@@ -89,23 +90,23 @@ export interface WarehouseVisualAreaNode {
 }
 
 export interface WarehouseVisualModel {
-  warehouseId: number
+  warehouseId: EntityId
   warehouseName: string
   viewport: WarehouseVisualViewport
   empty: WarehouseVisualEmptyState | null
   summary: WarehouseVisualSummary
   areas: WarehouseVisualAreaNode[]
-  cabinets: Record<number, WarehouseVisualCabinetNode>
-  bins: Record<number, WarehouseVisualBinNode>
+  cabinets: Record<string, WarehouseVisualCabinetNode>
+  bins: Record<string, WarehouseVisualBinNode>
 }
 
 export type WarehouseVisualMatchedType = 'area' | 'cabinet' | 'bin'
 
 export interface WarehouseVisualLocationMatch {
   matchedType: WarehouseVisualMatchedType
-  areaId: number
-  cabinetId: number | null
-  binId: number | null
+  areaId: EntityId
+  cabinetId: EntityId | null
+  binId: EntityId | null
   matchedCode: string
 }
 
@@ -130,14 +131,14 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
     }
   }
 
-  const cabinetsByArea = new Map<number, WmsCabinetVo[]>()
+  const cabinetsByArea = new Map<EntityId, WmsCabinetVo[]>()
   for (const cabinet of sortedCabinets) {
     const cabinetList = cabinetsByArea.get(cabinet.areaId) ?? []
     cabinetList.push(cabinet)
     cabinetsByArea.set(cabinet.areaId, cabinetList)
   }
 
-  const binsByCabinet = new Map<number, WmsBinVo[]>()
+  const binsByCabinet = new Map<EntityId, WmsBinVo[]>()
   for (const bin of [...input.bins].sort(compareBin)) {
     const binList = binsByCabinet.get(bin.cabinetId) ?? []
     binList.push(bin)
@@ -186,8 +187,8 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
   }
 
   const areaNodes: WarehouseVisualAreaNode[] = []
-  const cabinetNodes: Record<number, WarehouseVisualCabinetNode> = {}
-  const binNodes: Record<number, WarehouseVisualBinNode> = {}
+  const cabinetNodes: Record<string, WarehouseVisualCabinetNode> = {}
+  const binNodes: Record<string, WarehouseVisualBinNode> = {}
 
   let currentX = VISUAL_PADDING
   let maxHeight = VISUAL_AREA_MIN_HEIGHT
@@ -283,7 +284,7 @@ export function findVisualLocationByCode(
   if (exactBin) {
     return {
       matchedType: 'bin',
-      areaId: model.cabinets[exactBin.cabinetId]?.areaId ?? 0,
+      areaId: model.cabinets[exactBin.cabinetId]?.areaId ?? '',
       cabinetId: exactBin.cabinetId,
       binId: exactBin.id,
       matchedCode: exactBin.binCode,
@@ -320,7 +321,7 @@ export function findVisualLocationByCode(
   if (partialBin) {
     return {
       matchedType: 'bin',
-      areaId: model.cabinets[partialBin.cabinetId]?.areaId ?? 0,
+      areaId: model.cabinets[partialBin.cabinetId]?.areaId ?? '',
       cabinetId: partialBin.cabinetId,
       binId: partialBin.id,
       matchedCode: partialBin.binCode,
@@ -403,7 +404,7 @@ function createCabinetNode(
   const gridRowCount = Math.max(cabinet.rows ?? 1, ...cabinetBins.map(bin => bin.row), 1)
   const gridColCount = Math.max(cabinet.cols ?? 1, ...cabinetBins.map(bin => bin.col), 1)
   const cells = Array.from({ length: gridRowCount }, () => Array.from({ length: gridColCount }, () => null as WarehouseVisualBinNode | null))
-  const binIds: number[] = []
+  const binIds: EntityId[] = []
 
   for (const bin of cabinetBins) {
     const binNode: WarehouseVisualBinNode = {
@@ -479,20 +480,24 @@ function resolveCabinetOffsetY(cabinet: WmsCabinetVo): number {
 }
 
 function compareBySortOrder(left: Pick<WmsAreaVo, 'sortOrder' | 'id'>, right: Pick<WmsAreaVo, 'sortOrder' | 'id'>): number {
-  return left.sortOrder - right.sortOrder || left.id - right.id
+  return left.sortOrder - right.sortOrder || compareEntityId(left.id, right.id)
 }
 
 function compareCabinet(left: WmsCabinetVo, right: WmsCabinetVo): number {
   return left.sortOrder - right.sortOrder
     || (left.positionY ?? 0) - (right.positionY ?? 0)
     || (left.positionX ?? 0) - (right.positionX ?? 0)
-    || left.id - right.id
+    || compareEntityId(left.id, right.id)
 }
 
 function compareBin(left: WmsBinVo, right: WmsBinVo): number {
-  return left.row - right.row || left.col - right.col || left.id - right.id
+  return left.row - right.row || left.col - right.col || compareEntityId(left.id, right.id)
 }
 
 function normalizeCode(value: string): string {
   return value.trim().toUpperCase()
+}
+
+function compareEntityId(left: EntityId, right: EntityId): number {
+  return left.localeCompare(right)
 }

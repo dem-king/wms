@@ -23,5 +23,31 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.wms</groupId>
+            <artifactId>wms-business</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wms</groupId>
+            <artifactId>wms-item</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wms</groupId>
+            <artifactId>wms-warehouse</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wms</groupId>
+            <artifactId>wms-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>kernel</artifactId>
+            <version>${itext.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+            <version>${itext.version}</version>
+        </dependency>
     </dependencies>
 </project>

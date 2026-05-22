@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo } from '@/types/warehouse'
 import type { VisualViewMode } from '../visual-state'
 
 const props = defineProps<{
   warehouseList: WmsWarehouseVo[]
-  selectedWarehouseId?: number
+  selectedWarehouseId?: EntityId
   loading: boolean
   viewMode: VisualViewMode
   quickLocateKeyword: string
@@ -18,7 +18,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'change-warehouse', value: number): void
+  (e: 'change-warehouse', value: EntityId): void
   (e: 'refresh'): void
   (e: 'change-view-mode', value: VisualViewMode): void
   (e: 'update:quickLocateKeyword', value: string): void
@@ -33,8 +33,8 @@ const viewModeOptions = computed(() => [
   { label: '2.5D', value: '2.5d' },
 ])
 
-function handleWarehouseChange(value: number | undefined) {
-  if (typeof value === 'number') {
+function handleWarehouseChange(value: EntityId | undefined) {
+  if (typeof value === 'string' && value) {
     emit('change-warehouse', value)
   }
 }

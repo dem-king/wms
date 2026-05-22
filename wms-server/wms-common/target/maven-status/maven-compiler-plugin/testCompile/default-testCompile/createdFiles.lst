@@ -1,1 +1,5 @@
 com\wms\common\domain\BaseEntityTest.class
+com\wms\common\enums\OrderStatusEnumTest.class
+com\wms\common\constant\DelFlagConstantsTest.class
+com\wms\common\exception\BizExceptionTest.class
+com\wms\common\constant\BizConstantsTest.class

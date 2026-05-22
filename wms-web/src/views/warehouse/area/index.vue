@@ -75,10 +75,10 @@ import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList, addArea, updateArea, deleteArea } from '@/api/warehouse/area'
-import type { WmsWarehouseVo, WmsAreaVo, WmsAreaDto } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo, WmsAreaVo, WmsAreaDto } from '@/types/warehouse'
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
-const selectedWarehouseId = ref<number>()
+const selectedWarehouseId = ref<EntityId>()
 const loading = ref(false)
 const tableData = ref<WmsAreaVo[]>([])
 const dialogVisible = ref(false)
@@ -86,8 +86,8 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsAreaDto & { id?: number }>({
-  warehouseId: 0,
+const form = reactive<WmsAreaDto & { id?: EntityId }>({
+  warehouseId: '',
   areaName: '',
   areaCode: '',
   sortOrder: 0,
@@ -99,7 +99,7 @@ const rules: FormRules = {
   areaCode: [{ required: true, message: '请输入区域编码', trigger: 'blur' }]
 }
 
-async function handleWarehouseChange(warehouseId: number) {
+async function handleWarehouseChange(warehouseId: EntityId) {
   loading.value = true
   try {
     const res = await getAreaList(warehouseId)
@@ -140,7 +140,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteArea(id)
   ElMessage.success('删除成功')
   if (selectedWarehouseId.value) handleWarehouseChange(selectedWarehouseId.value)

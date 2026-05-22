@@ -1,4 +1,4 @@
-import type { WmsCabinetLayoutBatchSaveDto, WmsCabinetLayoutSaveVo } from '@/types/warehouse'
+import type { EntityId, WmsCabinetLayoutBatchSaveDto, WmsCabinetLayoutSaveVo } from '@/types/warehouse'
 import {
   applyCabinetLayoutSaveResult,
   VISUAL_AREA_HEADER_HEIGHT,
@@ -17,8 +17,8 @@ export interface LayoutEditorPositionDraft {
 
 export interface LayoutEditorState {
   isEditMode: boolean
-  pendingPositions: Record<number, LayoutEditorPositionDraft>
-  pendingCabinetIds: number[]
+  pendingPositions: Record<string, LayoutEditorPositionDraft>
+  pendingCabinetIds: EntityId[]
   isSaving: boolean
   feedbackType: LayoutFeedbackType
   feedbackMessage: string
@@ -26,7 +26,7 @@ export interface LayoutEditorState {
 
 export type LayoutEditorAction =
   | { type: 'set-edit-mode'; enabled: boolean }
-  | { type: 'move-cabinet'; cabinetId: number; positionX: number; positionY: number }
+  | { type: 'move-cabinet'; cabinetId: EntityId; positionX: number; positionY: number }
   | { type: 'discard-pending' }
   | { type: 'save-start' }
   | { type: 'save-success'; message: string }
@@ -132,7 +132,7 @@ export function reduceLayoutEditorState(
 export function buildLayoutSavePayload(
   model: WarehouseVisualModel,
   state: LayoutEditorState,
-  areaId: number,
+  areaId: EntityId,
 ): WmsCabinetLayoutBatchSaveDto {
   const area = model.areas.find(item => item.id === areaId)
   if (!area) {
@@ -151,7 +151,7 @@ export function buildLayoutSavePayload(
         positionY: draft?.positionY ?? cabinet.y,
       }
     })
-    .sort((left, right) => left.positionY - right.positionY || left.positionX - right.positionX || left.id - right.id)
+    .sort((left, right) => left.positionY - right.positionY || left.positionX - right.positionX || left.id.localeCompare(right.id))
     .map((cabinet, index) => ({
       id: cabinet.id,
       positionX: Math.max(cabinet.positionX - area.x - VISUAL_PADDING, 0),
@@ -175,8 +175,7 @@ export function applySavedLayoutToVisualModel(
   return applyCabinetLayoutSaveResult(model, result)
 }
 
-function toPendingCabinetIds(pendingPositions: Record<number, LayoutEditorPositionDraft>): number[] {
+function toPendingCabinetIds(pendingPositions: Record<string, LayoutEditorPositionDraft>): EntityId[] {
   return Object.keys(pendingPositions)
-    .map(value => Number(value))
-    .sort((left, right) => left - right)
+    .sort((left, right) => left.localeCompare(right))
 }

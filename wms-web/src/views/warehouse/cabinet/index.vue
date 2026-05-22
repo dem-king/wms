@@ -89,12 +89,12 @@ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList, addCabinet, updateCabinet, deleteCabinet } from '@/api/warehouse/cabinet'
-import type { WmsWarehouseVo, WmsAreaVo, WmsCabinetVo, WmsCabinetDto } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo, WmsAreaVo, WmsCabinetVo, WmsCabinetDto } from '@/types/warehouse'
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
 const areaList = ref<WmsAreaVo[]>([])
-const selectedWarehouseId = ref<number>()
-const selectedAreaId = ref<number>()
+const selectedWarehouseId = ref<EntityId>()
+const selectedAreaId = ref<EntityId>()
 const loading = ref(false)
 const tableData = ref<WmsCabinetVo[]>([])
 const dialogVisible = ref(false)
@@ -102,8 +102,8 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsCabinetDto & { id?: number }>({
-  areaId: 0,
+const form = reactive<WmsCabinetDto & { id?: EntityId }>({
+  areaId: '',
   cabinetName: '',
   cabinetCode: '',
   rows: 1,
@@ -117,7 +117,7 @@ const rules: FormRules = {
   cabinetCode: [{ required: true, message: '请输入存放柜编码', trigger: 'blur' }]
 }
 
-async function handleWarehouseChange(warehouseId: number) {
+async function handleWarehouseChange(warehouseId: EntityId) {
   selectedAreaId.value = undefined
   areaList.value = []
   tableData.value = []
@@ -125,7 +125,7 @@ async function handleWarehouseChange(warehouseId: number) {
   areaList.value = res.data
 }
 
-async function handleAreaChange(areaId: number) {
+async function handleAreaChange(areaId: EntityId) {
   loading.value = true
   try {
     const res = await getCabinetList(areaId)
@@ -166,7 +166,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteCabinet(id)
   ElMessage.success('删除成功')
   if (selectedAreaId.value) handleAreaChange(selectedAreaId.value)

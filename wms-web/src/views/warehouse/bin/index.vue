@@ -115,21 +115,21 @@ import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList } from '@/api/warehouse/cabinet'
 import { getBinList, addBin, updateBin, deleteBin, batchCreateBin } from '@/api/warehouse/bin'
-import type { WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
+import type { EntityId, WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
 
 interface CabinetOption {
-  id: number
+  id: EntityId
   cabinetName: string
 }
 
 interface WarehouseOption {
-  id: number
+  id: EntityId
   warehouseName: string
   cabinets: CabinetOption[]
 }
 
 const warehouseList = ref<WarehouseOption[]>([])
-const selectedCabinetId = ref<number>()
+const selectedCabinetId = ref<EntityId>()
 const loading = ref(false)
 const tableData = ref<WmsBinVo[]>([])
 const dialogVisible = ref(false)
@@ -137,8 +137,8 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsBinDto & { id?: number }>({
-  cabinetId: 0,
+const form = reactive<WmsBinDto & { id?: EntityId }>({
+  cabinetId: '',
   binCode: '',
   row: 1,
   col: 1,
@@ -153,7 +153,7 @@ const batchDialogVisible = ref(false)
 const batchFormRef = ref<FormInstance>()
 const batchLoading = ref(false)
 const batchForm = reactive<WmsBinBatchDto>({
-  cabinetId: 0,
+  cabinetId: '',
   startRow: 1,
   endRow: 1,
   startCol: 1,
@@ -167,7 +167,7 @@ const batchRules: FormRules = {
   endCol: [{ required: true, message: '请输入结束列', trigger: 'blur' }]
 }
 
-async function handleCabinetChange(cabinetId: number) {
+async function handleCabinetChange(cabinetId: EntityId) {
   loading.value = true
   try {
     const res = await getBinList(cabinetId)
@@ -208,7 +208,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteBin(id)
   ElMessage.success('删除成功')
   if (selectedCabinetId.value) handleCabinetChange(selectedCabinetId.value)
@@ -238,7 +238,7 @@ async function handleBatchSubmit() {
 
 function resetBatchForm() {
   batchFormRef.value?.resetFields()
-  Object.assign(batchForm, { cabinetId: 0, startRow: 1, endRow: 1, startCol: 1, endCol: 1 })
+  Object.assign(batchForm, { cabinetId: '', startRow: 1, endRow: 1, startCol: 1, endCol: 1 })
 }
 
 onMounted(async () => {

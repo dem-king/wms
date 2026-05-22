@@ -1,0 +1,48 @@
+-- 操作日志表
+CREATE TABLE IF NOT EXISTS `sys_oper_log` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `module`          VARCHAR(64)  DEFAULT '' COMMENT '操作模块',
+    `type`            VARCHAR(32)  DEFAULT '' COMMENT '操作类型',
+    `desc`            VARCHAR(256) DEFAULT '' COMMENT '操作描述',
+    `operator_id`     BIGINT       DEFAULT NULL COMMENT '操作人ID',
+    `operator_name`   VARCHAR(64)  DEFAULT '' COMMENT '操作人姓名',
+    `request_url`     VARCHAR(256) DEFAULT '' COMMENT '请求URL',
+    `request_method`  VARCHAR(16)  DEFAULT '' COMMENT '请求方法',
+    `request_params`  TEXT         DEFAULT NULL COMMENT '请求参数(脱敏后)',
+    `response_result` TEXT         DEFAULT NULL COMMENT '响应结果',
+    `oper_ip`         VARCHAR(64)  DEFAULT '' COMMENT '操作IP',
+    `status`          VARCHAR(16)  DEFAULT 'SUCCESS' COMMENT '操作状态(SUCCESS/FAIL)',
+    `error_msg`       VARCHAR(512) DEFAULT '' COMMENT '异常信息',
+    `cost_time`       BIGINT       DEFAULT 0 COMMENT '耗时(毫秒)',
+    `oper_time`       DATETIME     DEFAULT NULL COMMENT '操作时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    INDEX `idx_oper_time` (`oper_time`),
+    INDEX `idx_operator_id` (`operator_id`),
+    INDEX `idx_module` (`module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='操作日志表';
+
+-- 登录日志表
+CREATE TABLE IF NOT EXISTS `sys_login_log` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `username`        VARCHAR(64)  DEFAULT '' COMMENT '用户名',
+    `login_ip`        VARCHAR(64)  DEFAULT '' COMMENT '登录IP',
+    `login_location`  VARCHAR(256) DEFAULT '' COMMENT '登录地点',
+    `browser`         VARCHAR(128) DEFAULT '' COMMENT '浏览器',
+    `os`              VARCHAR(128) DEFAULT '' COMMENT '操作系统',
+    `status`          VARCHAR(16)  DEFAULT 'SUCCESS' COMMENT '登录状态(SUCCESS/FAIL/LOGOUT)',
+    `fail_reason`     VARCHAR(256) DEFAULT '' COMMENT '失败原因',
+    `login_time`      DATETIME     DEFAULT NULL COMMENT '登录时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    INDEX `idx_login_time` (`login_time`),
+    INDEX `idx_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='登录日志表';

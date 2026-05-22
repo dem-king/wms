@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { EntityId } from '@/types/warehouse'
 import type {
   WarehouseVisualAreaNode,
   WarehouseVisualCabinetNode,
@@ -12,7 +13,7 @@ import type { VisualSelectionState, VisualViewMode } from '../visual-state'
 
 interface CabinetGridCell {
   key: string
-  binId: number | null
+  binId: EntityId | null
   rectConfig: Record<string, number | string>
   labelConfig: Record<string, number | string> | null
 }
@@ -32,16 +33,16 @@ const props = defineProps<{
   selection: VisualSelectionState
   viewMode: VisualViewMode
   isEditMode: boolean
-  pendingCabinetIds: number[]
-  draftPositions: Record<number, LayoutEditorPositionDraft>
+  pendingCabinetIds: EntityId[]
+  draftPositions: Record<string, LayoutEditorPositionDraft>
 }>()
 
 const emit = defineEmits<{
-  (e: 'select-area', areaId: number): void
-  (e: 'select-cabinet', cabinetId: number): void
-  (e: 'select-bin', payload: { cabinetId: number; binId: number }): void
-  (e: 'open-cabinet-detail', cabinetId: number): void
-  (e: 'update-cabinet-position', payload: { cabinetId: number; positionX: number; positionY: number }): void
+  (e: 'select-area', areaId: EntityId): void
+  (e: 'select-cabinet', cabinetId: EntityId): void
+  (e: 'select-bin', payload: { cabinetId: EntityId; binId: EntityId }): void
+  (e: 'open-cabinet-detail', cabinetId: EntityId): void
+  (e: 'update-cabinet-position', payload: { cabinetId: EntityId; positionX: number; positionY: number }): void
   (e: 'retry'): void
 }>()
 
@@ -227,11 +228,11 @@ function getCabinetGridCells(cabinet: WarehouseVisualCabinetNode): CabinetGridCe
   )
 }
 
-function handleCabinetClick(cabinetId: number) {
+function handleCabinetClick(cabinetId: EntityId) {
   emit('select-cabinet', cabinetId)
 }
 
-function handleCabinetDblclick(cabinetId: number) {
+function handleCabinetDblclick(cabinetId: EntityId) {
   emit('open-cabinet-detail', cabinetId)
 }
 

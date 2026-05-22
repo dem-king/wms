@@ -6,7 +6,7 @@ import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList, saveCabinetLayout } from '@/api/warehouse/cabinet'
 import { getBinList } from '@/api/warehouse/bin'
-import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo } from '@/types/warehouse'
 import {
   buildWarehouseVisualModel,
   findVisualLocationByCode,
@@ -34,7 +34,7 @@ import CabinetDetailDialog from './components/CabinetDetailDialog.vue'
 const route = useRoute()
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
-const selectedWarehouseId = ref<number>()
+const selectedWarehouseId = ref<EntityId>()
 const loading = ref(false)
 const visualModel = ref<WarehouseVisualModel | null>(null)
 const visualError = ref('')
@@ -95,10 +95,8 @@ async function loadWarehouseOptions() {
   const response = await getWarehouseList()
   warehouseList.value = response.data
 
-  const routeWarehouseId = Number(route.query.warehouseId)
-  const initialWarehouseId = Number.isFinite(routeWarehouseId) && routeWarehouseId > 0
-    ? routeWarehouseId
-    : warehouseList.value[0]?.id
+  const routeWarehouseId = typeof route.query.warehouseId === 'string' ? route.query.warehouseId : undefined
+  const initialWarehouseId = routeWarehouseId || warehouseList.value[0]?.id
 
   if (initialWarehouseId) {
     selectedWarehouseId.value = initialWarehouseId
@@ -172,7 +170,7 @@ async function loadVisual() {
   }
 }
 
-function handleSelectArea(areaId: number) {
+function handleSelectArea(areaId: EntityId) {
   if (!visualModel.value) {
     return
   }
@@ -182,7 +180,7 @@ function handleSelectArea(areaId: number) {
   })
 }
 
-function handleSelectCabinet(cabinetId: number) {
+function handleSelectCabinet(cabinetId: EntityId) {
   if (!visualModel.value) {
     return
   }
@@ -192,7 +190,7 @@ function handleSelectCabinet(cabinetId: number) {
   })
 }
 
-function handleSelectBin(cabinetId: number, binId: number) {
+function handleSelectBin(cabinetId: EntityId, binId: EntityId) {
   if (!visualModel.value) {
     return
   }
@@ -236,19 +234,19 @@ function handleQuickLocate() {
   quickLocateFeedback.value = `已定位到${match.matchedCode}`
 }
 
-function handleOpenCabinetDetail(cabinetId?: number) {
+function handleOpenCabinetDetail(cabinetId?: EntityId) {
   if (!visualModel.value) {
     return
   }
 
-  if (typeof cabinetId === 'number') {
+  if (typeof cabinetId === 'string' && cabinetId) {
     visualSelection.value = reduceVisualSelection(visualModel.value, visualSelection.value, {
       type: 'select-cabinet',
       cabinetId,
     })
   }
 
-  if (!selectedCabinet.value && typeof cabinetId !== 'number') {
+  if (!selectedCabinet.value && typeof cabinetId !== 'string') {
     return
   }
   isCabinetDetailVisible.value = true
@@ -261,7 +259,7 @@ function handleToggleEditMode(enabled: boolean) {
   })
 }
 
-function handleCabinetPositionChange(payload: { cabinetId: number; positionX: number; positionY: number }) {
+function handleCabinetPositionChange(payload: { cabinetId: EntityId; positionX: number; positionY: number }) {
   layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
     type: 'move-cabinet',
     cabinetId: payload.cabinetId,

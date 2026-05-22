@@ -1,9 +1,12 @@
 /** 库房管理 */
 
+/** 实体ID */
+export type EntityId = string
+
 /** 库房视图对象 */
 export interface WmsWarehouseVo {
   /** 库房ID */
-  id: number
+  id: EntityId
   /** 库房名称 */
   warehouseName: string
   /** 库房编码 */
@@ -47,9 +50,9 @@ export interface WmsWarehouseDto {
 /** 区域视图对象 */
 export interface WmsAreaVo {
   /** 区域ID */
-  id: number
+  id: EntityId
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 区域名称 */
   areaName: string
   /** 区域编码 */
@@ -65,7 +68,7 @@ export interface WmsAreaVo {
 /** 区域新增/编辑DTO */
 export interface WmsAreaDto {
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 区域名称 */
   areaName: string
   /** 区域编码 */
@@ -79,11 +82,11 @@ export interface WmsAreaDto {
 /** 存放柜视图对象 */
 export interface WmsCabinetVo {
   /** 存放柜ID */
-  id: number
+  id: EntityId
   /** 区域ID */
-  areaId: number
+  areaId: EntityId
   /** 所属库房ID */
-  warehouseId?: number
+  warehouseId?: EntityId
   /** 区域名称 */
   areaName?: string
   /** 存放柜名称 */
@@ -115,7 +118,7 @@ export interface WmsCabinetVo {
 /** 存放柜新增/编辑DTO */
 export interface WmsCabinetDto {
   /** 区域ID */
-  areaId: number
+  areaId: EntityId
   /** 存放柜名称 */
   cabinetName: string
   /** 存放柜编码 */
@@ -133,7 +136,7 @@ export interface WmsCabinetDto {
 /** 存放柜布局项DTO */
 export interface WmsCabinetLayoutItemDto {
   /** 存放柜ID */
-  id: number
+  id: EntityId
   /** X坐标 */
   positionX: number
   /** Y坐标 */
@@ -145,7 +148,7 @@ export interface WmsCabinetLayoutItemDto {
 /** 存放柜布局批量保存DTO */
 export interface WmsCabinetLayoutBatchSaveDto {
   /** 区域ID */
-  areaId: number
+  areaId: EntityId
   /** 布局项列表 */
   cabinets: WmsCabinetLayoutItemDto[]
 }
@@ -153,7 +156,7 @@ export interface WmsCabinetLayoutBatchSaveDto {
 /** 存放柜布局保存结果VO */
 export interface WmsCabinetLayoutSaveVo {
   /** 区域ID */
-  areaId: number
+  areaId: EntityId
   /** 已保存的存放柜列表 */
   cabinets: WmsCabinetVo[]
 }
@@ -161,9 +164,9 @@ export interface WmsCabinetLayoutSaveVo {
 /** 库位视图对象 */
 export interface WmsBinVo {
   /** 库位ID */
-  id: number
+  id: EntityId
   /** 存放柜ID */
-  cabinetId: number
+  cabinetId: EntityId
   /** 库位编码 */
   binCode: string
   /** 行号 */
@@ -179,7 +182,7 @@ export interface WmsBinVo {
 /** 库位新增/编辑DTO */
 export interface WmsBinDto {
   /** 存放柜ID */
-  cabinetId: number
+  cabinetId: EntityId
   /** 库位编码 */
   binCode: string
   /** 行号 */
@@ -193,7 +196,7 @@ export interface WmsBinDto {
 /** 批量生成库位DTO */
 export interface WmsBinBatchDto {
   /** 存放柜ID */
-  cabinetId: number
+  cabinetId: EntityId
   /** 起始行 */
   startRow: number
   /** 结束行 */

@@ -27,6 +27,7 @@ D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\Item
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\CategoryVo.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\CategoryController.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\CategoryDto.java
+D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\dto\StockThresholdDto.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\domain\vo\StockVo.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\MachineSpareController.java
 D:\Codes\WMS_code\wms-server\wms-item\src\main\java\com\wms\item\controller\TagController.java

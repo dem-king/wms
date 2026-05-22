@@ -1,5 +1,0 @@
-# Created at 2026-05-18T17:47:33.247
-Boot Manifest-JAR contains absolute paths in classpath 'D:\Codes\WMS_code\wms-server\wms-business\target\test-classes'
-Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
-'other' has different root
-

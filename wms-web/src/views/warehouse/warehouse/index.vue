@@ -76,7 +76,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, DataAnalysis } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList, addWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouse/warehouse'
-import type { WmsWarehouseVo, WmsWarehouseDto } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo, WmsWarehouseDto } from '@/types/warehouse'
 
 const router = useRouter()
 const loading = ref(false)
@@ -86,7 +86,7 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsWarehouseDto & { id?: number }>({
+const form = reactive<WmsWarehouseDto & { id?: EntityId }>({
   warehouseName: '',
   warehouseCode: '',
   address: '',
@@ -161,7 +161,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteWarehouse(id)
   ElMessage.success('删除成功')
   handleQuery()
