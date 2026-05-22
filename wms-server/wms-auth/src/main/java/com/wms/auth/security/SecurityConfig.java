@@ -32,7 +32,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/captcha/**",
                                 "/auth/crypto/**",
-                                "/auth/token/refresh"
+                                "/auth/token/refresh",
+                                "/auth/profile/avatar/content/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/doc.html",
