@@ -28,6 +28,14 @@ public class OverdueReturnServiceImpl implements OverdueReturnService {
     private final MonitorOverdueReturnMapper monitorOverdueReturnMapper;
     private final MonitorConverter monitorConverter;
 
+    /**
+     * 分页查询逾期归还记录
+     * 
+     * @param pageParam 分页参数
+     * @param alertLevel 预警级别(可选)
+     * @param status 处理状态(可选)
+     * @return 逾期归还分页结果
+     */
     @Override
     public PageResult<OverdueReturnVo> page(PageParam pageParam, String alertLevel, String status) {
         Page<MonitorOverdueReturn> page = new Page<>(pageParam.getPage(), pageParam.getSize());

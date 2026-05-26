@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * 文件存储自动装配配置
@@ -26,7 +25,6 @@ public class StorageAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "wms.storage.type", havingValue = "minio")
-    @Import(MinioConfig.class)
     public StorageStrategy minioStorageStrategy(StorageProperties props,
                                                 io.minio.MinioClient minioClient) {
         log.info("文件存储策略: MinIO对象存储, endpoint={}, bucket={}",

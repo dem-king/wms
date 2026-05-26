@@ -10,6 +10,7 @@ import com.wms.warehouse.domain.dto.AreaDto;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.domain.vo.AreaVo;
+import com.wms.warehouse.converter.AreaConverter;
 import com.wms.warehouse.mapper.WmsAreaMapper;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import com.wms.warehouse.service.AreaService;
@@ -36,7 +37,14 @@ public class AreaServiceImpl implements AreaService {
     private final WmsAreaMapper wmsAreaMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final SequenceGenerator sequenceGenerator;
+    private final AreaConverter areaConverter;
 
+    /**
+     * 按库房ID查询区域列表
+     *
+     * @param warehouseId 库房ID
+     * @return 区域VO列表
+     */
     @Override
     public List<AreaVo> listByWarehouseId(Long warehouseId) {
         LambdaQueryWrapper<WmsArea> wrapper = new LambdaQueryWrapper<WmsArea>()
@@ -53,16 +61,26 @@ public class AreaServiceImpl implements AreaService {
                 ? Map.of()
                 : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
                         .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
-        return list.stream().map(area -> toAreaVo(area, warehouseMap)).collect(Collectors.toList());
+        return list.stream().map(area -> areaConverter.toVo(area, warehouseMap)).collect(Collectors.toList());
     }
 
+    /**
+     * 新增区域
+     * 自动生成区域编码，默认状态为启用
+     *
+     * @param dto 区域新增参数
+     * @return 新增后的区域VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AreaVo create(AreaDto dto) {
         // 校验库房存在且启用
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+        if (warehouse == null) {
             throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         WmsArea area = new WmsArea();
         copyDtoToEntity(dto, area);
@@ -76,35 +94,57 @@ public class AreaServiceImpl implements AreaService {
             area.setSortOrder(BizConstants.DEFAULT_SORT_ORDER);
         }
         wmsAreaMapper.insert(area);
-        return toAreaVo(area, Map.of());
+        return areaConverter.toVo(area, Map.of());
     }
 
+    /**
+     * 更新区域
+     * 编辑时不修改编码
+     *
+     * @param id  区域ID
+     * @param dto 区域更新参数
+     * @return 更新后的区域VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AreaVo update(Long id, AreaDto dto) {
         WmsArea existing = wmsAreaMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("区域不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("区域已删除");
         }
         // 校验库房存在
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+        if (warehouse == null) {
             throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         // 编辑时不修改编码
         existing.setAreaCode(null);
         wmsAreaMapper.updateById(existing);
-        return toAreaVo(existing, Map.of());
+        return areaConverter.toVo(existing, Map.of());
     }
 
+    /**
+     * 删除区域(逻辑删除)
+     *
+     * @param id 区域ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsArea existing = wmsAreaMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("区域不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("区域已删除");
         }
         // 逻辑删除区域
         WmsArea updateEntity = new WmsArea();
@@ -136,33 +176,4 @@ public class AreaServiceImpl implements AreaService {
         entity.setRemark(dto.getRemark());
     }
 
-    /**
-     * WmsArea实体转AreaVo(填充库房名称)
-     *
-     * @param area 区域实体
-     * @param warehouseMap 库房ID到实体的映射，避免N+1查询
-     */
-    private AreaVo toAreaVo(WmsArea area, Map<Long, WmsWarehouse> warehouseMap) {
-        AreaVo vo = new AreaVo();
-        vo.setId(area.getId());
-        vo.setWarehouseId(area.getWarehouseId());
-        vo.setAreaName(area.getAreaName());
-        vo.setAreaCode(area.getAreaCode());
-        vo.setAreaType(area.getAreaType());
-        vo.setSortOrder(area.getSortOrder());
-        vo.setStatus(area.getStatus());
-        vo.setRemark(area.getRemark());
-        vo.setCreateTime(area.getCreateTime());
-        // 从Map中填充库房名称
-        if (area.getWarehouseId() != null) {
-            WmsWarehouse warehouse = warehouseMap.get(area.getWarehouseId());
-            if (warehouse == null) {
-                warehouse = wmsWarehouseMapper.selectById(area.getWarehouseId());
-            }
-            if (warehouse != null) {
-                vo.setWarehouseName(warehouse.getWarehouseName());
-            }
-        }
-        return vo;
-    }
 }

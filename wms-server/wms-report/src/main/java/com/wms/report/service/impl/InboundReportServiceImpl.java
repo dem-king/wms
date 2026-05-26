@@ -48,6 +48,13 @@ public class InboundReportServiceImpl implements InboundReportService {
         return wrapper;
     }
 
+    /**
+     * 获取InboundReport统计汇总
+     * 按分类聚合统计数量、金额和单据数
+     * 
+     * @param queryDto 报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public InboundReportVo.SummaryVo getSummary(ReportQueryDto queryDto) {
         List<ReportInboundDaily> list = reportInboundDailyMapper.selectList(buildWrapper(queryDto));
@@ -77,6 +84,13 @@ public class InboundReportServiceImpl implements InboundReportService {
         return vo;
     }
 
+    /**
+     * 获取InboundReport趋势数据
+     * 支持按日或按月聚合
+     * 
+     * @param queryDto 报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public InboundReportVo.TrendVo getTrend(ReportQueryDto queryDto) {
         List<ReportInboundDaily> list = reportInboundDailyMapper.selectList(buildWrapper(queryDto));
@@ -122,6 +136,13 @@ public class InboundReportServiceImpl implements InboundReportService {
         return vo;
     }
 
+    /**
+     * 获取InboundReport分布数据
+     * 按分类聚合计算占比
+     * 
+     * @param queryDto 报表查询参数
+     * @return 分布VO
+     */
     @Override
     public InboundReportVo.DistributionVo getDistribution(ReportQueryDto queryDto) {
         List<ReportInboundDaily> list = reportInboundDailyMapper.selectList(buildWrapper(queryDto));

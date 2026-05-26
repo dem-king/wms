@@ -74,8 +74,11 @@ public class MachineSpareServiceImpl implements MachineSpareService {
     @Override
     public MachineSpareVo getById(Long id) {
         WmsMachineSpare entity = wmsMachineSpareMapper.selectById(id);
-        if (entity == null || entity.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("机器-备件关联不存在");
+        if (entity == null) {
+            throw new BizException("机床备件关联不存在");
+        }
+        if (entity.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("机床备件关联已删除");
         }
         return machineSpareConverter.toVo(entity);
     }
@@ -92,8 +95,11 @@ public class MachineSpareServiceImpl implements MachineSpareService {
     public MachineSpareVo create(MachineSpareDto dto) {
         // 校验备件物品存在
         WmsItem item = wmsItemMapper.selectById(dto.getSpareItemId());
-        if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+        if (item == null) {
             throw new BizException("备件物品不存在: " + dto.getSpareItemId());
+        }
+        if (item.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("备件物品已删除: " + dto.getSpareItemId());
         }
 
         WmsMachineSpare entity = new WmsMachineSpare();
@@ -118,13 +124,19 @@ public class MachineSpareServiceImpl implements MachineSpareService {
     @Transactional(rollbackFor = Exception.class)
     public MachineSpareVo update(Long id, MachineSpareDto dto) {
         WmsMachineSpare entity = wmsMachineSpareMapper.selectById(id);
-        if (entity == null || entity.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("机器-备件关联不存在");
+        if (entity == null) {
+            throw new BizException("机床备件关联不存在");
+        }
+        if (entity.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("机床备件关联已删除");
         }
         // 校验备件物品存在
         WmsItem item = wmsItemMapper.selectById(dto.getSpareItemId());
-        if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+        if (item == null) {
             throw new BizException("备件物品不存在: " + dto.getSpareItemId());
+        }
+        if (item.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("备件物品已删除: " + dto.getSpareItemId());
         }
 
         entity.setMachineName(dto.getMachineName());
@@ -145,8 +157,11 @@ public class MachineSpareServiceImpl implements MachineSpareService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsMachineSpare entity = wmsMachineSpareMapper.selectById(id);
-        if (entity == null || entity.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("机器-备件关联不存在");
+        if (entity == null) {
+            throw new BizException("机床备件关联不存在");
+        }
+        if (entity.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("机床备件关联已删除");
         }
         // 逻辑删除
         WmsMachineSpare updateEntity = new WmsMachineSpare();

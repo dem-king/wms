@@ -10,6 +10,7 @@ import com.wms.warehouse.domain.dto.BinDto;
 import com.wms.warehouse.domain.entity.WmsBin;
 import com.wms.warehouse.domain.entity.WmsCabinet;
 import com.wms.warehouse.domain.vo.BinVo;
+import com.wms.warehouse.converter.BinConverter;
 import com.wms.warehouse.mapper.WmsBinMapper;
 import com.wms.warehouse.mapper.WmsCabinetMapper;
 import com.wms.warehouse.service.BinService;
@@ -34,7 +35,14 @@ public class BinServiceImpl implements BinService {
 
     private final WmsBinMapper wmsBinMapper;
     private final WmsCabinetMapper wmsCabinetMapper;
+    private final BinConverter binConverter;
 
+    /**
+     * 按存放柜ID查询库位列表
+     *
+     * @param cabinetId 存放柜ID
+     * @return 库位VO列表
+     */
     @Override
     public List<BinVo> listByCabinetId(Long cabinetId) {
         LambdaQueryWrapper<WmsBin> wrapper = new LambdaQueryWrapper<WmsBin>()
@@ -51,16 +59,26 @@ public class BinServiceImpl implements BinService {
                 ? Map.of()
                 : wmsCabinetMapper.selectBatchIds(cabinetIds).stream()
                         .collect(Collectors.toMap(WmsCabinet::getId, Function.identity()));
-        return list.stream().map(bin -> toBinVo(bin, cabinetMap)).collect(Collectors.toList());
+        return list.stream().map(bin -> binConverter.toVo(bin, cabinetMap)).collect(Collectors.toList());
     }
 
+    /**
+     * 新增库位
+     * 自动生成库位编码，默认状态为启用、空闲
+     *
+     * @param dto 库位新增参数
+     * @return 新增后的库位VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public BinVo create(BinDto dto) {
         // 校验存放柜存在且启用
         WmsCabinet cabinet = wmsCabinetMapper.selectById(dto.getCabinetId());
-        if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+        if (cabinet == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         WmsBin bin = new WmsBin();
         copyDtoToEntity(dto, bin);
@@ -77,33 +95,54 @@ public class BinServiceImpl implements BinService {
             bin.setIsOccupied(WarehouseConstants.IS_OCCUPIED_NO);
         }
         wmsBinMapper.insert(bin);
-        return toBinVo(bin, Map.of());
+        return binConverter.toVo(bin, Map.of());
     }
 
+    /**
+     * 更新库位
+     *
+     * @param id  库位ID
+     * @param dto 库位更新参数
+     * @return 更新后的库位VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public BinVo update(Long id, BinDto dto) {
         WmsBin existing = wmsBinMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("库位不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库位已删除");
         }
         // 校验存放柜存在
         WmsCabinet cabinet = wmsCabinetMapper.selectById(dto.getCabinetId());
-        if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+        if (cabinet == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         wmsBinMapper.updateById(existing);
-        return toBinVo(existing, Map.of());
+        return binConverter.toVo(existing, Map.of());
     }
 
+    /**
+     * 删除库位(逻辑删除)
+     *
+     * @param id 库位ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsBin existing = wmsBinMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("库位不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库位已删除");
         }
         // 逻辑删除库位
         WmsBin updateEntity = new WmsBin();
@@ -113,13 +152,25 @@ public class BinServiceImpl implements BinService {
         wmsBinMapper.updateById(updateEntity);
     }
 
+    /**
+     * 批量生成库位
+     * 按行列数批量创建库位，同步更新存放柜行列数
+     *
+     * @param cabinetId 存放柜ID
+     * @param rows     行数
+     * @param cols     列数
+     * @return 新增的库位VO列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<BinVo> batchCreate(Long cabinetId, Integer rows, Integer cols) {
         // 校验存放柜存在且启用
         WmsCabinet cabinet = wmsCabinetMapper.selectById(cabinetId);
-        if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+        if (cabinet == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         if (rows == null || rows <= 0 || cols == null || cols <= 0) {
             throw new BizException("行列数必须大于0");
@@ -151,7 +202,7 @@ public class BinServiceImpl implements BinService {
         // 批量插入所有库位，避免逐条insert
         Db.saveBatch(binList);
         for (WmsBin bin : binList) {
-            result.add(toBinVo(bin, Map.of()));
+            result.add(binConverter.toVo(bin, Map.of()));
         }
         // 同步更新存放柜行列数
         WmsCabinet updateCabinet = new WmsCabinet();
@@ -187,37 +238,4 @@ public class BinServiceImpl implements BinService {
         entity.setBinStatus(dto.getBinStatus());
     }
 
-    /**
-     * WmsBin实体转BinVo(填充存放柜名称和占用状态描述)
-     *
-     * @param bin 库位实体
-     * @param cabinetMap 存放柜ID到实体的映射，避免N+1查询
-     */
-    private BinVo toBinVo(WmsBin bin, Map<Long, WmsCabinet> cabinetMap) {
-        BinVo vo = new BinVo();
-        vo.setId(bin.getId());
-        vo.setCabinetId(bin.getCabinetId());
-        vo.setWarehouseId(bin.getWarehouseId());
-        vo.setBinCode(bin.getBinCode());
-        vo.setRowNum(bin.getRowNum());
-        vo.setColNum(bin.getColNum());
-        vo.setIsOccupied(bin.getIsOccupied());
-        // 占用状态描述
-        vo.setOccupiedDesc(bin.getIsOccupied() != null && bin.getIsOccupied() == WarehouseConstants.IS_OCCUPIED_YES ? "占用" : "空闲");
-        vo.setCapacity(bin.getCapacity());
-        vo.setUsedCapacity(bin.getUsedCapacity());
-        vo.setBinStatus(bin.getBinStatus());
-        vo.setCreateTime(bin.getCreateTime());
-        // 从Map中填充存放柜名称
-        if (bin.getCabinetId() != null) {
-            WmsCabinet cabinet = cabinetMap.get(bin.getCabinetId());
-            if (cabinet == null) {
-                cabinet = wmsCabinetMapper.selectById(bin.getCabinetId());
-            }
-            if (cabinet != null) {
-                vo.setCabinetName(cabinet.getCabinetName());
-            }
-        }
-        return vo;
-    }
 }

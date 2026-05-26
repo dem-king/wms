@@ -17,6 +17,10 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 加密服务实现类
+ * 处理RSA密钥对生成、密码RSA解密、BCrypt哈希与校验
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,12 @@ public class CryptoServiceImpl implements CryptoService {
     private final AuthProperties authProperties;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
+    /**
+     * 生成RSA密钥对
+     * 公钥和私钥存入Redis并设置过期时间
+     * 
+     * @return RSA密钥对响应(含公钥和keyId)
+     */
     @Override
     public RsaKeyPairResp generateRsaKeyPair() {
         RSA rsa = new RSA();
@@ -49,6 +59,12 @@ public class CryptoServiceImpl implements CryptoService {
         return resp;
     }
 
+    /**
+     * 使用当前RSA私钥解密密码
+     * 
+     * @param encryptedPassword RSA加密后的密码
+     * @return 解密后的明文密码
+     */
     @Override
     public String decryptPassword(String encryptedPassword) {
         String keyId = stringRedisTemplate.opsForValue().get(AuthRedisKey.RSA_KEY_ID);
@@ -86,11 +102,24 @@ public class CryptoServiceImpl implements CryptoService {
         }
     }
 
+    /**
+     * 对明文密码进行BCrypt哈希
+     * 
+     * @param rawPassword 明文密码
+     * @return BCrypt哈希值
+     */
     @Override
     public String hashPassword(String rawPassword) {
         return bCryptPasswordEncoder.encode(rawPassword);
     }
 
+    /**
+     * 校验明文密码与哈希值是否匹配
+     * 
+     * @param rawPassword 明文密码
+     * @param hashedPassword BCrypt哈希值
+     * @return 是否匹配
+     */
     @Override
     public boolean verifyPassword(String rawPassword, String hashedPassword) {
         return bCryptPasswordEncoder.matches(rawPassword, hashedPassword);

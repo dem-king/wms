@@ -28,8 +28,6 @@ wms:
     captcha-expire: 300
     rsa-key-expire: 86400
     captcha-enabled: true
-
-wms:
   storage:
     minio-endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}

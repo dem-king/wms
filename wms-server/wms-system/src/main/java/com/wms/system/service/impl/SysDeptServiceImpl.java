@@ -26,6 +26,11 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     private final SysDepartmentMapper sysDepartmentMapper;
 
+    /**
+     * 查询部门树
+     * 
+     * @return 部门树VO列表
+     */
     @Override
     public List<SysDeptVo> listTree() {
         List<SysDepartment> allDepts = sysDepartmentMapper.selectList(
@@ -35,11 +40,23 @@ public class SysDeptServiceImpl implements SysDeptService {
         return buildTree(allDepts);
     }
 
+    /**
+     * 查询部门树(别名方法)
+     * 
+     * @return 部门树VO列表
+     */
     @Override
     public List<SysDeptVo> tree() {
         return listTree();
     }
 
+    /**
+     * 新增部门
+     * 校验编码唯一性，默认启用
+     * 
+     * @param dto 部门新增参数
+     * @return 新增后的部门VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysDeptVo create(SysDeptDto dto) {
@@ -55,6 +72,13 @@ public class SysDeptServiceImpl implements SysDeptService {
         return toVo(dept);
     }
 
+    /**
+     * 更新部门
+     * 
+     * @param id 部门ID
+     * @param dto 部门更新参数
+     * @return 更新后的部门VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysDeptVo update(Long id, SysDeptDto dto) {
@@ -70,6 +94,12 @@ public class SysDeptServiceImpl implements SysDeptService {
         return toVo(existing);
     }
 
+    /**
+     * 删除部门(逻辑删除)
+     * 存在子部门时不允许删除
+     * 
+     * @param id 部门ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {

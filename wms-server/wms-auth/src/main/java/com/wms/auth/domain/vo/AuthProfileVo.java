@@ -14,7 +14,7 @@ public class AuthProfileVo {
 
     /** 用户信息 */
     @Schema(description = "用户信息")
-    private UserInfoVO userInfo;
+    private UserInfoVo userInfo;
 
     /** 最近登录信息 */
     @Schema(description = "最近登录信息")

@@ -1,6 +1,7 @@
 package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +38,11 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRoleMenuMapper sysRoleMenuMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
 
+    /**
+     * 查询所有角色列表
+     * 
+     * @return 角色VO列表
+     */
     @Override
     public List<SysRoleVo> listAll() {
         List<SysRole> roles = sysRoleMapper.selectList(
@@ -44,15 +51,30 @@ public class SysRoleServiceImpl implements SysRoleService {
         return roles.stream().map(this::toVo).collect(Collectors.toList());
     }
 
+    /**
+     * 根据ID查询角色详情
+     * 
+     * @param id 角色ID
+     * @return 角色VO
+     */
     @Override
     public SysRoleVo getById(Long id) {
         SysRole role = sysRoleMapper.selectById(id);
-        if (role == null || role.getDelFlag() == DelFlagConstants.DELETED) {
+        if (role == null) {
             throw new BizException("角色不存在");
+        }
+        if (role.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("角色已删除");
         }
         return toVo(role);
     }
 
+    /**
+     * 查询用户启用的角色编码列表
+     * 
+     * @param userId 用户ID
+     * @return 角色编码列表
+     */
     @Override
     public List<String> getRoleCodesByUserId(Long userId) {
         List<Long> roleIds = getRoleIdsByUserId(userId);
@@ -67,6 +89,12 @@ public class SysRoleServiceImpl implements SysRoleService {
         return roles.stream().map(SysRole::getRoleCode).collect(Collectors.toList());
     }
 
+    /**
+     * 查询用户的角色ID列表
+     * 
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
     @Override
     public List<Long> getRoleIdsByUserId(Long userId) {
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
@@ -76,6 +104,13 @@ public class SysRoleServiceImpl implements SysRoleService {
         return userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
     }
 
+    /**
+     * 新增角色
+     * 校验编码唯一性，默认启用
+     * 
+     * @param dto 角色新增参数
+     * @return 新增后的角色VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysRoleVo create(SysRoleDto dto) {
@@ -91,12 +126,22 @@ public class SysRoleServiceImpl implements SysRoleService {
         return toVo(role);
     }
 
+    /**
+     * 更新角色
+     * 
+     * @param id 角色ID
+     * @param dto 角色更新参数
+     * @return 更新后的角色VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysRoleVo update(Long id, SysRoleDto dto) {
         SysRole existing = sysRoleMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("角色不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("角色已删除");
         }
         // 校验角色编码唯一性(排除自身)
         checkRoleCodeUnique(dto.getRoleCode(), id);
@@ -106,12 +151,21 @@ public class SysRoleServiceImpl implements SysRoleService {
         return toVo(existing);
     }
 
+    /**
+     * 删除角色(逻辑删除)
+     * 同时清理用户角色、角色菜单、角色权限关联
+     * 
+     * @param id 角色ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysRole existing = sysRoleMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("角色不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("角色已删除");
         }
         // 逻辑删除角色
         SysRole updateRole = new SysRole();
@@ -124,39 +178,57 @@ public class SysRoleServiceImpl implements SysRoleService {
                 new LambdaQueryWrapper<SysUserRole>()
                         .eq(SysUserRole::getRoleId, id)
         );
+        List<SysUserRole> updateUserRoleList = new ArrayList<>();
         for (SysUserRole userRole : userRoles) {
             SysUserRole updateUserRole = new SysUserRole();
             updateUserRole.setId(userRole.getId());
             updateUserRole.setDelFlag(DelFlagConstants.DELETED);
 
-            sysUserRoleMapper.updateById(updateUserRole);
+            updateUserRoleList.add(updateUserRole);
+        }
+        if (!updateUserRoleList.isEmpty()) {
+            Db.updateBatchById(updateUserRoleList);
         }
         // 清理角色关联的角色菜单关联
         List<SysRoleMenu> roleMenus = sysRoleMenuMapper.selectList(
                 new LambdaQueryWrapper<SysRoleMenu>()
                         .eq(SysRoleMenu::getRoleId, id)
         );
+        List<SysRoleMenu> updateMenuList = new ArrayList<>();
         for (SysRoleMenu roleMenu : roleMenus) {
             SysRoleMenu updateMenu = new SysRoleMenu();
             updateMenu.setId(roleMenu.getId());
             updateMenu.setDelFlag(DelFlagConstants.DELETED);
         
-            sysRoleMenuMapper.updateById(updateMenu);
+            updateMenuList.add(updateMenu);
+        }
+        if (!updateMenuList.isEmpty()) {
+            Db.updateBatchById(updateMenuList);
         }
         // 清理角色关联的角色权限关联
         List<SysRolePermission> rolePerms = sysRolePermissionMapper.selectList(
                 new LambdaQueryWrapper<SysRolePermission>()
                         .eq(SysRolePermission::getRoleId, id)
         );
+        List<SysRolePermission> updatePermList = new ArrayList<>();
         for (SysRolePermission rolePerm : rolePerms) {
             SysRolePermission updatePerm = new SysRolePermission();
             updatePerm.setId(rolePerm.getId());
             updatePerm.setDelFlag(DelFlagConstants.DELETED);
    
-            sysRolePermissionMapper.updateById(updatePerm);
+            updatePermList.add(updatePerm);
+        }
+        if (!updatePermList.isEmpty()) {
+            Db.updateBatchById(updatePermList);
         }
     }
 
+    /**
+     * 查询角色关联的菜单ID列表
+     * 
+     * @param id 角色ID
+     * @return 菜单ID列表
+     */
     @Override
     public List<Long> getRoleMenus(Long id) {
         List<SysRoleMenu> roleMenus = sysRoleMenuMapper.selectList(
@@ -166,6 +238,13 @@ public class SysRoleServiceImpl implements SysRoleService {
         return roleMenus.stream().map(SysRoleMenu::getMenuId).collect(Collectors.toList());
     }
 
+    /**
+     * 分配角色菜单
+     * 先逻辑删除旧关联，再批量保存新关联
+     * 
+     * @param id 角色ID
+     * @param menuIds 菜单ID列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRoleMenus(Long id, List<Long> menuIds) {
@@ -174,24 +253,38 @@ public class SysRoleServiceImpl implements SysRoleService {
                 new LambdaQueryWrapper<SysRoleMenu>()
                         .eq(SysRoleMenu::getRoleId, id)
         );
+        List<SysRoleMenu> updateMenuList = new ArrayList<>();
         for (SysRoleMenu oldMenu : oldRoleMenus) {
             SysRoleMenu updateMenu = new SysRoleMenu();
             updateMenu.setId(oldMenu.getId());
             updateMenu.setDelFlag(DelFlagConstants.DELETED);
         
-            sysRoleMenuMapper.updateById(updateMenu);
+            updateMenuList.add(updateMenu);
+        }
+        if (!updateMenuList.isEmpty()) {
+            Db.updateBatchById(updateMenuList);
         }
         // 批量插入新的角色菜单关联
         if (menuIds != null && !menuIds.isEmpty()) {
+            List<SysRoleMenu> roleMenuList = new ArrayList<>();
             for (Long menuId : menuIds) {
                 SysRoleMenu roleMenu = new SysRoleMenu();
                 roleMenu.setRoleId(id);
                 roleMenu.setMenuId(menuId);
-                sysRoleMenuMapper.insert(roleMenu);
+                roleMenuList.add(roleMenu);
+            }
+            if (!roleMenuList.isEmpty()) {
+                Db.saveBatch(roleMenuList);
             }
         }
     }
 
+    /**
+     * 查询角色关联的权限ID列表
+     * 
+     * @param id 角色ID
+     * @return 权限ID列表
+     */
     @Override
     public List<Long> getRolePermissions(Long id) {
         List<SysRolePermission> rolePerms = sysRolePermissionMapper.selectList(
@@ -201,6 +294,13 @@ public class SysRoleServiceImpl implements SysRoleService {
         return rolePerms.stream().map(SysRolePermission::getPermId).collect(Collectors.toList());
     }
 
+    /**
+     * 分配角色权限
+     * 先逻辑删除旧关联，再批量保存新关联
+     * 
+     * @param id 角色ID
+     * @param permIds 权限ID列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRolePermissions(Long id, List<Long> permIds) {
@@ -209,20 +309,28 @@ public class SysRoleServiceImpl implements SysRoleService {
                 new LambdaQueryWrapper<SysRolePermission>()
                         .eq(SysRolePermission::getRoleId, id)
         );
+        List<SysRolePermission> updatePermList = new ArrayList<>();
         for (SysRolePermission oldPerm : oldRolePerms) {
             SysRolePermission updatePerm = new SysRolePermission();
             updatePerm.setId(oldPerm.getId());
             updatePerm.setDelFlag(DelFlagConstants.DELETED);
     
-            sysRolePermissionMapper.updateById(updatePerm);
+            updatePermList.add(updatePerm);
+        }
+        if (!updatePermList.isEmpty()) {
+            Db.updateBatchById(updatePermList);
         }
         // 批量插入新的角色权限关联
         if (permIds != null && !permIds.isEmpty()) {
+            List<SysRolePermission> rolePermList = new ArrayList<>();
             for (Long permId : permIds) {
                 SysRolePermission rolePerm = new SysRolePermission();
                 rolePerm.setRoleId(id);
                 rolePerm.setPermId(permId);
-                sysRolePermissionMapper.insert(rolePerm);
+                rolePermList.add(rolePerm);
+            }
+            if (!rolePermList.isEmpty()) {
+                Db.saveBatch(rolePermList);
             }
         }
     }

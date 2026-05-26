@@ -1,6 +1,8 @@
 package com.wms.report.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.business.domain.entity.WmsScrapDetail;
 import com.wms.business.domain.entity.WmsScrapOrder;
 import com.wms.business.mapper.WmsScrapDetailMapper;
@@ -122,10 +124,20 @@ public class ScrapDailyAggregationTask {
                 }
             }
 
-            // 先删后插保证幂等
-            LambdaQueryWrapper<ReportScrapDaily> deleteWrapper = new LambdaQueryWrapper<>();
-            deleteWrapper.eq(ReportScrapDaily::getStatDate, statDate);
-            reportScrapDailyMapper.delete(deleteWrapper);
+            // 逻辑删除该日期的旧数据（保证幂等）
+            List<ReportScrapDaily> oldRecords = reportScrapDailyMapper.selectList(
+                    new LambdaQueryWrapper<ReportScrapDaily>()
+                            .eq(ReportScrapDaily::getStatDate, statDate));
+            if (!oldRecords.isEmpty()) {
+                List<ReportScrapDaily> updateRecords = new ArrayList<>();
+                for (ReportScrapDaily oldRecord : oldRecords) {
+                    ReportScrapDaily updateRecord = new ReportScrapDaily();
+                    updateRecord.setId(oldRecord.getId());
+                    updateRecord.setDelFlag(DelFlagConstants.DELETED);
+                    updateRecords.add(updateRecord);
+                }
+                Db.updateBatchById(updateRecords);
+            }
 
             for (ReportScrapDaily agg : aggMap.values()) {
                 reportScrapDailyMapper.insert(agg);

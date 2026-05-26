@@ -1,6 +1,8 @@
 package com.wms.report.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsStock;
 import com.wms.item.mapper.WmsItemMapper;
@@ -78,10 +80,20 @@ public class StockDailySnapshotTask {
                         stock.getAmount() != null ? stock.getAmount() : BigDecimal.ZERO));
             }
 
-            // 先删后插保证幂等
-            LambdaQueryWrapper<ReportStockDaily> deleteWrapper = new LambdaQueryWrapper<>();
-            deleteWrapper.eq(ReportStockDaily::getStatDate, statDate);
-            reportStockDailyMapper.delete(deleteWrapper);
+            // 逻辑删除该日期的旧数据（保证幂等）
+            List<ReportStockDaily> oldRecords = reportStockDailyMapper.selectList(
+                    new LambdaQueryWrapper<ReportStockDaily>()
+                            .eq(ReportStockDaily::getStatDate, statDate));
+            if (!oldRecords.isEmpty()) {
+                List<ReportStockDaily> updateRecords = new ArrayList<>();
+                for (ReportStockDaily oldRecord : oldRecords) {
+                    ReportStockDaily updateRecord = new ReportStockDaily();
+                    updateRecord.setId(oldRecord.getId());
+                    updateRecord.setDelFlag(DelFlagConstants.DELETED);
+                    updateRecords.add(updateRecord);
+                }
+                Db.updateBatchById(updateRecords);
+            }
 
             for (ReportStockDaily agg : aggMap.values()) {
                 reportStockDailyMapper.insert(agg);

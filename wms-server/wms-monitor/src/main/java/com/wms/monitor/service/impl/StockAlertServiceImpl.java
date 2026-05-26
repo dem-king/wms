@@ -54,6 +54,15 @@ public class StockAlertServiceImpl implements StockAlertService {
         return wrapper;
     }
 
+    /**
+     * 分页查询库存预警记录
+     * 
+     * @param pageParam 分页参数
+     * @param alertType 预警类型(可选)
+     * @param status 处理状态(可选)
+     * @param warehouseId 库房ID(可选)
+     * @return 预警分页结果
+     */
     @Override
     public PageResult<StockAlertVo> page(PageParam pageParam, String alertType, String status, Long warehouseId) {
         Page<MonitorStockAlert> page = new Page<>(pageParam.getPage(), pageParam.getSize());
@@ -72,6 +81,13 @@ public class StockAlertServiceImpl implements StockAlertService {
         return pageResult;
     }
 
+    /**
+     * 处理预警记录
+     * 更新状态为已处理
+     * 
+     * @param id 预警记录ID
+     * @return 更新后的预警VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public StockAlertVo resolve(Long id) {

@@ -17,6 +17,10 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 验证码服务实现类
+ * 处理验证码生成与校验，验证码存储在Redis中并设置过期时间
+ */
 @Service
 @RequiredArgsConstructor
 public class CaptchaServiceImpl implements CaptchaService {
@@ -24,6 +28,12 @@ public class CaptchaServiceImpl implements CaptchaService {
     private final StringRedisTemplate stringRedisTemplate;
     private final AuthProperties authProperties;
 
+    /**
+     * 生成验证码
+     * 生成线段干扰验证码图片，验证码文本存入Redis
+     * 
+     * @return 验证码响应(含key和Base64图片)
+     */
     @Override
     public CaptchaResp generateCaptcha() {
         LineCaptcha captcha = CaptchaUtil.createLineCaptcha(AuthConstants.CAPTCHA_WIDTH, AuthConstants.CAPTCHA_HEIGHT, AuthConstants.CAPTCHA_CHAR_COUNT, AuthConstants.CAPTCHA_LINE_COUNT);
@@ -41,6 +51,13 @@ public class CaptchaServiceImpl implements CaptchaService {
         return resp;
     }
 
+    /**
+     * 校验验证码
+     * 从Redis取出并删除验证码，比较文本(忽略大小写)
+     * 
+     * @param captchaKey 验证码key
+     * @param captchaText 用户输入的验证码文本
+     */
     @Override
     public void validateCaptcha(String captchaKey, String captchaText) {
         String redisKey = AuthRedisKey.CAPTCHA_PREFIX + captchaKey;

@@ -2,6 +2,7 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,6 +41,12 @@ public class SysUserServiceImpl implements SysUserService {
     @Value("${wms.default-password:Wms@2024}")
     private String defaultPassword;
 
+    /**
+     * 根据用户名查询用户实体(含密码哈希)
+     * 
+     * @param username 用户名
+     * @return 用户实体
+     */
     @Override
     public SysUser getByUsername(String username) {
         return sysUserMapper.selectOne(
@@ -47,6 +55,13 @@ public class SysUserServiceImpl implements SysUserService {
         );
     }
 
+    /**
+     * 更新用户密码哈希
+     * 
+     * @param userId 用户ID
+     * @param newPasswordHash 新密码哈希
+     * @return 是否更新成功
+     */
     @Override
     public boolean updatePassword(Long userId, String newPasswordHash) {
         SysUser user = new SysUser();
@@ -55,6 +70,15 @@ public class SysUserServiceImpl implements SysUserService {
         return sysUserMapper.updateById(user) > 0;
     }
 
+    /**
+     * 分页查询用户
+     * 
+     * @param pageParam 分页参数
+     * @param username 用户名(可选，模糊匹配)
+     * @param realName 真实姓名(可选，模糊匹配)
+     * @param status 状态(可选)
+     * @return 用户分页结果
+     */
     @Override
     public PageResult<SysUserVo> page(PageParam pageParam, String username, String realName, Integer status) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<SysUser>();
@@ -83,21 +107,51 @@ public class SysUserServiceImpl implements SysUserService {
         return result;
     }
 
+    /**
+     * 根据ID查询用户详情
+     * 
+     * @param id 用户ID
+     * @return 用户VO
+     */
     @Override
     public SysUserVo getById(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
+        if (user == null) {
             throw new BizException("用户不存在");
+        }
+        if (user.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
         return toVo(user);
     }
 
+    /**
+     * 更新用户个人资料
+     * 
+     * @param id 用户ID
+     * @param realName 真实姓名
+     * @param phone 手机号
+     * @param email 邮箱
+     * @param avatar 头像
+     * @return 更新后的用户VO
+     */
+    /**
+     * 更新用户
+     * 编辑时不修改密码，同步更新角色关联
+     * 
+     * @param id 用户ID
+     * @param dto 用户更新参数
+     * @return 更新后的用户VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserVo updateProfile(Long id, String realName, String phone, String email, String avatar) {
         SysUser existing = sysUserMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("用户不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
 
         existing.setRealName(realName);
@@ -108,6 +162,13 @@ public class SysUserServiceImpl implements SysUserService {
         return toVo(existing);
     }
 
+    /**
+     * 新增用户
+     * 校验用户名唯一性，密码BCrypt加密，默认启用
+     * 
+     * @param dto 用户新增参数
+     * @return 新增后的用户VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserVo create(SysUserDto dto) {
@@ -131,12 +192,23 @@ public class SysUserServiceImpl implements SysUserService {
         return toVo(user);
     }
 
+    /**
+     * 更新用户
+     * 编辑时不修改密码，同步更新角色关联
+     * 
+     * @param id 用户ID
+     * @param dto 用户更新参数
+     * @return 更新后的用户VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserVo update(Long id, SysUserDto dto) {
         SysUser existing = sysUserMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("用户不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
         // 校验用户名唯一性(排除自身)
         checkUsernameUnique(dto.getUsername(), id);
@@ -152,12 +224,20 @@ public class SysUserServiceImpl implements SysUserService {
         return toVo(existing);
     }
 
+    /**
+     * 删除用户(逻辑删除)
+     * 
+     * @param id 用户ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
+        if (user == null) {
             throw new BizException("用户不存在");
+        }
+        if (user.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
         // 逻辑删除用户
         SysUser updateUser = new SysUser();
@@ -167,12 +247,20 @@ public class SysUserServiceImpl implements SysUserService {
         sysUserMapper.updateById(updateUser);
     }
 
+    /**
+     * 重置用户密码为默认密码
+     * 
+     * @param id 用户ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void resetPwd(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
+        if (user == null) {
             throw new BizException("用户不存在");
+        }
+        if (user.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
         // 使用BCrypt加密默认密码
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -182,12 +270,20 @@ public class SysUserServiceImpl implements SysUserService {
         sysUserMapper.updateById(updateUser);
     }
 
+    /**
+     * 切换用户状态(启用/禁用)
+     * 
+     * @param id 用户ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void changeStatus(Long id) {
         SysUser user = sysUserMapper.selectById(id);
-        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
+        if (user == null) {
             throw new BizException("用户不存在");
+        }
+        if (user.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("用户已删除");
         }
         // 切换状态: 0->1, 1->0
         SysUser updateUser = new SysUser();
@@ -196,6 +292,12 @@ public class SysUserServiceImpl implements SysUserService {
         sysUserMapper.updateById(updateUser);
     }
 
+    /**
+     * 查询用户的角色ID列表
+     * 
+     * @param id 用户ID
+     * @return 角色ID列表
+     */
     @Override
     public List<Long> getUserRoles(Long id) {
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
@@ -205,6 +307,13 @@ public class SysUserServiceImpl implements SysUserService {
         return userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
     }
 
+    /**
+     * 分配用户角色
+     * 先逻辑删除旧关联，再批量保存新关联
+     * 
+     * @param id 用户ID
+     * @param roleIds 角色ID列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRoles(Long id, List<Long> roleIds) {
@@ -213,12 +322,16 @@ public class SysUserServiceImpl implements SysUserService {
                 new LambdaQueryWrapper<SysUserRole>()
                         .eq(SysUserRole::getUserId, id)
         );
+        List<SysUserRole> updateRoleList = new ArrayList<>();
         for (SysUserRole oldRole : oldUserRoles) {
             SysUserRole updateRole = new SysUserRole();
             updateRole.setId(oldRole.getId());
             updateRole.setDelFlag(DelFlagConstants.DELETED);
  
-            sysUserRoleMapper.updateById(updateRole);
+            updateRoleList.add(updateRole);
+        }
+        if (!updateRoleList.isEmpty()) {
+            Db.updateBatchById(updateRoleList);
         }
         // 批量插入新的用户角色关联
         if (roleIds != null && !roleIds.isEmpty()) {
@@ -233,11 +346,15 @@ public class SysUserServiceImpl implements SysUserService {
      * @param roleIds 角色ID列表
      */
     private void saveUserRoles(Long userId, List<Long> roleIds) {
+        List<SysUserRole> userRoleList = new ArrayList<>();
         for (Long roleId : roleIds) {
             SysUserRole userRole = new SysUserRole();
             userRole.setUserId(userId);
             userRole.setRoleId(roleId);
-            sysUserRoleMapper.insert(userRole);
+            userRoleList.add(userRole);
+        }
+        if (!userRoleList.isEmpty()) {
+            Db.saveBatch(userRoleList);
         }
     }
 

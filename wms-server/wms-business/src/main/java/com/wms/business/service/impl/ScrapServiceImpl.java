@@ -2,6 +2,7 @@ package com.wms.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.business.converter.ScrapOrderConverter;
 import com.wms.business.domain.dto.ScrapOrderDto;
 import com.wms.business.domain.entity.WmsScrapDetail;
@@ -29,6 +30,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,8 +101,11 @@ public class ScrapServiceImpl implements ScrapService {
     @Override
     public ScrapOrderVo getOrderById(Long id) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("报废单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("报废单已删除");
         }
         ScrapOrderVo vo = scrapOrderConverter.toVo(order, Map.of());
         vo.setDetails(scrapOrderConverter.toDetailVoList(
@@ -122,8 +127,11 @@ public class ScrapServiceImpl implements ScrapService {
     public ScrapOrderVo createOrder(ScrapOrderDto dto) {
         // 校验库房存在且启用
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+        if (warehouse == null) {
             throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         if (warehouse.getStatus() != BizConstants.STATUS_ENABLED) {
             throw new BizException("库房已禁用");
@@ -138,17 +146,24 @@ public class ScrapServiceImpl implements ScrapService {
 
         wmsScrapOrderMapper.insert(order);
         // 保存报废明细
+        List<WmsScrapDetail> detailList = new ArrayList<>();
         for (ScrapOrderDto.ScrapDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsScrapDetail detail = new WmsScrapDetail();
             detail.setOrderId(order.getId());
             detail.setItemId(detailDto.getItemId());
             detail.setQuantity(detailDto.getQuantity());
-            wmsScrapDetailMapper.insert(detail);
+            detailList.add(detail);
+        }
+        if (!detailList.isEmpty()) {
+            Db.saveBatch(detailList);
         }
 
         // 报废单创建时不直接发布库存同步事件，需走审批流程后在submitOrder中发布
@@ -173,8 +188,11 @@ public class ScrapServiceImpl implements ScrapService {
     @Transactional(rollbackFor = Exception.class)
     public ScrapOrderVo updateOrder(Long id, ScrapOrderDto dto) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("报废单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("报废单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的报废单可以更新");
@@ -182,8 +200,11 @@ public class ScrapServiceImpl implements ScrapService {
 
         // 校验库房存在且启用
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+        if (warehouse == null) {
             throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         if (warehouse.getStatus() != BizConstants.STATUS_ENABLED) {
             throw new BizException("库房已禁用");
@@ -196,24 +217,35 @@ public class ScrapServiceImpl implements ScrapService {
         // 逻辑删除原有明细
         List<WmsScrapDetail> oldDetails = wmsScrapDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsScrapDetail>().eq(WmsScrapDetail::getOrderId, id));
+        List<WmsScrapDetail> updateDetails = new ArrayList<>();
         for (WmsScrapDetail oldDetail : oldDetails) {
             WmsScrapDetail updateDetail = new WmsScrapDetail();
             updateDetail.setId(oldDetail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsScrapDetailMapper.updateById(updateDetail);
+            updateDetails.add(updateDetail);
+        }
+        if (!updateDetails.isEmpty()) {
+            Db.updateBatchById(updateDetails);
         }
 
         // 保存新明细
+        List<WmsScrapDetail> newDetailList = new ArrayList<>();
         for (ScrapOrderDto.ScrapDetailDto detailDto : dto.getDetails()) {
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsScrapDetail detail = new WmsScrapDetail();
             detail.setOrderId(id);
             detail.setItemId(detailDto.getItemId());
             detail.setQuantity(detailDto.getQuantity());
-            wmsScrapDetailMapper.insert(detail);
+            newDetailList.add(detail);
+        }
+        if (!newDetailList.isEmpty()) {
+            Db.saveBatch(newDetailList);
         }
 
         ScrapOrderVo vo = scrapOrderConverter.toVo(order, Map.of());
@@ -234,8 +266,11 @@ public class ScrapServiceImpl implements ScrapService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("报废单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("报废单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的报废单可以删除");
@@ -250,11 +285,15 @@ public class ScrapServiceImpl implements ScrapService {
         List<WmsScrapDetail> details = wmsScrapDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsScrapDetail>()
                         .eq(WmsScrapDetail::getOrderId, id));
+        List<WmsScrapDetail> updateDetailList = new ArrayList<>();
         for (WmsScrapDetail detail : details) {
             WmsScrapDetail updateDetail = new WmsScrapDetail();
             updateDetail.setId(detail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsScrapDetailMapper.updateById(updateDetail);
+            updateDetailList.add(updateDetail);
+        }
+        if (!updateDetailList.isEmpty()) {
+            Db.updateBatchById(updateDetailList);
         }
     }
 
@@ -268,8 +307,11 @@ public class ScrapServiceImpl implements ScrapService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsScrapOrder order = wmsScrapOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("报废单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("报废单已删除");
         }
         // 仅草稿状态可提交
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {

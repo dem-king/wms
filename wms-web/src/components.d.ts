@@ -60,6 +60,8 @@ declare module 'vue' {
     ElTree: typeof import('element-plus/es')['ElTree']
     ElTreeSelect: typeof import('element-plus/es')['ElTreeSelect']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    FileUpload: typeof import('./components/FileUpload/index.vue')['default']
+    ImagePreview: typeof import('./components/ImagePreview/index.vue')['default']
     LabelPrint: typeof import('./components/LabelPrint/index.vue')['default']
     QrBarCode: typeof import('./components/QrBarCode/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

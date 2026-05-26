@@ -10,6 +10,7 @@ import com.wms.system.domain.entity.SysMenu;
 import com.wms.system.domain.entity.SysRoleMenu;
 import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.domain.vo.MenuTreeVo;
+import com.wms.system.converter.SysMenuConverter;
 import com.wms.system.mapper.SysMenuMapper;
 import com.wms.system.mapper.SysRoleMenuMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
@@ -32,21 +33,40 @@ public class SysMenuServiceImpl implements SysMenuService {
     private final SysMenuMapper sysMenuMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMenuMapper sysRoleMenuMapper;
+    private final SysMenuConverter sysMenuConverter;
 
+    /**
+     * 查询所有菜单(树形结构)
+     * 
+     * @return 菜单树VO列表
+     */
     @Override
     public List<MenuTreeVo> listAll() {
         return buildMenuTree();
     }
 
+    /**
+     * 根据ID查询菜单详情
+     * 
+     * @param id 菜单ID
+     * @return 菜单树VO
+     */
     @Override
     public MenuTreeVo getById(Long id) {
         SysMenu menu = sysMenuMapper.selectById(id);
         if (menu == null || menu.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("菜单不存在");
         }
-        return toTreeVo(menu);
+        return sysMenuConverter.toVo(menu);
     }
 
+    /**
+     * 新增菜单
+     * 校验编码唯一性，默认启用且可见
+     * 
+     * @param dto 菜单新增参数
+     * @return 新增后的菜单树VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public MenuTreeVo create(SysMenuDto dto) {
@@ -62,9 +82,16 @@ public class SysMenuServiceImpl implements SysMenuService {
             menu.setVisible(SysMenuConstants.VISIBLE_YES);
         }
         sysMenuMapper.insert(menu);
-        return toTreeVo(menu);
+        return sysMenuConverter.toVo(menu);
     }
 
+    /**
+     * 更新菜单
+     * 
+     * @param id 菜单ID
+     * @param dto 菜单更新参数
+     * @return 更新后的菜单树VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public MenuTreeVo update(Long id, SysMenuDto dto) {
@@ -77,9 +104,15 @@ public class SysMenuServiceImpl implements SysMenuService {
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         sysMenuMapper.updateById(existing);
-        return toTreeVo(existing);
+        return sysMenuConverter.toVo(existing);
     }
 
+    /**
+     * 删除菜单(逻辑删除)
+     * 存在子菜单时不允许删除
+     * 
+     * @param id 菜单ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
@@ -99,6 +132,11 @@ public class SysMenuServiceImpl implements SysMenuService {
         sysMenuMapper.updateById(menu);
     }
 
+    /**
+     * 构建完整菜单树
+     * 
+     * @return 菜单树VO列表
+     */
     @Override
     public List<MenuTreeVo> buildMenuTree() {
         List<SysMenu> allMenus = sysMenuMapper.selectList(
@@ -108,6 +146,12 @@ public class SysMenuServiceImpl implements SysMenuService {
         return buildTree(allMenus);
     }
 
+    /**
+     * 查询角色关联的菜单ID列表
+     * 
+     * @param roleId 角色ID
+     * @return 菜单ID列表
+     */
     @Override
     public List<Long> getMenuIdsByRoleId(Long roleId) {
         List<SysRoleMenu> roleMenus = sysRoleMenuMapper.selectList(
@@ -117,6 +161,12 @@ public class SysMenuServiceImpl implements SysMenuService {
         return roleMenus.stream().map(SysRoleMenu::getMenuId).collect(Collectors.toList());
     }
 
+    /**
+     * 查询当前用户的菜单树
+     * 根据用户角色关联获取已授权的目录和菜单，并补全父级菜单
+     * 
+     * @return 用户菜单树VO列表
+     */
     @Override
     public List<MenuTreeVo> getUserMenuTree() {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -188,34 +238,12 @@ public class SysMenuServiceImpl implements SysMenuService {
      * @return 树形菜单列表
      */
     private List<MenuTreeVo> buildTree(List<SysMenu> menus) {
-        List<MenuTreeVo> voList = menus.stream().map(this::toTreeVo).collect(Collectors.toList());
+        List<MenuTreeVo> voList = menus.stream().map(sysMenuConverter::toVo).collect(Collectors.toList());
         Map<Long, List<MenuTreeVo>> groupedByParent = voList.stream()
                 .collect(Collectors.groupingBy(MenuTreeVo::getParentId));
         voList.forEach(vo -> vo.setChildren(groupedByParent.getOrDefault(vo.getId(), Collections.emptyList())));
         // 返回顶级菜单(parentId=0)
         return groupedByParent.getOrDefault(0L, Collections.emptyList());
-    }
-
-    /**
-     * SysMenu实体转MenuTreeVo
-     */
-    private MenuTreeVo toTreeVo(SysMenu menu) {
-        MenuTreeVo vo = new MenuTreeVo();
-        vo.setId(menu.getId());
-        vo.setMenuName(menu.getMenuName());
-        vo.setMenuCode(menu.getMenuCode());
-        vo.setParentId(menu.getParentId());
-        vo.setMenuType(menu.getMenuType());
-        vo.setPath(menu.getPath());
-        vo.setComponent(menu.getComponent());
-        vo.setRedirect(menu.getRedirect());
-        vo.setIcon(menu.getIcon());
-        vo.setIsExternal(menu.getIsExternal());
-        vo.setIsCache(menu.getIsCache());
-        vo.setVisible(menu.getVisible());
-        vo.setSortOrder(menu.getSortOrder());
-        vo.setPermCode(menu.getPermCode());
-        return vo;
     }
 
     /**

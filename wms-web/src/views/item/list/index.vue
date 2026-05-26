@@ -209,13 +209,14 @@ import type { FormInstance, FormRules, UploadFile } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getItemList, addItem, updateItem, deleteItem, searchItem, uploadItemImage, deleteItemImage } from '@/api/item/item'
+import { getItemList, addItem, updateItem, deleteItem, searchItem, deleteItemImage } from '@/api/item/item'
 import { getCategoryList } from '@/api/item/category'
 import { getSubCategories } from '@/api/item/category'
 import { getTagList } from '@/api/item/tag'
 import { getSupplierList } from '@/api/system/supplier'
 import type { WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
 import type { SysSupplierVo } from '@/types/system'
+import { useFileUpload } from '@/hooks/useFileUpload'
 
 const loading = ref(false)
 const tableData = ref<WmsItemVo[]>([])
@@ -325,14 +326,21 @@ async function handleCategoryChange(categoryId: number) {
   subCategoryOptions.value = res.data
 }
 
+const { upload: uploadItemImageFile } = useFileUpload({ bucket: 'items' })
+
 async function handleImageChange(uploadFile: UploadFile) {
   if (!uploadFile.raw || !form.id) {
     ElMessage.warning('请先保存物品后再上传图片')
     return
   }
   try {
-    const res = await uploadItemImage(form.id, uploadFile.raw)
-    form.imageList.push(res.data)
+    // 通过useFileUpload统一上传，自动适配本地/MinIO存储
+    const result = await uploadItemImageFile(uploadFile.raw)
+    form.imageList.push({
+      imageUrl: result.url,
+      imageName: uploadFile.raw.name,
+      sortOrder: form.imageList.length + 1
+    } as ItemImageVo)
     ElMessage.success('图片上传成功')
   } catch {
     ElMessage.error('图片上传失败')

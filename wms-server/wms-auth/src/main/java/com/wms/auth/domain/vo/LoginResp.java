@@ -27,7 +27,7 @@ public class LoginResp {
 
     /** 用户信息 */
     @Schema(description = "用户信息")
-    private UserInfoVO userInfo;
+    private UserInfoVo userInfo;
 
     /** 权限编码列表 */
     @Schema(description = "权限编码列表")

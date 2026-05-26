@@ -84,8 +84,11 @@ public class CabinetServiceImpl implements CabinetService {
     @Override
     public CabinetVo getById(Long id) {
         WmsCabinet cabinet = wmsCabinetMapper.selectById(id);
-        if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+        if (cabinet == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         WmsArea area = cabinet.getAreaId() == null ? null : wmsAreaMapper.selectById(cabinet.getAreaId());
         // 填充物品数量(占用库位数)
@@ -109,8 +112,11 @@ public class CabinetServiceImpl implements CabinetService {
     public CabinetVo create(CabinetDto dto) {
         // 校验区域存在且启用
         WmsArea area = wmsAreaMapper.selectById(dto.getAreaId());
-        if (area == null || area.getDelFlag() == DelFlagConstants.DELETED) {
+        if (area == null) {
             throw new BizException("区域不存在");
+        }
+        if (area.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("区域已删除");
         }
         WmsCabinet cabinet = cabinetConverter.toEntity(dto);
         // 自动生成存放柜编码: CG + 年月日 + 4位流水号
@@ -137,13 +143,19 @@ public class CabinetServiceImpl implements CabinetService {
     @Transactional(rollbackFor = Exception.class)
     public CabinetVo update(Long id, CabinetDto dto) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         // 校验区域存在
         WmsArea area = wmsAreaMapper.selectById(dto.getAreaId());
-        if (area == null || area.getDelFlag() == DelFlagConstants.DELETED) {
+        if (area == null) {
             throw new BizException("区域不存在");
+        }
+        if (area.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("区域已删除");
         }
         cabinetConverter.copyToEntity(dto, existing);
         existing.setId(id);
@@ -165,8 +177,11 @@ public class CabinetServiceImpl implements CabinetService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         // 逻辑删除存放柜
         WmsCabinet updateEntity = new WmsCabinet();
@@ -187,8 +202,11 @@ public class CabinetServiceImpl implements CabinetService {
     @Transactional(rollbackFor = Exception.class)
     public void updatePosition(Long id, Integer x, Integer y) {
         WmsCabinet existing = wmsCabinetMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("存放柜不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("存放柜已删除");
         }
         WmsCabinet updateEntity = new WmsCabinet();
         updateEntity.setId(id);
@@ -220,8 +238,11 @@ public class CabinetServiceImpl implements CabinetService {
         // 保存前校验柜体归属，避免跨区域写入错误布局
         for (CabinetLayoutItemDto item : dto.getCabinets()) {
             WmsCabinet cabinet = cabinetMap.get(item.getId());
-            if (cabinet == null || cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+            if (cabinet == null) {
                 throw new BizException("存放柜不存在");
+            }
+            if (cabinet.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("存放柜已删除");
             }
             if (!dto.getAreaId().equals(cabinet.getAreaId())) {
                 throw new BizException("存放柜不属于当前区域");

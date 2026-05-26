@@ -128,9 +128,10 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { getProfile, updateProfile, uploadAvatar } from '@/api/system/auth'
+import { getProfile, updateProfile } from '@/api/system/auth'
 import type { LastLoginInfoVO, ProfileResp, UpdateProfileReq, UserInfoVO } from '@/types/auth'
 import { useUserStore } from '@/store/modules/user'
+import { useFileUpload } from '@/hooks/useFileUpload'
 import ChangePasswordDialog from '@/views/system/password/ChangePasswordDialog.vue'
 
 const userStore = useUserStore()
@@ -141,6 +142,22 @@ const editFormRef = ref<FormInstance>()
 const avatarInputRef = ref<HTMLInputElement>()
 const previewAvatarUrl = ref('')
 let previewObjectUrl: string | null = null
+
+const { upload: uploadAvatarFile } = useFileUpload({
+  bucket: 'avatars',
+  beforeUpload: (file: File) => {
+    const validTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      ElMessage.error('头像仅支持 PNG、JPG、JPEG、WEBP 图片')
+      return false
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      ElMessage.error('头像大小不能超过2MB')
+      return false
+    }
+    return true
+  }
+})
 
 const editForm = reactive<UpdateProfileReq>({
   realName: '',
@@ -207,12 +224,10 @@ async function handleAvatarChange(event: Event) {
   previewObjectUrl = URL.createObjectURL(file)
   previewAvatarUrl.value = previewObjectUrl
 
-  const formData = new FormData()
-  formData.append('file', file)
-
   try {
-    const res = await uploadAvatar(formData)
-    editForm.avatar = res.data.avatarUrl
+    // 通过useFileUpload统一上传，自动适配本地/MinIO存储
+    const result = await uploadAvatarFile(file)
+    editForm.avatar = result.url
     ElMessage.success('头像上传成功')
   } catch (error) {
     console.error('头像上传失败:', error)

@@ -2,6 +2,7 @@ package com.wms.approval.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.approval.converter.ApprovalConfigConverter;
 import com.wms.approval.domain.constant.ApprovalConstants;
 import com.wms.approval.domain.dto.ApprovalConfigDto;
@@ -19,7 +20,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 审批配置服务实现类
@@ -53,13 +59,24 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
 
         PageResult<ApprovalConfigVo> result = new PageResult<>();
         List<WmsApprovalConfig> records = page.getRecords();
-        // 批量查询节点配置以避免N+1查询
+        // 批量查询所有配置的节点，避免N+1查询
+        Set<Long> configIds = records.stream()
+                .map(WmsApprovalConfig::getId).collect(Collectors.toSet());
+        Map<Long, List<WmsApprovalNode>> nodesMap;
+        if (configIds.isEmpty()) {
+            nodesMap = Map.of();
+        } else {
+            List<WmsApprovalNode> allNodes = wmsApprovalNodeMapper.selectList(
+                    new LambdaQueryWrapper<WmsApprovalNode>()
+                            .in(WmsApprovalNode::getConfigId, configIds)
+                            .orderByAsc(WmsApprovalNode::getStepOrder));
+            nodesMap = allNodes.stream()
+                    .collect(Collectors.groupingBy(WmsApprovalNode::getConfigId));
+        }
+        Map<Long, List<WmsApprovalNode>> finalNodesMap = nodesMap;
         result.setRecords(records.stream().map(entity -> {
             ApprovalConfigVo vo = approvalConfigConverter.toVo(entity);
-            List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
-                    new LambdaQueryWrapper<WmsApprovalNode>()
-                            .eq(WmsApprovalNode::getConfigId, entity.getId())
-                            .orderByAsc(WmsApprovalNode::getStepOrder));
+            List<WmsApprovalNode> nodes = finalNodesMap.getOrDefault(entity.getId(), List.of());
             vo.setNodes(approvalConfigConverter.toNodeVoList(nodes));
             return vo;
         }).toList());
@@ -78,8 +95,11 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     @Override
     public ApprovalConfigVo getConfigById(Long id) {
         WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
-        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+        if (config == null) {
             throw new BizException("审批配置不存在");
+        }
+        if (config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置已删除");
         }
         ApprovalConfigVo vo = approvalConfigConverter.toVo(config);
         // 查询节点列表并按顺序排列
@@ -111,6 +131,7 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
 
         // 保存审批节点配置
         if (dto.getNodes() != null) {
+            List<WmsApprovalNode> nodeList = new ArrayList<>();
             for (ApprovalConfigDto.ApprovalNodeDto nodeDto : dto.getNodes()) {
                 WmsApprovalNode node = new WmsApprovalNode();
                 node.setConfigId(config.getId());
@@ -118,7 +139,10 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
                 node.setNodeName(nodeDto.getNodeName());
                 node.setApproverType(nodeDto.getApproverType());
                 node.setApproverId(nodeDto.getApproverId());
-                wmsApprovalNodeMapper.insert(node);
+                nodeList.add(node);
+            }
+            if (!nodeList.isEmpty()) {
+                Db.saveBatch(nodeList);
             }
         }
 
@@ -137,8 +161,11 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     @Transactional(rollbackFor = Exception.class)
     public ApprovalConfigVo updateConfig(Long id, ApprovalConfigDto dto) {
         WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
-        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+        if (config == null) {
             throw new BizException("审批配置不存在");
+        }
+        if (config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置已删除");
         }
 
         config.setBizType(dto.getBizType());
@@ -155,15 +182,20 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         // 逻辑删除原有节点
         List<WmsApprovalNode> oldNodes = wmsApprovalNodeMapper.selectList(
                 new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
+        List<WmsApprovalNode> updateNodes = new ArrayList<>();
         for (WmsApprovalNode oldNode : oldNodes) {
             WmsApprovalNode updateNode = new WmsApprovalNode();
             updateNode.setId(oldNode.getId());
             updateNode.setDelFlag(DelFlagConstants.DELETED);
-            wmsApprovalNodeMapper.updateById(updateNode);
+            updateNodes.add(updateNode);
+        }
+        if (!updateNodes.isEmpty()) {
+            Db.updateBatchById(updateNodes);
         }
 
         // 保存新的审批节点配置
         if (dto.getNodes() != null) {
+            List<WmsApprovalNode> newNodeList = new ArrayList<>();
             for (ApprovalConfigDto.ApprovalNodeDto nodeDto : dto.getNodes()) {
                 WmsApprovalNode node = new WmsApprovalNode();
                 node.setConfigId(id);
@@ -171,7 +203,10 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
                 node.setNodeName(nodeDto.getNodeName());
                 node.setApproverType(nodeDto.getApproverType());
                 node.setApproverId(nodeDto.getApproverId());
-                wmsApprovalNodeMapper.insert(node);
+                newNodeList.add(node);
+            }
+            if (!newNodeList.isEmpty()) {
+                Db.saveBatch(newNodeList);
             }
         }
 
@@ -187,8 +222,11 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteConfig(Long id) {
         WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(id);
-        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+        if (config == null) {
             throw new BizException("审批配置不存在");
+        }
+        if (config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置已删除");
         }
         // 逻辑删除配置
         WmsApprovalConfig updateEntity = new WmsApprovalConfig();
@@ -199,11 +237,15 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         // 逻辑删除关联节点
         List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
                 new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
+        List<WmsApprovalNode> updateNodeList = new ArrayList<>();
         for (WmsApprovalNode node : nodes) {
             WmsApprovalNode updateNode = new WmsApprovalNode();
             updateNode.setId(node.getId());
             updateNode.setDelFlag(DelFlagConstants.DELETED);
-            wmsApprovalNodeMapper.updateById(updateNode);
+            updateNodeList.add(updateNode);
+        }
+        if (!updateNodeList.isEmpty()) {
+            Db.updateBatchById(updateNodeList);
         }
     }
 }

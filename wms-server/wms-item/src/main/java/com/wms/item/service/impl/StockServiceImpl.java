@@ -9,6 +9,7 @@ import com.wms.item.domain.dto.StockThresholdDto;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsStock;
 import com.wms.item.domain.vo.StockVo;
+import com.wms.item.converter.StockConverter;
 import com.wms.item.mapper.WmsItemMapper;
 import com.wms.item.mapper.WmsStockMapper;
 import com.wms.item.service.StockService;
@@ -30,7 +31,18 @@ public class StockServiceImpl implements StockService {
 
     private final WmsStockMapper wmsStockMapper;
     private final WmsItemMapper wmsItemMapper;
+    private final StockConverter stockConverter;
 
+    /**
+     * 分页查询库存
+     * 支持按库房、类目、预警筛选
+     * 
+     * @param pageParam 分页参数
+     * @param warehouseId 库房ID(可选)
+     * @param categoryId 主类目ID(可选)
+     * @param alertOnly 是否仅显示预警(可选)
+     * @return 库存分页结果
+     */
     @Override
     public PageResult<StockVo> page(PageParam pageParam, Long warehouseId,
                                     Long categoryId, Boolean alertOnly) {
@@ -71,7 +83,7 @@ public class StockServiceImpl implements StockService {
                         (existing, replacement) -> existing));
 
         PageResult<StockVo> result = new PageResult<>();
-        List<StockVo> voList = stocks.stream().map(stock -> toStockVo(stock, itemMap)).collect(Collectors.toList());
+        List<StockVo> voList = stocks.stream().map(stock -> stockConverter.toVo(stock, itemMap)).collect(Collectors.toList());
         // 如果仅显示预警库存，过滤quantity < stockLowerLimit的记录
         if (alertOnly != null && alertOnly) {
             voList = voList.stream().filter(vo -> Boolean.TRUE.equals(vo.getAlert())).collect(Collectors.toList());
@@ -83,6 +95,12 @@ public class StockServiceImpl implements StockService {
         return result;
     }
 
+    /**
+     * 按物品ID查询库存列表
+     * 
+     * @param itemId 物品ID
+     * @return 库存VO列表
+     */
     @Override
     public List<StockVo> getByItemId(Long itemId) {
         List<WmsStock> stocks = wmsStockMapper.selectList(
@@ -90,9 +108,15 @@ public class StockServiceImpl implements StockService {
                         .eq(WmsStock::getItemId, itemId)
                         .orderByDesc(WmsStock::getUpdateTime)
         );
-        return stocks.stream().map(this::toStockVo).collect(Collectors.toList());
+        return stocks.stream().map(this::toStockVoSingle).collect(Collectors.toList());
     }
 
+    /**
+     * 查询库存预警列表
+     * 在SQL层面筛选库存数量低于安全库存的记录
+     * 
+     * @return 预警库存VO列表
+     */
     @Override
     public List<StockVo> getAlertList() {
         // 在SQL层面直接筛选存在对应物品且库存数量低于安全库存的记录，避免全表查询
@@ -108,7 +132,7 @@ public class StockServiceImpl implements StockService {
                 .collect(Collectors.toMap(id -> id, id -> wmsItemMapper.selectById(id),
                         (existing, replacement) -> existing));
         return stocks.stream()
-                .map(stock -> toStockVo(stock, itemMap))
+                .map(stock -> stockConverter.toVo(stock, itemMap))
                 .collect(Collectors.toList());
     }
 
@@ -159,7 +183,7 @@ public class StockServiceImpl implements StockService {
             vo.setStockUpperLimit(item.getStockUpperLimit());
             return vo;
         }
-        return toStockVo(stock);
+        return toStockVoSingle(stock);
     }
 
     /**
@@ -168,47 +192,10 @@ public class StockServiceImpl implements StockService {
      * @param stock 库存实体
      * @return 库存VO
      */
-    private StockVo toStockVo(WmsStock stock) {
+    private StockVo toStockVoSingle(WmsStock stock) {
         Map<Long, WmsItem> itemMap = stock.getItemId() != null
                 ? Map.of(stock.getItemId(), wmsItemMapper.selectById(stock.getItemId()))
                 : Map.of();
-        return toStockVo(stock, itemMap);
-    }
-
-    /**
-     * WmsStock实体转StockVo(使用预查询的物品Map，避免N+1查询)
-     *
-     * @param stock 库存实体
-     * @param itemMap 物品ID到实体的映射
-     * @return 库存VO
-     */
-    private StockVo toStockVo(WmsStock stock, Map<Long, WmsItem> itemMap) {
-        StockVo vo = new StockVo();
-        vo.setId(stock.getId());
-        vo.setItemId(stock.getItemId());
-        vo.setBinId(stock.getBinId());
-        vo.setWarehouseId(stock.getWarehouseId());
-        vo.setAreaId(stock.getAreaId());
-        vo.setCabinetId(stock.getCabinetId());
-        vo.setQuantity(stock.getQuantity());
-        vo.setLockedQuantity(stock.getLockedQuantity());
-        vo.setAmount(stock.getAmount());
-        vo.setLastInboundTime(stock.getLastInboundTime());
-        vo.setLastOutboundTime(stock.getLastOutboundTime());
-        // 从Map中填充物品信息和库存阈值
-        if (stock.getItemId() != null) {
-            WmsItem item = itemMap.get(stock.getItemId());
-            if (item != null) {
-                vo.setItemCode(item.getItemCode());
-                vo.setItemName(item.getItemName());
-                vo.setStockLowerLimit(item.getStockLowerLimit());
-                vo.setStockUpperLimit(item.getStockUpperLimit());
-                // 判断是否预警: 库存数量 < 安全库存
-                vo.setAlert(item.getStockLowerLimit() != null
-                        && stock.getQuantity() != null
-                        && stock.getQuantity() < item.getStockLowerLimit());
-            }
-        }
-        return vo;
+        return stockConverter.toVo(stock, itemMap);
     }
 }

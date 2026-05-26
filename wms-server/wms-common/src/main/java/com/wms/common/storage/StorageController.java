@@ -2,6 +2,7 @@ package com.wms.common.storage;
 
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
+import com.wms.common.exception.BizException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -93,6 +94,7 @@ public class StorageController {
      * @param request HTTP请求（用于提取完整对象路径）
      * @return 文件内容
      */
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "文件访问代理")
     @GetMapping("/{bucket}/**")
     public ResponseEntity<Resource> serveFile(@PathVariable String bucket,

@@ -10,7 +10,7 @@ import com.wms.auth.domain.vo.LastLoginInfoVo;
 import com.wms.auth.domain.vo.LoginResp;
 import com.wms.auth.domain.vo.TokenResp;
 import com.wms.auth.domain.vo.UploadAvatarVo;
-import com.wms.auth.domain.vo.UserInfoVO;
+import com.wms.auth.domain.vo.UserInfoVo;
 import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.enums.AuthOperTypeEnum;
 import com.wms.auth.service.*;
@@ -41,6 +41,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 认证服务实现类
+ * 处理登录、登出、令牌刷新、用户资料查询与更新、头像上传等业务逻辑
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -58,6 +62,15 @@ public class AuthServiceImpl implements AuthService {
     private final AuthProperties authProperties;
     private final StorageStrategy storageStrategy;
 
+    /**
+     * 用户登录
+     * 依次执行: 限流校验→验证码校验→锁定校验→密码解密→用户校验→权限加载→令牌生成→会话创建→登录记录
+     * 
+     * @param req 登录请求
+     * @param clientIp 客户端IP
+     * @param userAgent 用户代理
+     * @return 登录响应(含令牌、权限、菜单)
+     */
     @Override
     public LoginResp login(LoginReq req, String clientIp, String userAgent) {
         rateLimiterService.tryAcquire(clientIp);
@@ -132,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
         resp.setPermissions(permissions);
         resp.setMenus(menus != null ? menus.stream().map(m -> (Object) m).toList() : Collections.emptyList());
 
-        UserInfoVO userInfo = new UserInfoVO();
+        UserInfoVo userInfo = new UserInfoVo();
         userInfo.setUserId(user.getId());
         userInfo.setUsername(user.getUsername());
         userInfo.setRealName(user.getRealName());
@@ -145,6 +158,12 @@ public class AuthServiceImpl implements AuthService {
         return resp;
     }
 
+    /**
+     * 用户登出
+     * 撤销令牌和所有关联令牌，记录操作日志
+     * 
+     * @param accessToken 访问令牌
+     */
     @Override
     public void logout(String accessToken) {
         try {
@@ -167,11 +186,23 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 刷新令牌
+     * 
+     * @param req 刷新令牌请求
+     * @return 新的令牌对
+     */
     @Override
     public TokenResp refreshToken(RefreshTokenReq req) {
         return tokenService.refreshToken(req.getRefreshToken());
     }
 
+    /**
+     * 获取当前登录用户资料
+     * 包括用户信息、权限、角色和最近登录信息
+     * 
+     * @return 用户资料VO
+     */
     @Override
     public AuthProfileVo getCurrentProfile() {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -194,6 +225,12 @@ public class AuthServiceImpl implements AuthService {
         return profile;
     }
 
+    /**
+     * 更新当前登录用户资料
+     * 
+     * @param dto 资料更新参数
+     * @return 更新后的用户资料VO
+     */
     @Override
     public AuthProfileVo updateCurrentProfile(UpdateProfileDto dto) {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -222,6 +259,13 @@ public class AuthServiceImpl implements AuthService {
         return profile;
     }
 
+    /**
+     * 上传当前用户头像
+     * 通过StorageStrategy统一上传
+     * 
+     * @param file 头像文件
+     * @return 头像上传结果VO
+     */
     @Override
     public UploadAvatarVo uploadCurrentUserAvatar(MultipartFile file) {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -248,6 +292,13 @@ public class AuthServiceImpl implements AuthService {
         return uploadAvatarVo;
     }
 
+    /**
+     * 加载头像资源
+     * 
+     * @param userId 用户ID
+     * @param fileName 文件名
+     * @return 头像资源
+     */
     @Override
     public Resource loadAvatarResource(Long userId, String fileName) {
         // 通过StorageStrategy统一读取，支持本地/MinIO存储
@@ -282,8 +333,8 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    private UserInfoVO buildUserInfo(SysUserVo user) {
-        UserInfoVO userInfo = new UserInfoVO();
+    private UserInfoVo buildUserInfo(SysUserVo user) {
+        UserInfoVo userInfo = new UserInfoVo();
         userInfo.setUserId(user.getId());
         userInfo.setUsername(user.getUsername());
         userInfo.setRealName(user.getRealName());

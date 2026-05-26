@@ -44,6 +44,7 @@ public class AuthController {
     private final PasswordService passwordService;
 
     @Operation(summary = "用户登录")
+    @PreAuthorize("permitAll()")
     @PostMapping("/login")
     public R<LoginResp> login(@Valid @RequestBody LoginReq req, HttpServletRequest request) {
         String clientIp = getClientIp(request);
@@ -52,6 +53,7 @@ public class AuthController {
     }
 
     @Operation(summary = "用户登出")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
     public R<Void> logout(HttpServletRequest request) {
         String token = extractToken(request);
@@ -62,12 +64,14 @@ public class AuthController {
     }
 
     @Operation(summary = "刷新Token")
+    @PreAuthorize("permitAll()")
     @PostMapping("/token/refresh")
     public R<TokenResp> refreshToken(@Valid @RequestBody RefreshTokenReq req) {
         return R.ok(authService.refreshToken(req));
     }
 
     @Operation(summary = "校验Token")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/token/validate")
     public R<TokenValidateResp> validateToken(HttpServletRequest request) {
         String token = extractToken(request);
@@ -98,6 +102,8 @@ public class AuthController {
         return R.ok(authService.uploadCurrentUserAvatar(file));
     }
 
+    @DataScope
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取头像内容")
     @GetMapping("/profile/avatar/content/{userId}/{fileName:.+}")
     public ResponseEntity<Resource> getAvatarContent(@PathVariable Long userId, @PathVariable String fileName) {
@@ -107,6 +113,8 @@ public class AuthController {
                 .body(resource);
     }
 
+    @DataScope
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "权限校验")
     @GetMapping("/authorize/check")
     public R<Boolean> checkPermission(@RequestParam String permCode) {
@@ -114,6 +122,8 @@ public class AuthController {
         return R.ok(authorizeService.hasPermission(userId, permCode));
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "auth", type = "修改", desc = "修改密码")
     @Operation(summary = "修改密码")
     @PutMapping("/password")
     public R<Void> changePassword(@Valid @RequestBody PasswordReq req) {

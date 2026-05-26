@@ -25,6 +25,11 @@ public class SysConfigServiceImpl implements SysConfigService {
 
     private final SysConfigMapper sysConfigMapper;
 
+    /**
+     * 查询所有配置项列表
+     * 
+     * @return 配置项VO列表
+     */
     @Override
     public List<SysConfigVo> listAll() {
         List<SysConfig> configs = sysConfigMapper.selectList(
@@ -33,6 +38,12 @@ public class SysConfigServiceImpl implements SysConfigService {
         return configs.stream().map(this::toVo).collect(Collectors.toList());
     }
 
+    /**
+     * 根据配置键查询配置项
+     * 
+     * @param key 配置键
+     * @return 配置项VO
+     */
     @Override
     public SysConfigVo getByKey(String key) {
         SysConfig config = sysConfigMapper.selectOne(
@@ -45,6 +56,14 @@ public class SysConfigServiceImpl implements SysConfigService {
         return toVo(config);
     }
 
+    /**
+     * 更新配置项
+     * 仅更新非空字段
+     * 
+     * @param id 配置项ID
+     * @param dto 配置项更新参数
+     * @return 更新后的配置项VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysConfigVo update(Long id, SysConfigDto dto) {

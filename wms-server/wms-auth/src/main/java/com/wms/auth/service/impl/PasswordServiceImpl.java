@@ -14,6 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
 
+/**
+ * 密码服务实现类
+ * 处理密码修改、密码强度校验等业务逻辑
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,13 @@ public class PasswordServiceImpl implements PasswordService {
     private static final Pattern PASSWORD_PATTERN =
             Pattern.compile("^(?=.+[a-z])(?=.+[A-Z])(?=.+\\d).{8,20}$");
 
+    /**
+     * 修改密码
+     * 校验旧密码正确性、新旧密码不同、新密码强度，更新后撤销所有令牌
+     * 
+     * @param userId 用户ID
+     * @param req 密码修改请求
+     */
     @Override
     public void changePassword(Long userId, PasswordReq req) {
         String oldPassword = cryptoService.decryptPassword(req.getEncryptedOldPassword());
@@ -65,6 +76,13 @@ public class PasswordServiceImpl implements PasswordService {
         log.info("用户{}修改密码成功,所有Token已撤销", userId);
     }
 
+    /**
+     * 校验密码强度
+     * 要求包含大小写字母和数字，长度8-20
+     * 
+     * @param password 明文密码
+     * @return 是否满足强度要求
+     */
     @Override
     public boolean validatePasswordStrength(String password) {
         return PASSWORD_PATTERN.matcher(password).matches();

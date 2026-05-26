@@ -9,6 +9,7 @@ import com.wms.report.service.CostAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +35,7 @@ public class CostAccountController {
     @GetMapping("/summary")
     @PreAuthorize("isAuthenticated()")
     @DataScope
-    public R<CostAccountVo> getSummary(@RequestParam Integer year) {
+    public R<CostAccountVo> getSummary(@RequestParam @Min(2000) Integer year) {
         return R.ok(costAccountService.getSummary(year));
     }
 

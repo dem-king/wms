@@ -42,6 +42,15 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
     private final ElectronicLabelConverter converter;
     private final SequenceGenerator sequenceGenerator;
 
+    /**
+     * 分页查询电子标签
+     * 
+     * @param page 分页参数
+     * @param itemId 物品ID(可选)
+     * @param labelType 标签类型(可选)
+     * @param labelStatus 标签状态(可选)
+     * @return 电子标签分页结果
+     */
     @Override
     public Page<ElectronicLabelVo> page(Page<ElectronicLabelVo> page, Long itemId, Integer labelType, Integer labelStatus) {
         LambdaQueryWrapper<WmsElectronicLabel> wrapper = new LambdaQueryWrapper<>();
@@ -79,6 +88,12 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         return result;
     }
 
+    /**
+     * 根据ID查询电子标签详情
+     * 
+     * @param id 标签ID
+     * @return 电子标签VO
+     */
     @Override
     public ElectronicLabelVo getById(Long id) {
         WmsElectronicLabel entity = labelMapper.selectById(id);
@@ -97,6 +112,12 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         return vo;
     }
 
+    /**
+     * 批量生成电子标签
+     * 
+     * @param dto 标签生成参数
+     * @return 生成的标签VO列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<ElectronicLabelVo> generate(LabelGenerateDto dto) {
@@ -139,6 +160,14 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 绑定标签到物品
+     * 仅闲置状态标签可绑定，绑定后状态变为在库
+     * 
+     * @param id 标签ID
+     * @param dto 绑定参数
+     * @return 绑定后的标签VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ElectronicLabelVo bind(Long id, LabelBindDto dto) {
@@ -168,6 +197,14 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         return vo;
     }
 
+    /**
+     * 更新标签状态
+     * 校验状态流转合法性
+     * 
+     * @param id 标签ID
+     * @param dto 状态更新参数
+     * @return 更新后的标签VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ElectronicLabelVo updateStatus(Long id, LabelStatusDto dto) {
@@ -188,6 +225,11 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         return enrichWithItemInfo(entity);
     }
 
+    /**
+     * 批量标记标签为已打印
+     * 
+     * @param labelIds 标签ID列表
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void batchPrint(List<Long> labelIds) {
@@ -207,6 +249,13 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         }
     }
 
+    /**
+     * 扫码查询标签
+     * 在标签编号/RFID/二维码/条形码中匹配
+     * 
+     * @param code 扫码内容
+     * @return 标签VO
+     */
     @Override
     public ElectronicLabelVo scan(String code) {
         if (code == null || code.isBlank()) {
@@ -226,6 +275,12 @@ public class ElectronicLabelServiceImpl implements ElectronicLabelService {
         return enrichWithItemInfo(entity);
     }
 
+    /**
+     * 查询闲置标签列表
+     * 包括闲置状态的标签和在库状态超过阈值天数未变更的标签
+     * 
+     * @return 闲置标签VO列表
+     */
     @Override
     public List<ElectronicLabelVo> listIdle() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(LabelConstants.IDLE_THRESHOLD_DAYS);

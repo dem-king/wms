@@ -1,6 +1,8 @@
 package com.wms.report.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.business.domain.entity.WmsOutboundOrder;
 import com.wms.business.domain.entity.WmsReturnDetail;
 import com.wms.business.domain.entity.WmsReturnOrder;
@@ -164,10 +166,20 @@ public class ReturnDailyAggregationTask {
                 }
             }
 
-            // 先删后插保证幂等
-            LambdaQueryWrapper<ReportReturnDaily> deleteWrapper = new LambdaQueryWrapper<>();
-            deleteWrapper.eq(ReportReturnDaily::getStatDate, statDate);
-            reportReturnDailyMapper.delete(deleteWrapper);
+            // 逻辑删除该日期的旧数据（保证幂等）
+            List<ReportReturnDaily> oldRecords = reportReturnDailyMapper.selectList(
+                    new LambdaQueryWrapper<ReportReturnDaily>()
+                            .eq(ReportReturnDaily::getStatDate, statDate));
+            if (!oldRecords.isEmpty()) {
+                List<ReportReturnDaily> updateRecords = new ArrayList<>();
+                for (ReportReturnDaily oldRecord : oldRecords) {
+                    ReportReturnDaily updateRecord = new ReportReturnDaily();
+                    updateRecord.setId(oldRecord.getId());
+                    updateRecord.setDelFlag(DelFlagConstants.DELETED);
+                    updateRecords.add(updateRecord);
+                }
+                Db.updateBatchById(updateRecords);
+            }
 
             for (ReportReturnDaily agg : aggMap.values()) {
                 reportReturnDailyMapper.insert(agg);

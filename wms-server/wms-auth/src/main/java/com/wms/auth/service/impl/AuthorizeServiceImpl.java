@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * 授权服务实现类
+ * 处理用户权限判断、权限编码查询(含Redis缓存)、权限缓存刷新
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,12 +26,26 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     private final StringRedisTemplate stringRedisTemplate;
     private final SysPermissionService sysPermissionService;
 
+    /**
+     * 判断用户是否拥有指定权限
+     * 
+     * @param userId 用户ID
+     * @param permCode 权限编码
+     * @return 是否拥有权限
+     */
     @Override
     public boolean hasPermission(Long userId, String permCode) {
         List<String> permissions = getUserPermissions(userId);
         return permissions.contains(permCode);
     }
 
+    /**
+     * 获取用户权限编码列表
+     * 优先从Redis缓存读取，缓存未命中时查询数据库并写入缓存
+     * 
+     * @param userId 用户ID
+     * @return 权限编码列表
+     */
     @Override
     public List<String> getUserPermissions(Long userId) {
         try {
@@ -58,6 +76,12 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         }
     }
 
+    /**
+     * 刷新用户权限缓存
+     * 删除Redis中的权限缓存
+     * 
+     * @param userId 用户ID
+     */
     @Override
     public void refreshPermissionCache(Long userId) {
         try {

@@ -51,6 +51,13 @@ public class TransferReportServiceImpl implements TransferReportService {
         return wrapper;
     }
 
+    /**
+     * 获取调拨统计汇总
+     * 按调出库房+调入库房+分类聚合
+     * 
+     * @param queryDto 调拨报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public TransferReportVo.SummaryVo getSummary(TransferReportQueryDto queryDto) {
         List<ReportTransferDaily> list = reportTransferDailyMapper.selectList(buildWrapper(queryDto));
@@ -90,6 +97,13 @@ public class TransferReportServiceImpl implements TransferReportService {
         return vo;
     }
 
+    /**
+     * 获取调拨趋势数据
+     * 支持按日或按月聚合
+     * 
+     * @param queryDto 调拨报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public TransferReportVo.TrendVo getTrend(TransferReportQueryDto queryDto) {
         List<ReportTransferDaily> list = reportTransferDailyMapper.selectList(buildWrapper(queryDto));
@@ -135,6 +149,13 @@ public class TransferReportServiceImpl implements TransferReportService {
         return vo;
     }
 
+    /**
+     * 获取调拨分布数据
+     * 按分类聚合计算占比
+     * 
+     * @param queryDto 调拨报表查询参数
+     * @return 分布VO
+     */
     @Override
     public TransferReportVo.DistributionVo getDistribution(TransferReportQueryDto queryDto) {
         List<ReportTransferDaily> list = reportTransferDailyMapper.selectList(buildWrapper(queryDto));

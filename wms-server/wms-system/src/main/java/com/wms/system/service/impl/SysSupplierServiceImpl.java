@@ -28,6 +28,14 @@ public class SysSupplierServiceImpl implements SysSupplierService {
 
     private final SysSupplierMapper sysSupplierMapper;
 
+    /**
+     * 分页查询供应商
+     * 
+     * @param pageParam 分页参数
+     * @param supplierName 供应商名称(可选，模糊匹配)
+     * @param supplierCode 供应商编码(可选，模糊匹配)
+     * @return 供应商分页结果
+     */
     @Override
     public PageResult<SysSupplierVo> page(PageParam pageParam, String supplierName, String supplierCode) {
         LambdaQueryWrapper<SysSupplier> wrapper = new LambdaQueryWrapper<SysSupplier>();
@@ -52,6 +60,12 @@ public class SysSupplierServiceImpl implements SysSupplierService {
         return result;
     }
 
+    /**
+     * 根据ID查询供应商详情
+     * 
+     * @param id 供应商ID
+     * @return 供应商VO
+     */
     @Override
     public SysSupplierVo getById(Long id) {
         SysSupplier supplier = sysSupplierMapper.selectById(id);
@@ -61,6 +75,13 @@ public class SysSupplierServiceImpl implements SysSupplierService {
         return toVo(supplier);
     }
 
+    /**
+     * 新增供应商
+     * 校验编码唯一性
+     * 
+     * @param dto 供应商新增参数
+     * @return 新增后的供应商VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysSupplierVo create(SysSupplierDto dto) {
@@ -72,6 +93,13 @@ public class SysSupplierServiceImpl implements SysSupplierService {
         return toVo(supplier);
     }
 
+    /**
+     * 更新供应商
+     * 
+     * @param id 供应商ID
+     * @param dto 供应商更新参数
+     * @return 更新后的供应商VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysSupplierVo update(Long id, SysSupplierDto dto) {
@@ -87,6 +115,11 @@ public class SysSupplierServiceImpl implements SysSupplierService {
         return toVo(existing);
     }
 
+    /**
+     * 删除供应商(逻辑删除)
+     * 
+     * @param id 供应商ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {

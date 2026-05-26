@@ -1,6 +1,7 @@
 package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
@@ -11,6 +12,7 @@ import com.wms.item.domain.entity.WmsCategory;
 import com.wms.item.domain.entity.WmsSubCategory;
 import com.wms.item.domain.vo.CategoryVo;
 import com.wms.item.domain.vo.SubCategoryVo;
+import com.wms.item.converter.CategoryConverter;
 import com.wms.item.mapper.WmsCategoryMapper;
 import com.wms.item.mapper.WmsSubCategoryMapper;
 import com.wms.item.service.CategoryService;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final WmsCategoryMapper wmsCategoryMapper;
     private final WmsSubCategoryMapper wmsSubCategoryMapper;
+    private final CategoryConverter categoryConverter;
 
+    /**
+     * 查询所有主类目列表(含细分类目)
+     * 
+     * @return 主类目VO列表
+     */
     @Override
     public List<CategoryVo> listAll() {
         List<WmsCategory> categories = wmsCategoryMapper.selectList(
@@ -39,9 +48,16 @@ public class CategoryServiceImpl implements CategoryService {
                         .orderByAsc(WmsCategory::getSortOrder)
                         .orderByDesc(WmsCategory::getCreateTime)
         );
-        return categories.stream().map(this::toCategoryVo).collect(Collectors.toList());
+        return categories.stream().map(this::toCategoryVoWithSubs).collect(Collectors.toList());
     }
 
+    /**
+     * 新增主类目
+     * 校验编码唯一性，默认排序为0
+     * 
+     * @param dto 主类目新增参数
+     * @return 新增后的主类目VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CategoryVo create(CategoryDto dto) {
@@ -57,30 +73,49 @@ public class CategoryServiceImpl implements CategoryService {
             category.setIsConsumable(ItemConstants.IS_CONSUMABLE_NO);
         }
         wmsCategoryMapper.insert(category);
-        return toCategoryVo(category);
+        return toCategoryVoWithSubs(category);
     }
 
+    /**
+     * 更新主类目
+     * 
+     * @param id 主类目ID
+     * @param dto 主类目更新参数
+     * @return 更新后的主类目VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CategoryVo update(Long id, CategoryDto dto) {
         WmsCategory existing = wmsCategoryMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("主类目不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("主类目已删除");
         }
         // 校验类目编码唯一性(排除自身)
         checkCategoryCodeUnique(dto.getCategoryCode(), id);
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         wmsCategoryMapper.updateById(existing);
-        return toCategoryVo(existing);
+        return toCategoryVoWithSubs(existing);
     }
 
+    /**
+     * 删除主类目(逻辑删除)
+     * 同时逻辑删除其下的细分类目
+     * 
+     * @param id 主类目ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsCategory existing = wmsCategoryMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("主类目不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("主类目已删除");
         }
         // 逻辑删除主类目
         WmsCategory updateEntity = new WmsCategory();
@@ -93,15 +128,25 @@ public class CategoryServiceImpl implements CategoryService {
                 new LambdaQueryWrapper<WmsSubCategory>()
                         .eq(WmsSubCategory::getCategoryId, id)
         );
+        List<WmsSubCategory> updateSubList = new ArrayList<>();
         for (WmsSubCategory sub : subCategories) {
             WmsSubCategory updateSub = new WmsSubCategory();
             updateSub.setId(sub.getId());
             updateSub.setDelFlag(DelFlagConstants.DELETED);
             
-            wmsSubCategoryMapper.updateById(updateSub);
+            updateSubList.add(updateSub);
+        }
+        if (!updateSubList.isEmpty()) {
+            Db.updateBatchById(updateSubList);
         }
     }
 
+    /**
+     * 查询指定主类目下的细分类目列表
+     * 
+     * @param categoryId 主类目ID
+     * @return 细分类目VO列表
+     */
     @Override
     public List<SubCategoryVo> listSubCategories(Long categoryId) {
         List<WmsSubCategory> subCategories = wmsSubCategoryMapper.selectList(
@@ -110,16 +155,27 @@ public class CategoryServiceImpl implements CategoryService {
                         .orderByAsc(WmsSubCategory::getSortOrder)
                         .orderByDesc(WmsSubCategory::getCreateTime)
         );
-        return subCategories.stream().map(this::toSubCategoryVo).collect(Collectors.toList());
+        return subCategories.stream().map(categoryConverter::toSubCategoryVo).collect(Collectors.toList());
     }
 
+    /**
+     * 新增细分类目
+     * 校验所属主类目存在且编码唯一
+     * 
+     * @param categoryId 主类目ID
+     * @param dto 细分类目新增参数
+     * @return 新增后的细分类目VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SubCategoryVo createSubCategory(Long categoryId, SubCategoryDto dto) {
         // 校验所属主类目存在
         WmsCategory category = wmsCategoryMapper.selectById(categoryId);
-        if (category == null || category.getDelFlag() == DelFlagConstants.DELETED) {
+        if (category == null) {
             throw new BizException("所属主类目不存在");
+        }
+        if (category.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("所属主类目已删除");
         }
         // 校验细分类目编码唯一性(同一主类目下)
         checkSubCategoryCodeUnique(categoryId, dto.getSubCategoryCode(), null);
@@ -129,15 +185,25 @@ public class CategoryServiceImpl implements CategoryService {
         subCategory.setSubCategoryCode(dto.getSubCategoryCode());
         subCategory.setSortOrder(dto.getSortOrder() != null ? dto.getSortOrder() : BizConstants.DEFAULT_SORT_ORDER);
         wmsSubCategoryMapper.insert(subCategory);
-        return toSubCategoryVo(subCategory);
+        return categoryConverter.toSubCategoryVo(subCategory);
     }
 
+    /**
+     * 更新细分类目
+     * 
+     * @param subId 细分类目ID
+     * @param dto 细分类目更新参数
+     * @return 更新后的细分类目VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SubCategoryVo updateSubCategory(Long subId, SubCategoryDto dto) {
         WmsSubCategory existing = wmsSubCategoryMapper.selectById(subId);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("细分类目不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("细分类目已删除");
         }
         // 校验细分类目编码唯一性(同一主类目下，排除自身)
         checkSubCategoryCodeUnique(existing.getCategoryId(), dto.getSubCategoryCode(), subId);
@@ -145,15 +211,29 @@ public class CategoryServiceImpl implements CategoryService {
         existing.setSubCategoryCode(dto.getSubCategoryCode());
         existing.setSortOrder(dto.getSortOrder());
         wmsSubCategoryMapper.updateById(existing);
-        return toSubCategoryVo(existing);
+        return categoryConverter.toSubCategoryVo(existing);
     }
 
+    /**
+     * 删除主类目(逻辑删除)
+     * 同时逻辑删除其下的细分类目
+     * 
+     * @param id 主类目ID
+     */
+    /**
+     * 删除细分类目(逻辑删除)
+     * 
+     * @param subId 细分类目ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSubCategory(Long subId) {
         WmsSubCategory existing = wmsSubCategoryMapper.selectById(subId);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("细分类目不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("细分类目已删除");
         }
         WmsSubCategory updateEntity = new WmsSubCategory();
         updateEntity.setId(subId);
@@ -215,32 +295,10 @@ public class CategoryServiceImpl implements CategoryService {
     /**
      * WmsCategory实体转CategoryVo(含子分类列表)
      */
-    private CategoryVo toCategoryVo(WmsCategory category) {
-        CategoryVo vo = new CategoryVo();
-        vo.setId(category.getId());
-        vo.setCategoryName(category.getCategoryName());
-        vo.setCategoryCode(category.getCategoryCode());
-        vo.setCategoryColor(category.getCategoryColor());
-        vo.setIcon(category.getIcon());
-        vo.setSortOrder(category.getSortOrder());
-        vo.setIsConsumable(category.getIsConsumable());
-        vo.setCreateTime(category.getCreateTime());
+    private CategoryVo toCategoryVoWithSubs(WmsCategory category) {
+        CategoryVo vo = categoryConverter.toVo(category);
         // 查询子分类列表
         vo.setSubCategories(listSubCategories(category.getId()));
-        return vo;
-    }
-
-    /**
-     * WmsSubCategory实体转SubCategoryVo
-     */
-    private SubCategoryVo toSubCategoryVo(WmsSubCategory sub) {
-        SubCategoryVo vo = new SubCategoryVo();
-        vo.setId(sub.getId());
-        vo.setCategoryId(sub.getCategoryId());
-        vo.setSubCategoryName(sub.getSubCategoryName());
-        vo.setSubCategoryCode(sub.getSubCategoryCode());
-        vo.setSortOrder(sub.getSortOrder());
-        vo.setCreateTime(sub.getCreateTime());
         return vo;
     }
 }

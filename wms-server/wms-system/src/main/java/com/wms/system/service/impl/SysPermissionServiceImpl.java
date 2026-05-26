@@ -33,6 +33,12 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     private final SysRolePermissionMapper sysRolePermissionMapper;
     private final SysPermissionMapper sysPermissionMapper;
 
+    /**
+     * 查询用户启用的权限编码列表
+     * 
+     * @param userId 用户ID
+     * @return 权限编码列表
+     */
     @Override
     public List<String> getPermCodesByUserId(Long userId) {
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
@@ -61,6 +67,11 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return permissions.stream().map(SysPermission::getPermCode).collect(Collectors.toList());
     }
 
+    /**
+     * 查询所有权限列表
+     * 
+     * @return 权限VO列表
+     */
     @Override
     public List<SysPermissionVo> listAll() {
         List<SysPermission> list = sysPermissionMapper.selectList(
@@ -69,6 +80,12 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return list.stream().map(this::toVo).collect(Collectors.toList());
     }
 
+    /**
+     * 根据ID查询权限详情
+     * 
+     * @param id 权限ID
+     * @return 权限VO
+     */
     @Override
     public SysPermissionVo getById(Long id) {
         SysPermission perm = sysPermissionMapper.selectById(id);
@@ -78,6 +95,13 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return toVo(perm);
     }
 
+    /**
+     * 新增权限
+     * 校验编码唯一性，默认启用
+     * 
+     * @param dto 权限新增参数
+     * @return 新增后的权限VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysPermissionVo create(SysPermissionDto dto) {
@@ -93,6 +117,13 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return toVo(perm);
     }
 
+    /**
+     * 更新权限
+     * 
+     * @param id 权限ID
+     * @param dto 权限更新参数
+     * @return 更新后的权限VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysPermissionVo update(Long id, SysPermissionDto dto) {
@@ -108,6 +139,11 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         return toVo(existing);
     }
 
+    /**
+     * 删除权限(逻辑删除)
+     * 
+     * @param id 权限ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {

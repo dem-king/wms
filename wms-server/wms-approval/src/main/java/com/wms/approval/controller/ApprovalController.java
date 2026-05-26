@@ -11,6 +11,7 @@ import com.wms.common.domain.R;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -60,7 +61,8 @@ public class ApprovalController {
     @GetMapping("/biz")
     @PreAuthorize("isAuthenticated()")
     @DataScope
-    public R<ApprovalOrderVo> getByBiz(@RequestParam Long bizId, @RequestParam Integer bizType) {
+    public R<ApprovalOrderVo> getByBiz(@RequestParam Long bizId,
+                                        @RequestParam @Min(0) Integer bizType) {
         return R.ok(approvalService.getByBiz(bizId, bizType));
     }
 

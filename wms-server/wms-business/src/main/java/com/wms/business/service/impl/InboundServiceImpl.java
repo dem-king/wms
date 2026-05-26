@@ -2,6 +2,7 @@ package com.wms.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.business.converter.InboundOrderConverter;
 import com.wms.business.domain.constant.OrderConstants;
 import com.wms.business.domain.dto.InboundOrderDto;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,8 +120,11 @@ public class InboundServiceImpl implements InboundService {
     @Override
     public InboundOrderVo getOrderById(Long id) {
         WmsInboundOrder order = wmsInboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("入库单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("入库单已删除");
         }
         InboundOrderVo vo = inboundOrderConverter.toVo(order, Map.of(), Map.of());
         vo.setDetails(inboundOrderConverter.toDetailVoList(
@@ -140,13 +145,19 @@ public class InboundServiceImpl implements InboundService {
     @Transactional(rollbackFor = Exception.class)
     public InboundOrderVo createOrder(InboundOrderDto dto) {
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("库房不存在或已禁用");
+        if (warehouse == null) {
+            throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         if (dto.getSupplierId() != null) {
             SysSupplier supplier = sysSupplierMapper.selectById(dto.getSupplierId());
-            if (supplier == null || supplier.getDelFlag() == DelFlagConstants.DELETED) {
+            if (supplier == null) {
                 throw new BizException("供应商不存在");
+            }
+            if (supplier.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("供应商已删除");
             }
         }
 
@@ -160,10 +171,14 @@ public class InboundServiceImpl implements InboundService {
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         wmsInboundOrderMapper.insert(order);
+        List<WmsInboundDetail> detailList = new ArrayList<>();
         for (InboundOrderDto.InboundDetailDto detailDto : dto.getDetails()) {
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsInboundDetail detail = new WmsInboundDetail();
             detail.setOrderId(order.getId());
@@ -176,8 +191,11 @@ public class InboundServiceImpl implements InboundService {
             }
             detail.setAmount(amount);
             detail.setBinId(detailDto.getBinId());
-            wmsInboundDetailMapper.insert(detail);
+            detailList.add(detail);
             totalAmount = totalAmount.add(amount);
+        }
+        if (!detailList.isEmpty()) {
+            Db.saveBatch(detailList);
         }
         order.setTotalAmount(totalAmount);
         wmsInboundOrderMapper.updateById(order);
@@ -202,16 +220,22 @@ public class InboundServiceImpl implements InboundService {
     @Transactional(rollbackFor = Exception.class)
     public InboundOrderVo updateOrder(Long id, InboundOrderDto dto) {
         WmsInboundOrder order = wmsInboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("入库单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("入库单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的入库单可以更新");
         }
 
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(dto.getWarehouseId());
-        if (warehouse == null || warehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("库房不存在或已禁用");
+        if (warehouse == null) {
+            throw new BizException("库房不存在");
+        }
+        if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
 
         order.setWarehouseId(dto.getWarehouseId());
@@ -222,13 +246,18 @@ public class InboundServiceImpl implements InboundService {
 
         List<WmsInboundDetail> oldDetails = wmsInboundDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsInboundDetail>().eq(WmsInboundDetail::getOrderId, id));
+        List<WmsInboundDetail> updateDetails = new ArrayList<>();
         for (WmsInboundDetail oldDetail : oldDetails) {
             WmsInboundDetail updateDetail = new WmsInboundDetail();
             updateDetail.setId(oldDetail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsInboundDetailMapper.updateById(updateDetail);
+            updateDetails.add(updateDetail);
+        }
+        if (!updateDetails.isEmpty()) {
+            Db.updateBatchById(updateDetails);
         }
         BigDecimal totalAmount = BigDecimal.ZERO;
+        List<WmsInboundDetail> newDetailList = new ArrayList<>();
         for (InboundOrderDto.InboundDetailDto detailDto : dto.getDetails()) {
             WmsInboundDetail detail = new WmsInboundDetail();
             detail.setOrderId(id);
@@ -241,8 +270,11 @@ public class InboundServiceImpl implements InboundService {
             }
             detail.setAmount(amount);
             detail.setBinId(detailDto.getBinId());
-            wmsInboundDetailMapper.insert(detail);
+            newDetailList.add(detail);
             totalAmount = totalAmount.add(amount);
+        }
+        if (!newDetailList.isEmpty()) {
+            Db.saveBatch(newDetailList);
         }
         order.setTotalAmount(totalAmount);
         wmsInboundOrderMapper.updateById(order);
@@ -265,8 +297,11 @@ public class InboundServiceImpl implements InboundService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsInboundOrder order = wmsInboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("入库单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("入库单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的入库单可以提交");
@@ -298,8 +333,11 @@ public class InboundServiceImpl implements InboundService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
         WmsInboundOrder order = wmsInboundOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("入库单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("入库单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的入库单可以删除");
@@ -312,11 +350,15 @@ public class InboundServiceImpl implements InboundService {
         List<WmsInboundDetail> details = wmsInboundDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsInboundDetail>()
                         .eq(WmsInboundDetail::getOrderId, id));
+        List<WmsInboundDetail> updateDetailList = new ArrayList<>();
         for (WmsInboundDetail detail : details) {
             WmsInboundDetail updateDetail = new WmsInboundDetail();
             updateDetail.setId(detail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsInboundDetailMapper.updateById(updateDetail);
+            updateDetailList.add(updateDetail);
+        }
+        if (!updateDetailList.isEmpty()) {
+            Db.updateBatchById(updateDetailList);
         }
     }
 

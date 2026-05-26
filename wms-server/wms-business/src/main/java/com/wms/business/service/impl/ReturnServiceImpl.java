@@ -2,6 +2,7 @@ package com.wms.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.business.converter.ReturnOrderConverter;
 import com.wms.business.domain.dto.ReturnOrderDto;
 import com.wms.business.domain.entity.WmsOutboundOrder;
@@ -29,6 +30,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,8 +101,11 @@ public class ReturnServiceImpl implements ReturnService {
     @Override
     public ReturnOrderVo getOrderById(Long id) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("归还单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("归还单已删除");
         }
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
         vo.setDetails(returnOrderConverter.toDetailVoList(
@@ -122,8 +127,11 @@ public class ReturnServiceImpl implements ReturnService {
     public ReturnOrderVo createOrder(ReturnOrderDto dto) {
         // 校验关联出库单存在
         WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(dto.getOutboundOrderId());
-        if (outboundOrder == null || outboundOrder.getDelFlag() == DelFlagConstants.DELETED) {
+        if (outboundOrder == null) {
             throw new BizException("关联出库单不存在");
+        }
+        if (outboundOrder.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("关联出库单已删除");
         }
 
         WmsReturnOrder order = new WmsReturnOrder();
@@ -136,11 +144,15 @@ public class ReturnServiceImpl implements ReturnService {
 
         wmsReturnOrderMapper.insert(order);
         // 保存归还明细
+        List<WmsReturnDetail> detailList = new ArrayList<>();
         for (ReturnOrderDto.ReturnDetailDto detailDto : dto.getDetails()) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsReturnDetail detail = new WmsReturnDetail();
             detail.setOrderId(order.getId());
@@ -149,7 +161,10 @@ public class ReturnServiceImpl implements ReturnService {
             // 默认物品状态为正常
             detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : ItemStatusEnum.IN_STOCK.getCode());
             detail.setAbnormalRemark(detailDto.getAbnormalRemark());
-            wmsReturnDetailMapper.insert(detail);
+            detailList.add(detail);
+        }
+        if (!detailList.isEmpty()) {
+            Db.saveBatch(detailList);
         }
 
         // 归还单创建时不直接发布库存同步事件，需走审批流程后在submitOrder中发布
@@ -174,8 +189,11 @@ public class ReturnServiceImpl implements ReturnService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnOrderVo updateOrder(Long id, ReturnOrderDto dto) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("归还单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("归还单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的归还单可以更新");
@@ -183,8 +201,11 @@ public class ReturnServiceImpl implements ReturnService {
 
         // 校验关联出库单存在
         WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(dto.getOutboundOrderId());
-        if (outboundOrder == null || outboundOrder.getDelFlag() == DelFlagConstants.DELETED) {
+        if (outboundOrder == null) {
             throw new BizException("关联出库单不存在");
+        }
+        if (outboundOrder.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("关联出库单已删除");
         }
 
         order.setOutboundOrderId(dto.getOutboundOrderId());
@@ -195,18 +216,26 @@ public class ReturnServiceImpl implements ReturnService {
         // 逻辑删除原有明细
         List<WmsReturnDetail> oldDetails = wmsReturnDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsReturnDetail>().eq(WmsReturnDetail::getOrderId, id));
+        List<WmsReturnDetail> updateDetails = new ArrayList<>();
         for (WmsReturnDetail oldDetail : oldDetails) {
             WmsReturnDetail updateDetail = new WmsReturnDetail();
             updateDetail.setId(oldDetail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsReturnDetailMapper.updateById(updateDetail);
+            updateDetails.add(updateDetail);
+        }
+        if (!updateDetails.isEmpty()) {
+            Db.updateBatchById(updateDetails);
         }
 
         // 保存新明细
+        List<WmsReturnDetail> newDetailList = new ArrayList<>();
         for (ReturnOrderDto.ReturnDetailDto detailDto : dto.getDetails()) {
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsReturnDetail detail = new WmsReturnDetail();
             detail.setOrderId(id);
@@ -214,7 +243,10 @@ public class ReturnServiceImpl implements ReturnService {
             detail.setQuantity(detailDto.getQuantity());
             detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : ItemStatusEnum.IN_STOCK.getCode());
             detail.setAbnormalRemark(detailDto.getAbnormalRemark());
-            wmsReturnDetailMapper.insert(detail);
+            newDetailList.add(detail);
+        }
+        if (!newDetailList.isEmpty()) {
+            Db.saveBatch(newDetailList);
         }
 
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
@@ -235,8 +267,11 @@ public class ReturnServiceImpl implements ReturnService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("归还单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("归还单已删除");
         }
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的归还单可以删除");
@@ -251,11 +286,15 @@ public class ReturnServiceImpl implements ReturnService {
         List<WmsReturnDetail> details = wmsReturnDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsReturnDetail>()
                         .eq(WmsReturnDetail::getOrderId, id));
+        List<WmsReturnDetail> updateDetailList = new ArrayList<>();
         for (WmsReturnDetail detail : details) {
             WmsReturnDetail updateDetail = new WmsReturnDetail();
             updateDetail.setId(detail.getId());
             updateDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsReturnDetailMapper.updateById(updateDetail);
+            updateDetailList.add(updateDetail);
+        }
+        if (!updateDetailList.isEmpty()) {
+            Db.updateBatchById(updateDetailList);
         }
     }
 
@@ -269,8 +308,11 @@ public class ReturnServiceImpl implements ReturnService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsReturnOrder order = wmsReturnOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("归还单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("归还单已删除");
         }
         // 只有草稿状态可以提交
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {

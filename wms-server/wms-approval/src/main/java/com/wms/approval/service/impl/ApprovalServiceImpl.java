@@ -60,8 +60,11 @@ public class ApprovalServiceImpl implements ApprovalService {
                 new LambdaQueryWrapper<WmsApprovalConfig>()
                         .eq(WmsApprovalConfig::getBizType, bizType)
                         .eq(WmsApprovalConfig::getEnabled, ApprovalConstants.STATUS_APPROVED));
-        if (config == null || config.getDelFlag() == DelFlagConstants.DELETED) {
+        if (config == null) {
             throw new BizException("未找到该业务类型的审批配置");
+        }
+        if (config.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批配置已删除");
         }
 
         // 若免审则直接返回已通过状态的审批单
@@ -112,8 +115,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Transactional(rollbackFor = Exception.class)
     public void approve(Long approvalId, ApprovalActionDto dto) {
         WmsApprovalOrder order = wmsApprovalOrderMapper.selectById(approvalId);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("审批单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批工单已删除");
         }
         if (order.getStatus() != ApprovalConstants.STATUS_APPROVING) {
             throw new BizException("审批单状态不是审批中，无法审批通过");
@@ -153,8 +159,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Transactional(rollbackFor = Exception.class)
     public void reject(Long approvalId, ApprovalActionDto dto) {
         WmsApprovalOrder order = wmsApprovalOrderMapper.selectById(approvalId);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("审批单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批工单已删除");
         }
         if (order.getStatus() != ApprovalConstants.STATUS_APPROVING) {
             throw new BizException("审批单状态不是审批中，无法驳回");
@@ -189,8 +198,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Transactional(rollbackFor = Exception.class)
     public void revoke(Long approvalId) {
         WmsApprovalOrder order = wmsApprovalOrderMapper.selectById(approvalId);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("审批单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批工单已删除");
         }
         if (order.getStatus() != ApprovalConstants.STATUS_PENDING
                 && order.getStatus() != ApprovalConstants.STATUS_APPROVING) {
@@ -215,8 +227,11 @@ public class ApprovalServiceImpl implements ApprovalService {
                 new LambdaQueryWrapper<WmsApprovalOrder>()
                         .eq(WmsApprovalOrder::getBizId, bizId)
                         .eq(WmsApprovalOrder::getBizType, bizType));
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("未找到该业务单据的审批记录");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批工单已删除");
         }
         return buildOrderVoWithRecords(order);
     }
@@ -262,8 +277,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     @Override
     public ApprovalOrderVo getApprovalById(Long id) {
         WmsApprovalOrder order = wmsApprovalOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("审批单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批工单已删除");
         }
         return buildOrderVoWithRecords(order);
     }

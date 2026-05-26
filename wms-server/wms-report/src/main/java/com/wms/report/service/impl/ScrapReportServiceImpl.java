@@ -48,6 +48,13 @@ public class ScrapReportServiceImpl implements ScrapReportService {
         return wrapper;
     }
 
+    /**
+     * 获取ScrapReport统计汇总
+     * 按分类聚合统计数量、金额和单据数
+     * 
+     * @param queryDto 报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public ScrapReportVo.SummaryVo getSummary(ReportQueryDto queryDto) {
         List<ReportScrapDaily> list = reportScrapDailyMapper.selectList(buildWrapper(queryDto));
@@ -77,6 +84,13 @@ public class ScrapReportServiceImpl implements ScrapReportService {
         return vo;
     }
 
+    /**
+     * 获取ScrapReport趋势数据
+     * 支持按日或按月聚合
+     * 
+     * @param queryDto 报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public ScrapReportVo.TrendVo getTrend(ReportQueryDto queryDto) {
         List<ReportScrapDaily> list = reportScrapDailyMapper.selectList(buildWrapper(queryDto));
@@ -122,6 +136,13 @@ public class ScrapReportServiceImpl implements ScrapReportService {
         return vo;
     }
 
+    /**
+     * 获取ScrapReport分布数据
+     * 按分类聚合计算占比
+     * 
+     * @param queryDto 报表查询参数
+     * @return 分布VO
+     */
     @Override
     public ScrapReportVo.DistributionVo getDistribution(ReportQueryDto queryDto) {
         List<ReportScrapDaily> list = reportScrapDailyMapper.selectList(buildWrapper(queryDto));

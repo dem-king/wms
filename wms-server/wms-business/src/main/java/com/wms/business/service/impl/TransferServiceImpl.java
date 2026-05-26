@@ -2,6 +2,7 @@ package com.wms.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.business.converter.TransferOrderConverter;
 import com.wms.business.domain.dto.TransferOrderDto;
 import com.wms.business.domain.entity.WmsTransferDetail;
@@ -107,8 +108,11 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public TransferOrderVo getOrderById(Long id) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("调拨单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单已删除");
         }
         TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
         // 查询明细并转换为VO列表
@@ -131,13 +135,19 @@ public class TransferServiceImpl implements TransferService {
     public TransferOrderVo createOrder(TransferOrderDto dto) {
         // 校验调出库房存在
         WmsWarehouse fromWarehouse = wmsWarehouseMapper.selectById(dto.getFromWarehouseId());
-        if (fromWarehouse == null || fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("调出库房不存在或已禁用");
+        if (fromWarehouse == null) {
+            throw new BizException("调出库房不存在");
+        }
+        if (fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调出库房已删除");
         }
         // 校验调入库房存在
         WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
-        if (toWarehouse == null || toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("调入库房不存在或已禁用");
+        if (toWarehouse == null) {
+            throw new BizException("调入库房不存在");
+        }
+        if (toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调入库房已删除");
         }
         // 调出库房和调入库房不能相同
         if (dto.getFromWarehouseId().equals(dto.getToWarehouseId())) {
@@ -175,8 +185,11 @@ public class TransferServiceImpl implements TransferService {
     @Transactional(rollbackFor = Exception.class)
     public void submitOrder(Long id) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("调拨单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单已删除");
         }
         // 仅草稿状态可提交
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
@@ -203,8 +216,11 @@ public class TransferServiceImpl implements TransferService {
     @Transactional(rollbackFor = Exception.class)
     public TransferOrderVo updateOrder(Long id, TransferOrderDto dto) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("调拨单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单已删除");
         }
         // 仅草稿状态可更新
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
@@ -212,13 +228,19 @@ public class TransferServiceImpl implements TransferService {
         }
         // 校验调出库房存在
         WmsWarehouse fromWarehouse = wmsWarehouseMapper.selectById(dto.getFromWarehouseId());
-        if (fromWarehouse == null || fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("调出库房不存在或已禁用");
+        if (fromWarehouse == null) {
+            throw new BizException("调出库房不存在");
+        }
+        if (fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调出库房已删除");
         }
         // 校验调入库房存在
         WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
-        if (toWarehouse == null || toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
-            throw new BizException("调入库房不存在或已禁用");
+        if (toWarehouse == null) {
+            throw new BizException("调入库房不存在");
+        }
+        if (toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调入库房已删除");
         }
         // 调出库房和调入库房不能相同
         if (dto.getFromWarehouseId().equals(dto.getToWarehouseId())) {
@@ -235,9 +257,13 @@ public class TransferServiceImpl implements TransferService {
         List<WmsTransferDetail> oldDetails = wmsTransferDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsTransferDetail>()
                         .eq(WmsTransferDetail::getOrderId, id));
+        List<WmsTransferDetail> updateDetails = new ArrayList<>();
         for (WmsTransferDetail oldDetail : oldDetails) {
             oldDetail.setDelFlag(DelFlagConstants.DELETED);
-            wmsTransferDetailMapper.updateById(oldDetail);
+            updateDetails.add(oldDetail);
+        }
+        if (!updateDetails.isEmpty()) {
+            Db.updateBatchById(updateDetails);
         }
 
         // 保存新明细
@@ -262,8 +288,11 @@ public class TransferServiceImpl implements TransferService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long id) {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(id);
-        if (order == null || order.getDelFlag() == DelFlagConstants.DELETED) {
+        if (order == null) {
             throw new BizException("调拨单不存在");
+        }
+        if (order.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("调拨单已删除");
         }
         // 仅草稿状态可删除
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
@@ -278,9 +307,13 @@ public class TransferServiceImpl implements TransferService {
         List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsTransferDetail>()
                         .eq(WmsTransferDetail::getOrderId, id));
+        List<WmsTransferDetail> updateDetailList = new ArrayList<>();
         for (WmsTransferDetail detail : details) {
             detail.setDelFlag(DelFlagConstants.DELETED);
-            wmsTransferDetailMapper.updateById(detail);
+            updateDetailList.add(detail);
+        }
+        if (!updateDetailList.isEmpty()) {
+            Db.updateBatchById(updateDetailList);
         }
     }
 
@@ -301,17 +334,24 @@ public class TransferServiceImpl implements TransferService {
      * @param detailDtos 明细DTO列表
      */
     private void saveDetails(Long orderId, List<TransferOrderDto.TransferDetailDto> detailDtos) {
+        List<WmsTransferDetail> detailList = new ArrayList<>();
         for (TransferOrderDto.TransferDetailDto detailDto : detailDtos) {
             // 校验物品存在
             WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null || item.getDelFlag() == DelFlagConstants.DELETED) {
+            if (item == null) {
                 throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
             }
             WmsTransferDetail detail = new WmsTransferDetail();
             detail.setOrderId(orderId);
             detail.setItemId(detailDto.getItemId());
             detail.setQuantity(detailDto.getQuantity());
-            wmsTransferDetailMapper.insert(detail);
+            detailList.add(detail);
+        }
+        if (!detailList.isEmpty()) {
+            Db.saveBatch(detailList);
         }
     }
 }

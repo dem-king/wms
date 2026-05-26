@@ -50,6 +50,13 @@ public class ReturnReportServiceImpl implements ReturnReportService {
         return wrapper;
     }
 
+    /**
+     * 获取借还统计汇总
+     * 计算正常归还率，按分类聚合
+     * 
+     * @param queryDto 报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public ReturnReportVo.SummaryVo getSummary(ReportQueryDto queryDto) {
         List<ReportReturnDaily> list = reportReturnDailyMapper.selectList(buildWrapper(queryDto));
@@ -89,6 +96,13 @@ public class ReturnReportServiceImpl implements ReturnReportService {
         return vo;
     }
 
+    /**
+     * 获取借还趋势数据
+     * 支持按日或按月聚合
+     * 
+     * @param queryDto 报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public ReturnReportVo.TrendVo getTrend(ReportQueryDto queryDto) {
         List<ReportReturnDaily> list = reportReturnDailyMapper.selectList(buildWrapper(queryDto));
@@ -130,6 +144,13 @@ public class ReturnReportServiceImpl implements ReturnReportService {
         return vo;
     }
 
+    /**
+     * 获取借还分布数据
+     * 按分类聚合计算占比
+     * 
+     * @param queryDto 报表查询参数
+     * @return 分布VO
+     */
     @Override
     public ReturnReportVo.DistributionVo getDistribution(ReportQueryDto queryDto) {
         List<ReportReturnDaily> list = reportReturnDailyMapper.selectList(buildWrapper(queryDto));

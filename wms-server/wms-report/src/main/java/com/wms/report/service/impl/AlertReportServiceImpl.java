@@ -61,6 +61,13 @@ public class AlertReportServiceImpl implements AlertReportService {
         return alertType;
     }
 
+    /**
+     * 获取预警统计汇总
+     * 按预警类型聚合
+     * 
+     * @param queryDto 预警报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public AlertReportVo.SummaryVo getSummary(AlertReportQueryDto queryDto) {
         List<ReportAlertDaily> list = reportAlertDailyMapper.selectList(buildWrapper(queryDto));
@@ -96,6 +103,13 @@ public class AlertReportServiceImpl implements AlertReportService {
         return vo;
     }
 
+    /**
+     * 获取预警趋势数据
+     * 支持按日或按月聚合
+     * 
+     * @param queryDto 预警报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public AlertReportVo.TrendVo getTrend(AlertReportQueryDto queryDto) {
         List<ReportAlertDaily> list = reportAlertDailyMapper.selectList(buildWrapper(queryDto));
@@ -141,6 +155,13 @@ public class AlertReportServiceImpl implements AlertReportService {
         return vo;
     }
 
+    /**
+     * 获取预警分布数据
+     * 按预警类型聚合计算占比
+     * 
+     * @param queryDto 预警报表查询参数
+     * @return 分布VO
+     */
     @Override
     public AlertReportVo.DistributionVo getDistribution(AlertReportQueryDto queryDto) {
         List<ReportAlertDaily> list = reportAlertDailyMapper.selectList(buildWrapper(queryDto));

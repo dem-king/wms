@@ -49,6 +49,13 @@ public class StockReportServiceImpl implements StockReportService {
         return wrapper;
     }
 
+    /**
+     * 获取库存统计汇总
+     * 取时间范围内最新一天快照
+     * 
+     * @param queryDto 报表查询参数
+     * @return 汇总VO
+     */
     @Override
     public StockReportVo.SummaryVo getSummary(ReportQueryDto queryDto) {
         // 库存汇总取时间范围内最新一天的快照
@@ -87,6 +94,13 @@ public class StockReportServiceImpl implements StockReportService {
         return vo;
     }
 
+    /**
+     * 获取库存趋势数据
+     * 支持按日或按月(取月末快照)聚合
+     * 
+     * @param queryDto 报表查询参数
+     * @return 趋势VO
+     */
     @Override
     public StockReportVo.TrendVo getTrend(ReportQueryDto queryDto) {
         List<ReportStockDaily> list = reportStockDailyMapper.selectList(buildWrapper(queryDto));
@@ -145,6 +159,13 @@ public class StockReportServiceImpl implements StockReportService {
         return vo;
     }
 
+    /**
+     * 获取库存分布数据
+     * 取最新一天快照，按分类聚合计算占比
+     * 
+     * @param queryDto 报表查询参数
+     * @return 分布VO
+     */
     @Override
     public StockReportVo.DistributionVo getDistribution(ReportQueryDto queryDto) {
         // 分布取最新一天快照

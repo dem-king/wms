@@ -12,6 +12,7 @@ import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.WarehouseDto;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.domain.vo.WarehouseVo;
+import com.wms.warehouse.converter.WarehouseConverter;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import com.wms.warehouse.service.WarehouseService;
 import lombok.RequiredArgsConstructor;
@@ -33,15 +34,29 @@ public class WarehouseServiceImpl implements WarehouseService {
 
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final SequenceGenerator sequenceGenerator;
+    private final WarehouseConverter warehouseConverter;
 
+    /**
+     * 查询所有库房列表
+     *
+     * @return 库房VO列表
+     */
     @Override
     public List<WarehouseVo> listAll() {
         LambdaQueryWrapper<WmsWarehouse> wrapper = new LambdaQueryWrapper<WmsWarehouse>()
                 .orderByDesc(WmsWarehouse::getCreateTime);
         List<WmsWarehouse> list = wmsWarehouseMapper.selectList(wrapper);
-        return list.stream().map(this::toWarehouseVo).collect(Collectors.toList());
+        return list.stream().map(warehouseConverter::toVo).collect(Collectors.toList());
     }
 
+    /**
+     * 分页查询库房
+     *
+     * @param pageParam 分页参数
+     * @param status    状态(可选)
+     * @param keyword   关键字(可选，模糊匹配名称/编码)
+     * @return 库房分页结果
+     */
     @Override
     public PageResult<WarehouseVo> page(PageParam pageParam, Integer status, String keyword) {
         LambdaQueryWrapper<WmsWarehouse> wrapper = new LambdaQueryWrapper<WmsWarehouse>();
@@ -62,13 +77,20 @@ public class WarehouseServiceImpl implements WarehouseService {
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
         PageResult<WarehouseVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(this::toWarehouseVo).collect(Collectors.toList()));
+        result.setRecords(page.getRecords().stream().map(warehouseConverter::toVo).collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
         return result;
     }
 
+    /**
+     * 新增库房
+     * 自动生成库房编码，默认状态为启用
+     *
+     * @param dto 库房新增参数
+     * @return 新增后的库房VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WarehouseVo create(WarehouseDto dto) {
@@ -81,30 +103,49 @@ public class WarehouseServiceImpl implements WarehouseService {
             warehouse.setStatus(BizConstants.STATUS_ENABLED);
         }
         wmsWarehouseMapper.insert(warehouse);
-        return toWarehouseVo(warehouse);
+        return warehouseConverter.toVo(warehouse);
     }
 
+    /**
+     * 更新库房
+     * 编辑时不修改编码
+     *
+     * @param id  库房ID
+     * @param dto 库房更新参数
+     * @return 更新后的库房VO
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WarehouseVo update(Long id, WarehouseDto dto) {
         WmsWarehouse existing = wmsWarehouseMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("库房不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         // 编辑时不修改编码
         existing.setWarehouseCode(null);
         wmsWarehouseMapper.updateById(existing);
-        return toWarehouseVo(existing);
+        return warehouseConverter.toVo(existing);
     }
 
+    /**
+     * 删除库房(逻辑删除)
+     *
+     * @param id 库房ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         WmsWarehouse existing = wmsWarehouseMapper.selectById(id);
-        if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
+        if (existing == null) {
             throw new BizException("库房不存在");
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("库房已删除");
         }
         // 逻辑删除库房
         WmsWarehouse updateEntity = new WmsWarehouse();
@@ -137,22 +178,4 @@ public class WarehouseServiceImpl implements WarehouseService {
         entity.setRemark(dto.getRemark());
     }
 
-    /**
-     * WmsWarehouse实体转WarehouseVo
-     */
-    private WarehouseVo toWarehouseVo(WmsWarehouse warehouse) {
-        WarehouseVo vo = new WarehouseVo();
-        vo.setId(warehouse.getId());
-        vo.setWarehouseName(warehouse.getWarehouseName());
-        vo.setWarehouseCode(warehouse.getWarehouseCode());
-        vo.setAddress(warehouse.getAddress());
-        vo.setManager(warehouse.getManager());
-        vo.setPhone(warehouse.getPhone());
-        vo.setArea(warehouse.getArea());
-        vo.setStatus(warehouse.getStatus());
-        vo.setRemark(warehouse.getRemark());
-        vo.setCreateTime(warehouse.getCreateTime());
-        vo.setUpdateTime(warehouse.getUpdateTime());
-        return vo;
-    }
 }

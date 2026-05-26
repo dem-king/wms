@@ -14,6 +14,10 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 限流服务实现类
+ * 基于Redis+Lua脚本实现IP维度的滑动窗口限流
+ */
 @Service
 @RequiredArgsConstructor
 public class RateLimiterServiceImpl implements RateLimiterService {
@@ -31,6 +35,12 @@ public class RateLimiterServiceImpl implements RateLimiterService {
             "if current == 0 then redis.call('expire', key, window) end " +
             "return 1";
 
+    /**
+     * 尝试获取访问许可
+     * 基于Redis+Lua脚本实现IP维度固定窗口限流
+     * 
+     * @param ip 客户端IP
+     */
     @Override
     public void tryAcquire(String ip) {
         String key = AuthRedisKey.RATE_LIMIT_PREFIX + ip;

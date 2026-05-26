@@ -30,6 +30,16 @@ public class SysOperLogServiceImpl implements SysOperLogService {
     private final SysOperLogMapper sysOperLogMapper;
     private final SysOperLogConverter sysOperLogConverter;
 
+    /**
+     * 分页查询操作日志
+     * 
+     * @param pageParam 分页参数
+     * @param module 模块(可选)
+     * @param type 操作类型(可选)
+     * @param operatorName 操作人(可选)
+     * @param status 状态(可选)
+     * @return 操作日志分页结果
+     */
     @Override
     public PageResult<SysOperLogVo> page(PageParam pageParam, SysOperLogQueryDto queryDto) {
         LambdaQueryWrapper<SysOperLog> wrapper = new LambdaQueryWrapper<>();
@@ -66,6 +76,11 @@ public class SysOperLogServiceImpl implements SysOperLogService {
         return result;
     }
 
+    /**
+     * 异步保存操作日志
+     * 
+     * @param entity 操作日志实体
+     */
     @Override
     @Async
     public void asyncSave(SysOperLog operLog) {
