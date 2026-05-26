@@ -16,6 +16,15 @@ minio:
   secret-key: ${MINIO_SECRET_KEY}
   bucket-name: wms
 
+wms:
+  storage:
+    type: ${STORAGE_TYPE:minio}
+    minio-endpoint: http://minio:9000
+    minio-access-key: ${MINIO_ACCESS_KEY}
+    minio-secret-key: ${MINIO_SECRET_KEY}
+    minio-bucket-name: ${MINIO_BUCKET:wms}
+    minio-public-domain: ${MINIO_PUBLIC_DOMAIN:}
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000

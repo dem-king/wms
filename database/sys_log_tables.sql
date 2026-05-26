@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `sys_oper_log` (
 CREATE TABLE IF NOT EXISTS `sys_login_log` (
     `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
     `username`        VARCHAR(64)  DEFAULT '' COMMENT '用户名',
+    `user_id`         BIGINT       DEFAULT NULL COMMENT '用户ID',
     `login_ip`        VARCHAR(64)  DEFAULT '' COMMENT '登录IP',
     `login_location`  VARCHAR(256) DEFAULT '' COMMENT '登录地点',
     `browser`         VARCHAR(128) DEFAULT '' COMMENT '浏览器',
@@ -44,5 +45,6 @@ CREATE TABLE IF NOT EXISTS `sys_login_log` (
     `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`),
     INDEX `idx_login_time` (`login_time`),
+    INDEX `idx_user_id` (`user_id`),
     INDEX `idx_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='登录日志表';

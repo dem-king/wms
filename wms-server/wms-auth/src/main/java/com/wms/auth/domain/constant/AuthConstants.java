@@ -30,6 +30,12 @@ public final class AuthConstants {
     /** 操作结果：成功 */
     public static final int OPER_RESULT_SUCCESS = 1;
 
+    /** 认证操作日志模块 */
+    public static final String OPER_LOG_MODULE_AUTH = "auth";
+
+    /** 用户登出日志描述 */
+    public static final String OPER_LOG_DESC_LOGOUT = "用户登出";
+
     /** UserAgent截取最大长度 */
     public static final int USER_AGENT_MAX_LENGTH = 200;
 

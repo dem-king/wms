@@ -17,6 +17,10 @@ import java.time.LocalDateTime;
 @TableName("sys_login_log")
 public class SysLoginLog extends BaseEntity {
 
+    /** 用户ID */
+    @Schema(description = "用户ID")
+    private Long userId;
+
     /** 用户名 */
     @Schema(description = "用户名")
     private String username;

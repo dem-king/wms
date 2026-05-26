@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.system.domain.constant.SysLogConstants;
 import com.wms.system.converter.SysLoginLogConverter;
 import com.wms.system.domain.dto.SysLoginLogQueryDto;
 import com.wms.system.domain.entity.SysLoginLog;
@@ -63,10 +64,11 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
     @Override
     @Async
-    public void recordLogin(String username, String loginIp, String loginLocation,
-                            String browser, String os, String status, String failReason) {
+    public void recordLoginLog(Long userId, String username, String loginIp, String loginLocation,
+                               String browser, String os, String status, String failReason) {
         try {
             SysLoginLog loginLog = new SysLoginLog();
+            loginLog.setUserId(userId);
             loginLog.setUsername(username);
             loginLog.setLoginIp(loginIp);
             loginLog.setLoginLocation(loginLocation);
@@ -80,5 +82,17 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
             // 异步保存失败不影响登录流程，仅记录警告日志
             log.warn("登录日志异步保存失败: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public SysLoginLog getLatestSuccessLoginLog(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return sysLoginLogMapper.selectOne(new LambdaQueryWrapper<SysLoginLog>()
+                .eq(SysLoginLog::getUserId, userId)
+                .eq(SysLoginLog::getStatus, SysLogConstants.LOGIN_STATUS_SUCCESS)
+                .orderByDesc(SysLoginLog::getLoginTime)
+                .last("LIMIT 1"));
     }
 }

@@ -2,7 +2,7 @@ package com.wms.auth.service.impl;
 
 import com.wms.auth.config.AuthProperties;
 import com.wms.auth.domain.dto.UpdateProfileDto;
-import com.wms.auth.domain.entity.AuthLoginLog;
+import com.wms.system.domain.entity.SysLoginLog;
 import com.wms.auth.domain.vo.AuthProfileVo;
 import com.wms.auth.domain.vo.UploadAvatarVo;
 import com.wms.auth.service.AuthAuditService;
@@ -14,6 +14,7 @@ import com.wms.auth.service.RateLimiterService;
 import com.wms.auth.service.TokenService;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
+import com.wms.system.service.SysOperLogService;
 import com.wms.system.service.SysUserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,6 +71,9 @@ class AuthServiceImplProfileTest {
     private SysMenuService sysMenuService;
 
     @Mock
+    private SysOperLogService sysOperLogService;
+
+    @Mock
     private AuthProperties authProperties;
 
     @InjectMocks
@@ -99,7 +103,7 @@ class AuthServiceImplProfileTest {
         when(sysUserService.getUserRoles(1001L)).thenReturn(List.of(1L, 2L));
         when(authorizeService.getUserPermissions(1001L)).thenReturn(List.of("system:user:list", "system:role:list"));
 
-        AuthLoginLog loginLog = new AuthLoginLog();
+        SysLoginLog loginLog = new SysLoginLog();
         loginLog.setLoginIp("127.0.0.1");
         loginLog.setLoginTime(LocalDateTime.of(2026, 5, 21, 16, 30, 0));
         when(authAuditService.getLatestSuccessLoginLog(1001L)).thenReturn(loginLog);

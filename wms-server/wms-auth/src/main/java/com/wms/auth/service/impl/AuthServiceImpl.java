@@ -1,11 +1,10 @@
 package com.wms.auth.service.impl;
 
 import com.wms.auth.config.AuthProperties;
+import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.domain.dto.LoginReq;
 import com.wms.auth.domain.dto.RefreshTokenReq;
 import com.wms.auth.domain.dto.UpdateProfileDto;
-import com.wms.auth.domain.entity.AuthLoginLog;
-import com.wms.auth.domain.entity.AuthOperLog;
 import com.wms.auth.domain.vo.AuthProfileVo;
 import com.wms.auth.domain.vo.LastLoginInfoVo;
 import com.wms.auth.domain.vo.LoginResp;
@@ -14,31 +13,30 @@ import com.wms.auth.domain.vo.UploadAvatarVo;
 import com.wms.auth.domain.vo.UserInfoVO;
 import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.enums.AuthOperTypeEnum;
-import com.wms.auth.enums.LoginResultEnum;
 import com.wms.auth.service.*;
 import com.wms.common.constant.BizConstants;
-import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.storage.StorageConstants;
+import com.wms.common.storage.StorageStrategy;
 import com.wms.common.util.SecurityUtil;
+import com.wms.common.util.UserAgentParser;
 import com.wms.system.domain.entity.SysUser;
+import com.wms.system.domain.entity.SysLoginLog;
+import com.wms.system.domain.entity.SysOperLog;
+import com.wms.system.domain.constant.SysLogConstants;
 import com.wms.system.domain.vo.MenuTreeVo;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -58,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserService sysUserService;
     private final SysMenuService sysMenuService;
     private final AuthProperties authProperties;
+    private final StorageStrategy storageStrategy;
 
     @Override
     public LoginResp login(LoginReq req, String clientIp, String userAgent) {
@@ -154,12 +153,14 @@ public class AuthServiceImpl implements AuthService {
             Long userId = Long.valueOf(claims.getSubject());
             tokenService.revokeAllTokens(userId);
 
-            AuthOperLog operLog = new AuthOperLog();
-            operLog.setUserId(userId);
-            operLog.setUsername(claims.get("username", String.class));
-            operLog.setOperType(AuthOperTypeEnum.LOGOUT.getCode());
-            operLog.setOperResult(AuthConstants.OPER_RESULT_SUCCESS);
-            operLog.setOperTime(LocalDateTime.now());
+            SysOperLog operLog = new SysOperLog();
+            operLog.setModule(AuthConstants.OPER_LOG_MODULE_AUTH);
+            operLog.setType(AuthOperTypeEnum.LOGOUT.getDesc());
+            operLog.setDesc(AuthConstants.OPER_LOG_DESC_LOGOUT);
+            operLog.setOperatorId(userId);
+            operLog.setOperatorName(claims.get("username", String.class));
+            operLog.setStatus(SysLogConstants.OPER_STATUS_SUCCESS);
+            operLog.setOperTime(java.time.LocalDateTime.now());
             authAuditService.recordOperLog(operLog);
         } catch (BizException e) {
             log.debug("登出时Token已失效(幂等): {}", e.getMessage());
@@ -183,7 +184,7 @@ public class AuthServiceImpl implements AuthService {
         List<String> roles = sysUserService.getUserRoles(userId).stream()
                 .map(String::valueOf)
                 .toList();
-        AuthLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
+        SysLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
 
         AuthProfileVo profile = new AuthProfileVo();
         profile.setUserInfo(buildUserInfo(user));
@@ -211,7 +212,7 @@ public class AuthServiceImpl implements AuthService {
         List<String> roles = sysUserService.getUserRoles(userId).stream()
                 .map(String::valueOf)
                 .toList();
-        AuthLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
+        SysLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
 
         AuthProfileVo profile = new AuthProfileVo();
         profile.setUserInfo(buildUserInfo(user));
@@ -231,56 +232,54 @@ public class AuthServiceImpl implements AuthService {
         validateAvatarFile(file);
         String extension = resolveFileExtension(file.getOriginalFilename(), file.getContentType());
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
-        Path userAvatarDir = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId));
-        Path targetPath = userAvatarDir.resolve(storedFileName);
+        String objectName = userId + "/" + storedFileName;
 
+        // 通过StorageStrategy统一上传，自动适配本地/MinIO存储
+        String url;
         try {
-            Files.createDirectories(userAvatarDir);
-            file.transferTo(targetPath);
-        } catch (IOException e) {
-            throw new BizException("头像上传失败");
+            url = storageStrategy.upload(StorageConstants.BUCKET_AVATARS, objectName,
+                    file.getInputStream(), file.getContentType(), file.getSize());
+        } catch (Exception e) {
+            throw new BizException("头像上传失败: " + e.getMessage());
         }
 
         UploadAvatarVo uploadAvatarVo = new UploadAvatarVo();
-        uploadAvatarVo.setAvatarUrl(authProperties.getAvatarUrlPrefix() + "/" + userId + "/" + storedFileName);
+        uploadAvatarVo.setAvatarUrl(url);
         return uploadAvatarVo;
     }
 
     @Override
     public Resource loadAvatarResource(Long userId, String fileName) {
-        Path avatarPath = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId), fileName).normalize();
-        try {
-            Resource resource = new UrlResource(avatarPath.toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new BizException("头像不存在");
-            }
-            return resource;
-        } catch (MalformedURLException e) {
-            throw new BizException("头像不存在");
-        }
+        // 通过StorageStrategy统一读取，支持本地/MinIO存储
+        String objectName = userId + "/" + fileName;
+        InputStream is = storageStrategy.download(StorageConstants.BUCKET_AVATARS, objectName);
+        return new InputStreamResource(is);
     }
 
     private void recordLoginSuccess(String username, Long userId, String ip, String ua) {
-        AuthLoginLog loginLog = new AuthLoginLog();
-        loginLog.setUsername(username);
-        loginLog.setUserId(userId);
-        loginLog.setLoginResult(LoginResultEnum.SUCCESS.getCode());
-        loginLog.setLoginIp(ip);
-        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(AuthConstants.USER_AGENT_MAX_LENGTH, ua.length())) : null);
-        loginLog.setLoginTime(LocalDateTime.now());
-        authAuditService.recordLoginLog(loginLog);
+        UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
+        authAuditService.recordLoginLog(
+                userId,
+                username,
+                ip,
+                parsedUserAgent.browser(),
+                parsedUserAgent.os(),
+                SysLogConstants.LOGIN_STATUS_SUCCESS,
+                null
+        );
     }
 
     private void recordLoginFail(String username, Long userId, String ip, String ua, String reason) {
-        AuthLoginLog loginLog = new AuthLoginLog();
-        loginLog.setUsername(username);
-        loginLog.setUserId(userId);
-        loginLog.setLoginResult(LoginResultEnum.FAIL.getCode());
-        loginLog.setLoginIp(ip);
-        loginLog.setUserAgent(ua != null ? ua.substring(0, Math.min(AuthConstants.USER_AGENT_MAX_LENGTH, ua.length())) : null);
-        loginLog.setFailReason(reason);
-        loginLog.setLoginTime(LocalDateTime.now());
-        authAuditService.recordLoginLog(loginLog);
+        UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
+        authAuditService.recordLoginLog(
+                userId,
+                username,
+                ip,
+                parsedUserAgent.browser(),
+                parsedUserAgent.os(),
+                SysLogConstants.LOGIN_STATUS_FAIL,
+                reason
+        );
     }
 
     private UserInfoVO buildUserInfo(SysUserVo user) {
@@ -295,7 +294,7 @@ public class AuthServiceImpl implements AuthService {
         return userInfo;
     }
 
-    private LastLoginInfoVo buildLastLoginInfo(AuthLoginLog loginLog) {
+    private LastLoginInfoVo buildLastLoginInfo(SysLoginLog loginLog) {
         if (loginLog == null) {
             return null;
         }

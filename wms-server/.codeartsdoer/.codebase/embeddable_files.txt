@@ -154,6 +154,7 @@ wms-approval/src/main/java/com/wms/approval/domain/vo/ApprovalConfigVo.java
 wms-warehouse/src/main/java/com/wms/warehouse/service/CabinetService.java
 wms-report/src/main/java/com/wms/report/mapper/ReportInboundDailyMapper.java
 wms-report/src/main/java/com/wms/report/mapper/ReportAlertDailyMapper.java
+wms-report/src/main/java/com/wms/report/mapper/ReportMonitorStockAlertMapper.java
 wms-warehouse/src/main/java/com/wms/warehouse/mapper/WmsWarehouseMapper.java
 wms-auth/src/main/java/com/wms/auth/service/AuthAuditService.java
 wms-report/src/main/java/com/wms/report/controller/ReturnReportController.java
@@ -162,7 +163,6 @@ wms-approval/src/main/java/com/wms/approval/domain/vo/ApprovalOrderVo.java
 wms-warehouse/src/main/java/com/wms/warehouse/controller/BinController.java
 wms-business/src/main/java/com/wms/business/domain/vo/InboundOrderVo.java
 wms-report/src/main/java/com/wms/report/controller/ReportExportController.java
-wms-report/src/main/java/com/wms/report/mapper/MonitorStockAlertMapper.java
 wms-item/src/main/java/com/wms/item/converter/ItemConverter.java
 wms-system/src/main/java/com/wms/system/service/impl/SysDeptServiceImpl.java
 wms-item/src/main/java/com/wms/item/domain/constant/TagConstants.java

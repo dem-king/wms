@@ -1,13 +1,14 @@
 package com.wms.auth.service;
 
-import com.wms.auth.domain.entity.AuthLoginLog;
-import com.wms.auth.domain.entity.AuthOperLog;
+import com.wms.system.domain.entity.SysLoginLog;
+import com.wms.system.domain.entity.SysOperLog;
 
 public interface AuthAuditService {
 
-    void recordLoginLog(AuthLoginLog log);
+    void recordLoginLog(Long userId, String username, String loginIp, String browser,
+                        String os, String status, String failReason);
 
-    void recordOperLog(AuthOperLog log);
+    void recordOperLog(SysOperLog log);
 
-    AuthLoginLog getLatestSuccessLoginLog(Long userId);
+    SysLoginLog getLatestSuccessLoginLog(Long userId);
 }

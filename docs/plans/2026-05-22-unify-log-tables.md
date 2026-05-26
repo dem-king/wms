@@ -1,4 +1,4 @@
-﻿# 日志表统一实施计划
+# 日志表统一实施计划
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -32,7 +32,7 @@ when(authAuditService.getLatestSuccessLoginLog(1001L)).thenReturn(loginLog);
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthServiceImplProfileTest test
+mvn -pl wms-auth -am "-Dtest=AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: 编译失败，提示 `AuthAuditService.getLatestSuccessLoginLog` 返回类型仍为 `AuthLoginLog`，与测试中的 `SysLoginLog` 不兼容。
 
@@ -69,7 +69,7 @@ private LastLoginInfoVo buildLastLoginInfo(SysLoginLog loginLog) {
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthServiceImplProfileTest test
+mvn -pl wms-auth -am "-Dtest=AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: `BUILD SUCCESS`
 
@@ -117,7 +117,7 @@ verify(sysLoginLogService).getLatestSuccessLoginLog(1001L);
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthAuditServiceImplTest test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: 编译失败，提示 `SysLoginLogService` 尚未提供 `recordLoginLog` 或 `getLatestSuccessLoginLog` 所需签名。
 
@@ -155,7 +155,7 @@ public void recordLoginLog(Long userId, String username, String loginIp,
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthAuditServiceImplTest test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: `BUILD SUCCESS`
 
@@ -191,7 +191,7 @@ verify(sysOperLogService).asyncSave(operLog);
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthAuditServiceImplTest test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: 失败，提示当前实现仍依赖 `AuthOperLogMapper`，无法满足对 `SysOperLogService` 的委托断言。
 
@@ -238,7 +238,7 @@ authAuditService.recordOperLog(operLog);
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthAuditServiceImplTest,AuthServiceImplProfileTest test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest,AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: `BUILD SUCCESS`
 
@@ -366,7 +366,7 @@ git commit -m "chore: 删除认证模块旧日志模型"
 
 Run:
 ```bash
-mvn -pl wms-auth -am -Dtest=AuthAuditServiceImplTest,AuthServiceImplProfileTest test
+mvn -pl wms-auth -am "-Dtest=UserAgentParserTest,AuthAuditServiceImplTest,AuthServiceImplAuthFlowTest,AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 Expected: `BUILD SUCCESS`
 
@@ -408,3 +408,44 @@ mvn clean compile -DskipTests
 git add docs/plans/2026-05-22-unify-log-tables.md
 git commit -m "docs: 更新日志表统一实施验证记录"
 ```
+
+---
+
+## 实施记录
+
+### 已完成项
+
+- 已将认证模块登录成功、登录失败、登出审计统一收敛到 `sys_login_log` 与 `sys_oper_log`
+- 已为 `sys_login_log` 增加 `user_id` 字段，并在系统服务中支持按用户查询最近一次成功登录
+- 已删除 `wms-auth` 中旧的 `AuthLoginLog`、`AuthOperLog` 及对应 Mapper
+- 已新增迁移脚本 `database/migration/V20260522__unify_log_tables.sql`
+- 已补充 `UserAgentParser`，将认证侧 `User-Agent` 拆分为 `browser` 与 `os`
+
+### 实际执行命令
+
+```bash
+mvn -pl wms-auth -am "-Dtest=AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest,AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -pl wms-auth -am "-Dtest=AuthAuditServiceImplTest,AuthServiceImplAuthFlowTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -pl wms-auth -am "-Dtest=UserAgentParserTest,AuthAuditServiceImplTest,AuthServiceImplAuthFlowTest,AuthServiceImplProfileTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn clean compile -DskipTests
+```
+
+### 自动验证结果
+
+- 认证链路定向测试通过：`UserAgentParserTest`、`AuthAuditServiceImplTest`、`AuthServiceImplAuthFlowTest`、`AuthServiceImplProfileTest`
+- 定向测试汇总：`Tests run: 12, Failures: 0, Errors: 0, Skipped: 0`
+- 服务端全量编译通过：`wms-server` 聚合模块 `BUILD SUCCESS`
+
+### 手工回归项
+
+- `sys_login_log` 是否新增 `SUCCESS` 登录记录：已通过代码链路与测试覆盖验证，待接数据库环境做最终联调确认
+- `sys_login_log` 是否新增 `FAIL` 登录记录：已通过代码链路与测试覆盖验证，待接数据库环境做最终联调确认
+- `sys_oper_log` 是否新增 `module=auth`、`type=LOGOUT` 记录：已通过代码链路与测试覆盖验证，待接数据库环境做最终联调确认
+- 系统登录日志分页接口是否查到认证侧数据：接口读取链路已切到 `sys_login_log`，待接数据库环境做最终联调确认
+- 个人中心最近登录信息是否仍返回最近一次成功登录 IP 与时间：已由 `AuthServiceImplProfileTest` 覆盖并通过
+
+### 未完成项
+
+- 尚未在真实数据库环境执行 `V20260522__unify_log_tables.sql` 迁移脚本
+- 尚未对登录、失败登录、登出后的数据库实际落表结果做在线联调截图或 SQL 核验

@@ -12,46 +12,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 第一部分: 认证模块表 (auth_ddl.sql)
 -- ============================================================
 
--- 认证登录日志表
-CREATE TABLE IF NOT EXISTS `auth_login_log` (
-    `id` BIGINT NOT NULL COMMENT '主键(雪花ID)',
-    `username` VARCHAR(50) NOT NULL COMMENT '用户名',
-    `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
-    `login_result` INT NOT NULL COMMENT '登录结果(0成功 1失败 2锁定)',
-    `login_ip` VARCHAR(50) DEFAULT NULL COMMENT '登录IP',
-    `user_agent` VARCHAR(200) DEFAULT NULL COMMENT '用户代理',
-    `fail_reason` VARCHAR(100) DEFAULT NULL COMMENT '失败原因',
-    `login_time` DATETIME NOT NULL COMMENT '登录时间',
-    `del_flag` INT NOT NULL DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
-    `create_time` DATETIME DEFAULT NULL COMMENT '创建时间',
-    `create_by` VARCHAR(50) DEFAULT NULL COMMENT '创建人',
-    `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
-    `update_by` VARCHAR(50) DEFAULT NULL COMMENT '更新人',
-    PRIMARY KEY (`id`),
-    KEY `idx_username` (`username`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_login_time` (`login_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='认证登录日志表';
-
--- 认证操作日志表
-CREATE TABLE IF NOT EXISTS `auth_oper_log` (
-    `id` BIGINT NOT NULL COMMENT '主键(雪花ID)',
-    `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
-    `username` VARCHAR(50) DEFAULT NULL COMMENT '用户名',
-    `oper_type` VARCHAR(30) NOT NULL COMMENT '操作类型',
-    `oper_result` INT NOT NULL COMMENT '操作结果(1成功 0失败)',
-    `client_ip` VARCHAR(50) DEFAULT NULL COMMENT '客户端IP',
-    `request_id` VARCHAR(50) DEFAULT NULL COMMENT '请求ID',
-    `oper_time` DATETIME NOT NULL COMMENT '操作时间',
-    `del_flag` INT NOT NULL DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
-    `create_time` DATETIME DEFAULT NULL COMMENT '创建时间',
-    `create_by` VARCHAR(50) DEFAULT NULL COMMENT '创建人',
-    `update_time` DATETIME DEFAULT NULL COMMENT '更新时间',
-    `update_by` VARCHAR(50) DEFAULT NULL COMMENT '更新人',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_oper_time` (`oper_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='认证操作日志表';
+-- 认证日志表已统一到系统标准日志表，完整初始化脚本不再创建 auth_login_log / auth_oper_log。
+-- 标准日志表定义见下方“审批与日志模块”中的 `sys_oper_log`、`sys_login_log`。
+-- 历史环境迁移请执行 database/migration/V20260522__unify_log_tables.sql。
 
 -- ============================================================
 -- 第二部分: WMS业务表 (wms_ddl.sql)
@@ -833,54 +796,58 @@ CREATE TABLE `wms_approval_record` (
     KEY `idx_approver_id` (`approver_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批记录表';
 
--- 36. 操作日志表
-DROP TABLE IF EXISTS `wms_operation_log`;
-CREATE TABLE `wms_operation_log` (
-    `id`              BIGINT       NOT NULL COMMENT '主键',
-    `user_id`         BIGINT       DEFAULT NULL            COMMENT '操作用户ID',
-    `username`        VARCHAR(64)  DEFAULT NULL            COMMENT '操作用户名',
-    `module`          VARCHAR(50)  NOT NULL                COMMENT '操作模块',
-    `oper_type`       VARCHAR(20)  NOT NULL                COMMENT '操作类型(ADD/MODIFY/DELETE/IMPORT/EXPORT/APPROVE等)',
-    `biz_type`        TINYINT      DEFAULT NULL            COMMENT '业务类型',
-    `biz_id`          BIGINT       DEFAULT NULL            COMMENT '业务ID',
-    `biz_no`          VARCHAR(50)  DEFAULT NULL            COMMENT '业务单据编号',
-    `oper_desc`       VARCHAR(500) DEFAULT NULL            COMMENT '操作描述',
-    `oper_content`    TEXT         DEFAULT NULL            COMMENT '操作内容(修改前后JSON)',
-    `ip_address`      VARCHAR(50)  DEFAULT NULL            COMMENT 'IP地址',
-    `cost_time`       BIGINT       DEFAULT NULL            COMMENT '耗时(毫秒)',
-    `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+-- 36. 系统操作日志表
+DROP TABLE IF EXISTS `sys_oper_log`;
+CREATE TABLE `sys_oper_log` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `module`          VARCHAR(64)  DEFAULT '' COMMENT '操作模块',
+    `type`            VARCHAR(32)  DEFAULT '' COMMENT '操作类型',
+    `desc`            VARCHAR(256) DEFAULT '' COMMENT '操作描述',
+    `operator_id`     BIGINT       DEFAULT NULL COMMENT '操作人ID',
+    `operator_name`   VARCHAR(64)  DEFAULT '' COMMENT '操作人姓名',
+    `request_url`     VARCHAR(256) DEFAULT '' COMMENT '请求URL',
+    `request_method`  VARCHAR(16)  DEFAULT '' COMMENT '请求方法',
+    `request_params`  TEXT         DEFAULT NULL COMMENT '请求参数(脱敏后)',
+    `response_result` TEXT         DEFAULT NULL COMMENT '响应结果',
+    `oper_ip`         VARCHAR(64)  DEFAULT '' COMMENT '操作IP',
+    `status`          VARCHAR(16)  DEFAULT 'SUCCESS' COMMENT '操作状态(SUCCESS/FAIL)',
+    `error_msg`       VARCHAR(512) DEFAULT '' COMMENT '异常信息',
+    `cost_time`       BIGINT       DEFAULT 0 COMMENT '耗时(毫秒)',
+    `oper_time`       DATETIME     DEFAULT NULL COMMENT '操作时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_module` (`module`),
-    KEY `idx_biz` (`biz_type`, `biz_id`),
-    KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+    INDEX `idx_oper_time` (`oper_time`),
+    INDEX `idx_operator_id` (`operator_id`),
+    INDEX `idx_module` (`module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='操作日志表';
 
--- 37. 登录日志表
-DROP TABLE IF EXISTS `wms_login_log`;
-CREATE TABLE `wms_login_log` (
-    `id`              BIGINT       NOT NULL COMMENT '主键',
-    `username`        VARCHAR(64)  DEFAULT NULL            COMMENT '登录用户名',
-    `user_id`         BIGINT       DEFAULT NULL            COMMENT '用户ID',
-    `ip_address`      VARCHAR(50)  DEFAULT NULL            COMMENT 'IP地址',
-    `login_location`  VARCHAR(100) DEFAULT NULL            COMMENT '登录地点',
-    `browser`         VARCHAR(50)  DEFAULT NULL            COMMENT '浏览器',
-    `os`              VARCHAR(50)  DEFAULT NULL            COMMENT '操作系统',
-    `login_result`    TINYINT      DEFAULT 1               COMMENT '登录结果(1-成功 0-失败)',
-    `fail_reason`     VARCHAR(200) DEFAULT NULL            COMMENT '失败原因',
-    `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+-- 37. 系统登录日志表
+DROP TABLE IF EXISTS `sys_login_log`;
+CREATE TABLE `sys_login_log` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `username`        VARCHAR(64)  DEFAULT '' COMMENT '用户名',
+    `user_id`         BIGINT       DEFAULT NULL COMMENT '用户ID',
+    `login_ip`        VARCHAR(64)  DEFAULT '' COMMENT '登录IP',
+    `login_location`  VARCHAR(256) DEFAULT '' COMMENT '登录地点',
+    `browser`         VARCHAR(128) DEFAULT '' COMMENT '浏览器',
+    `os`              VARCHAR(128) DEFAULT '' COMMENT '操作系统',
+    `status`          VARCHAR(16)  DEFAULT 'SUCCESS' COMMENT '登录状态(SUCCESS/FAIL/LOGOUT)',
+    `fail_reason`     VARCHAR(256) DEFAULT '' COMMENT '失败原因',
+    `login_time`      DATETIME     DEFAULT NULL COMMENT '登录时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录日志表';
+    INDEX `idx_login_time` (`login_time`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='登录日志表';
 
 SET FOREIGN_KEY_CHECKS = 1;
 
