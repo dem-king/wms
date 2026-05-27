@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onActivated } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getOperLogPage } from '@/api/system/log'
 import type { SysOperLogVo } from '@/types/system-log'
 import { normalizePageTotal } from '@/utils/pagination'
@@ -110,7 +111,11 @@ onActivated(() => { handleQuery() })
       <el-table-column prop="operTime" label="操作时间" min-width="160" />
       <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="80">
         <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="handleDetail(row)">详情</el-button>
+          <TableActionGroup
+            :actions="[
+              { label: '详情', onClick: () => handleDetail(row) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>

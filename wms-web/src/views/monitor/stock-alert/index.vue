@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getStockAlertPage, resolveStockAlert } from '@/api/monitor'
 import type { StockAlertVo } from '@/types/monitor'
 
@@ -112,7 +113,11 @@ onMounted(() => { handleQuery() })
       <el-table-column prop="triggerTime" label="触发时间" min-width="160" />
       <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="100">
         <template #default="{ row }">
-          <el-button v-if="row.status === 'PENDING'" type="primary" link size="small" @click="handleResolve(row)">处理</el-button>
+          <TableActionGroup
+            :actions="[
+              { label: '处理', visible: row.status === 'PENDING', onClick: () => handleResolve(row) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>

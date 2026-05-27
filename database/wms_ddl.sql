@@ -666,12 +666,9 @@ DROP TABLE IF EXISTS `wms_return_order`;
 CREATE TABLE `wms_return_order` (
     `id`              BIGINT       NOT NULL COMMENT '主键',
     `order_no`        VARCHAR(50)  NOT NULL                COMMENT '归还单号',
-    `outbound_id`     BIGINT       NOT NULL                COMMENT '关联出库单ID',
-    `returner_id`     BIGINT       NOT NULL                COMMENT '归还人ID',
-    `handler_id`      BIGINT       DEFAULT NULL            COMMENT '经办人ID',
-    `return_time`     DATETIME     DEFAULT NULL            COMMENT '归还时间',
-    `return_status`   TINYINT      DEFAULT 1               COMMENT '归还状态(1-正常 2-损坏 3-丢失 4-数量不符)',
-    `is_overdue`      TINYINT      DEFAULT 0               COMMENT '是否逾期(0-否 1-是)',
+    `outbound_order_id` BIGINT     NOT NULL                COMMENT '关联出库单ID',
+    `receiver`        VARCHAR(64)  DEFAULT ''              COMMENT '归还人',
+    `order_status`    TINYINT      DEFAULT 0               COMMENT '单据状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)',
     `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
     `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -680,9 +677,8 @@ CREATE TABLE `wms_return_order` (
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
-    KEY `idx_outbound_id` (`outbound_id`),
-    KEY `idx_returner_id` (`returner_id`),
-    KEY `idx_return_time` (`return_time`)
+    KEY `idx_outbound_order_id` (`outbound_order_id`),
+    KEY `idx_order_status` (`order_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='归还单主表';
 
 -- 29. 归还明细表
@@ -693,8 +689,9 @@ CREATE TABLE `wms_return_detail` (
     `item_id`         BIGINT   NOT NULL                COMMENT '物品ID',
     `label_id`        BIGINT   DEFAULT NULL            COMMENT '电子标签ID',
     `quantity`        INT      NOT NULL                COMMENT '归还数量',
-    `return_status`   TINYINT  DEFAULT 1               COMMENT '归还状态(1-正常 2-损坏 3-丢失 4-数量不符)',
-    `abnormal_desc`   VARCHAR(500) DEFAULT NULL        COMMENT '异常描述',
+    `condition_status` TINYINT DEFAULT 1               COMMENT '物品状态(1-正常 2-损坏 3-丢失 4-数量不符)',
+    `abnormal_remark` VARCHAR(500) DEFAULT NULL        COMMENT '异常说明',
+    `actual_quantity` INT DEFAULT NULL                 COMMENT '实际归还数量(数量不符时记录)',
     `bin_id`          BIGINT   DEFAULT NULL            COMMENT '归还库位ID',
     `del_flag`        TINYINT  DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

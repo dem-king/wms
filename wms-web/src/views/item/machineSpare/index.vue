@@ -1,39 +1,43 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="machineName" label="机器名称" min-width="160" />
-      <el-table-column prop="machineCode" label="机器编号" min-width="140" />
-      <el-table-column prop="itemName" label="备件物品名称" min-width="160" />
-      <el-table-column prop="quantity" label="数量" min-width="100" />
-      <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该关联记录吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="machineName" label="机器名称" min-width="160" />
+        <el-table-column prop="machineCode" label="机器编号" min-width="140" />
+        <el-table-column prop="itemName" label="备件物品名称" min-width="160" />
+        <el-table-column prop="quantity" label="数量" min-width="100" />
+        <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该关联记录吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-pagination
-      v-model:current-page="queryParams.page"
-      v-model:page-size="queryParams.size"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      class="pagination"
-      @size-change="handleQuery"
-      @current-change="handleQuery"
-    />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleQuery"
+          @current-change="handleQuery"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="formVisible" :title="isEdit ? '编辑机器-备件关联' : '新增机器-备件关联'" width="600px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
@@ -190,16 +194,30 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .mb8 {
   margin-bottom: 8px;
 }
 
-.pagination {
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
   margin-top: 16px;
+  flex-shrink: 0;
+}
+
+.pagination {
   justify-content: flex-end;
 }
 </style>
