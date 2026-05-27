@@ -125,5 +125,6 @@ describe('user store', () => {
       'system:role:list',
     ])
     expect(JSON.parse(localStorage.getItem('wms_roles') || 'null')).toEqual([])
+    expect(Number(localStorage.getItem('wms_access_token_expires_at'))).toBeGreaterThan(Date.now())
   })
 })

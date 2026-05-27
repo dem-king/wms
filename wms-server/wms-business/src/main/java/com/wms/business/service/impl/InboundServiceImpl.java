@@ -9,15 +9,15 @@ import com.wms.business.domain.dto.InboundOrderDto;
 import com.wms.business.domain.entity.WmsInboundDetail;
 import com.wms.business.domain.entity.WmsInboundOrder;
 import com.wms.business.domain.vo.InboundOrderVo;
-import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsInboundDetailMapper;
 import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.service.InboundService;
-import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
+import com.wms.common.event.ApprovalRequestEvent;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.item.domain.entity.WmsItem;
@@ -289,7 +289,7 @@ public class InboundServiceImpl implements InboundService {
 
     /**
      * 提交入库单
-     * 仅草稿状态可提交，提交后标记为已完成并发布库存同步事件
+     * 仅草稿状态可提交，提交后进入待审批并发起审批请求
      *
      * @param id 入库单ID
      */
@@ -309,18 +309,7 @@ public class InboundServiceImpl implements InboundService {
 
         order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsInboundOrderMapper.updateById(order);
-
-        order.setStatus(OrderStatusEnum.APPROVED.getCode());
-        wmsInboundOrderMapper.updateById(order);
-
-        List<WmsInboundDetail> details = wmsInboundDetailMapper.selectList(
-                new LambdaQueryWrapper<WmsInboundDetail>()
-                        .eq(WmsInboundDetail::getOrderId, id));
-        for (WmsInboundDetail detail : details) {
-            eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
-                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
-        }
+        eventPublisher.publishEvent(new ApprovalRequestEvent(id, BizTypeEnum.INBOUND.getCode()));
     }
 
     /**

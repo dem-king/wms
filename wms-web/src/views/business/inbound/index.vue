@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
       <el-form-item label="单号">
         <el-input v-model="queryParams.orderNo" placeholder="请输入单号" clearable @keyup.enter="handleQuery" />
@@ -24,7 +24,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
       <el-table-column prop="orderNo" label="单号" min-width="160" />
       <el-table-column prop="warehouseName" label="库房" min-width="120" />
       <el-table-column prop="supplierName" label="供应商" min-width="120" />
@@ -58,7 +59,8 @@
       </el-table-column>
     </el-table>
 
-    <el-pagination
+      <div class="pagination-container">
+        <el-pagination
       v-model:current-page="queryParams.page"
       v-model:page-size="queryParams.size"
       :total="total"
@@ -68,6 +70,8 @@
       @size-change="handleQuery"
       @current-change="handleQuery"
     />
+      </div>
+    </div>
 
     <InboundForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
 
@@ -104,6 +108,7 @@ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue
 import { getInboundOrders, getInboundOrder, submitInboundOrder, deleteInboundOrder } from '@/api/business/inbound'
 import type { InboundOrderVo, OrderStatus } from '@/types/business'
 import InboundForm from './components/InboundForm.vue'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const statusOptions = [
   { label: '草稿', value: 'DRAFT' },
@@ -161,7 +166,7 @@ async function handleQuery() {
   try {
     const res = await getInboundOrders(queryParams)
     tableData.value = res.data.records
-    total.value = res.data.total
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -214,8 +219,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -227,7 +247,6 @@ onMounted(() => {
 }
 
 .pagination {
-  margin-top: 16px;
   justify-content: flex-end;
 }
 </style>

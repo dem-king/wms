@@ -74,7 +74,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, Menu } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getRoleList, deleteRole } from '@/api/system/role'
-import type { SysRoleVo } from '@/types/system'
+import type { EntityId, SysRoleVo } from '@/types/system'
 import RoleForm from './components/RoleForm.vue'
 import RoleMenu from './components/RoleMenu.vue'
 
@@ -135,7 +135,7 @@ function handleEdit(row: SysRoleVo) {
   formVisible.value = true
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteRole(id)
   ElMessage.success('删除成功')
   handleQuery()

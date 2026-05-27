@@ -5,6 +5,7 @@ const tabbarStyleType = defineModel<string>('tabbarStyleType')
 const tabbarShowMore = defineModel<boolean>('tabbarShowMore')
 const tabbarShowMaximize = defineModel<boolean>('tabbarShowMaximize')
 const tabbarDraggable = defineModel<boolean>('tabbarDraggable')
+void tabbarShowMaximize
 </script>
 
 <template>

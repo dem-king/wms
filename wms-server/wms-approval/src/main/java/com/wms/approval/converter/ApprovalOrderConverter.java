@@ -47,6 +47,7 @@ public class ApprovalOrderConverter {
         vo.setId(entity.getId());
         vo.setApprovalId(entity.getApprovalId());
         vo.setStepOrder(entity.getStepOrder());
+        vo.setNodeName("");
         vo.setApproverId(entity.getApproverId());
         vo.setApproverName(entity.getApproverName());
         vo.setResult(entity.getResult());

@@ -33,49 +33,49 @@ describe('inbound api', () => {
 
   it('maps form payloads to the backend inbound dto fields', () => {
     addInboundOrder({
-      warehouseId: 1,
-      supplierId: 2,
+      warehouseId: '1',
+      supplierId: '2',
       inboundType: 'RETURN',
       remark: '扫码入库',
       details: [
-        { itemId: 101, quantity: 3, unitPrice: 12.5, binId: 9 },
+        { itemId: '101', quantity: 3, unitPrice: 12.5, binId: '9' },
       ],
     })
 
     expect(requestMocks.post).toHaveBeenCalledWith('/inbound', {
-      warehouseId: 1,
-      supplierId: 2,
+      warehouseId: '1',
+      supplierId: '2',
       orderType: 2,
       remark: '扫码入库',
       details: [
-        { itemId: 101, quantity: 3, unitPrice: 12.5, binId: 9 },
+        { itemId: '101', quantity: 3, unitPrice: 12.5, binId: '9' },
       ],
     })
   })
 
   it('uses backend detail, submit and scan endpoints', () => {
-    getInboundOrder(10)
-    updateInboundOrder(10, {
-      warehouseId: 1,
-      supplierId: 2,
+    getInboundOrder('10')
+    updateInboundOrder('10', {
+      warehouseId: '1',
+      supplierId: '2',
       inboundType: 'PURCHASE',
       remark: '',
-      details: [{ itemId: 1, quantity: 1, unitPrice: 0 }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0 }],
     })
-    submitInboundOrder(10)
-    deleteInboundOrder(10)
-    scanInboundOrder({ code: 'LBL-001', currentLabelIds: [1, 2] })
+    submitInboundOrder('10')
+    deleteInboundOrder('10')
+    scanInboundOrder({ code: 'LBL-001', currentLabelIds: ['1', '2'] })
 
     expect(requestMocks.get).toHaveBeenCalledWith('/inbound/10')
     expect(requestMocks.put).toHaveBeenCalledWith('/inbound/10', {
-      warehouseId: 1,
-      supplierId: 2,
+      warehouseId: '1',
+      supplierId: '2',
       orderType: 1,
       remark: '',
-      details: [{ itemId: 1, quantity: 1, unitPrice: 0 }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0, binId: undefined }],
     })
     expect(requestMocks.post).toHaveBeenCalledWith('/inbound/10/submit')
     expect(requestMocks.del).toHaveBeenCalledWith('/inbound/10')
-    expect(requestMocks.post).toHaveBeenCalledWith('/inbound/scan', { code: 'LBL-001', currentLabelIds: [1, 2] })
+    expect(requestMocks.post).toHaveBeenCalledWith('/inbound/scan', { code: 'LBL-001', currentLabelIds: ['1', '2'] })
   })
 })

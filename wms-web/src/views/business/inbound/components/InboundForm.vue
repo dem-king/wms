@@ -60,7 +60,7 @@
       <el-table-column label="物品" min-width="200">
         <template #default="{ row }">
           <div class="item-cell">
-            <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: number) => handleItemChange(row, val)">
+            <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: EntityId) => handleItemChange(row, val)">
               <el-option v-for="item in itemList" :key="item.id" :label="`${item.itemCode} - ${item.itemName}`" :value="item.id" />
             </el-select>
             <div v-if="row.scannedLabels?.length" class="scan-tags">
@@ -114,6 +114,7 @@ import { getSupplierList } from '@/api/system/supplier'
 import { getItemList } from '@/api/item/item'
 import { collectScannedLabelIds, mergeScannedDetail } from '@/views/business/order-scan'
 import type {
+  EntityId,
   InboundOrderVo,
   InboundOrderDto,
   InboundDetailDto,
@@ -152,8 +153,8 @@ const scanLoading = ref(false)
 const scanFeedback = ref<ScanFeedback>({ type: 'success', message: '' })
 
 const form = reactive<{
-  warehouseId: number | undefined
-  supplierId: number | undefined
+  warehouseId: EntityId | undefined
+  supplierId: EntityId | undefined
   inboundType: InboundType | ''
   remark: string
   details: DetailRow[]
@@ -209,7 +210,7 @@ async function loadOptions() {
 }
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as number, quantity: 1, unitPrice: 0, specModel: '', unit: '', amount: 0 })
+  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, unitPrice: 0, specModel: '', unit: '', amount: 0 })
 }
 
 function syncDetailRowFromItem(row: DetailRow) {
@@ -222,7 +223,7 @@ function syncDetailRowFromItem(row: DetailRow) {
   }
 }
 
-function handleItemChange(row: DetailRow, itemId: number) {
+function handleItemChange(row: DetailRow, itemId: EntityId) {
   row.itemId = itemId
   syncDetailRowFromItem(row)
 }

@@ -18,9 +18,17 @@ public class ApprovalOrderVo {
     @Schema(description = "主键")
     private Long id;
 
+    /** 审批单号 */
+    @Schema(description = "审批单号")
+    private String approvalNo;
+
     /** 业务单据ID */
     @Schema(description = "业务单据ID")
     private Long bizId;
+
+    /** 业务单号 */
+    @Schema(description = "业务单号")
+    private String bizNo;
 
     /** 业务类型 */
     @Schema(description = "业务类型")
@@ -38,6 +46,10 @@ public class ApprovalOrderVo {
     @Schema(description = "当前审批节点")
     private Integer currentStep;
 
+    /** 当前审批节点名称 */
+    @Schema(description = "当前审批节点名称")
+    private String currentNodeName;
+
     /** 总审批节点数 */
     @Schema(description = "总审批节点数")
     private Integer totalSteps;
@@ -53,6 +65,10 @@ public class ApprovalOrderVo {
     /** 创建人 */
     @Schema(description = "创建人")
     private String createBy;
+
+    /** 申请人姓名 */
+    @Schema(description = "申请人姓名")
+    private String applicantName;
 
     /** 审批记录列表 */
     @Schema(description = "审批记录列表")
@@ -76,6 +92,10 @@ public class ApprovalOrderVo {
         /** 节点顺序 */
         @Schema(description = "节点顺序")
         private Integer stepOrder;
+
+        /** 节点名称 */
+        @Schema(description = "节点名称")
+        private String nodeName;
 
         /** 审批人ID */
         @Schema(description = "审批人ID")

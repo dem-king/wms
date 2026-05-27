@@ -71,7 +71,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, Key } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getUserList, deleteUser, resetUserPwd, changeUserStatus } from '@/api/system/user'
-import type { SysUserVo } from '@/types/system'
+import type { EntityId, SysUserVo } from '@/types/system'
 import UserForm from './components/UserForm.vue'
 
 const loading = ref(false)
@@ -121,7 +121,7 @@ function handleEdit(row: SysUserVo) {
   formVisible.value = true
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteUser(id)
   ElMessage.success('删除成功')
   handleQuery()

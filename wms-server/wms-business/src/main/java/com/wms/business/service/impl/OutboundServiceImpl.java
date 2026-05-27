@@ -7,16 +7,16 @@ import com.wms.business.domain.dto.OutboundOrderDto;
 import com.wms.business.domain.entity.WmsOutboundDetail;
 import com.wms.business.domain.entity.WmsOutboundOrder;
 import com.wms.business.domain.vo.OutboundOrderVo;
-import com.wms.business.event.StockSyncEvent;
 import com.wms.business.converter.OutboundOrderConverter;
 import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.service.OutboundService;
-import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
+import com.wms.common.event.ApprovalRequestEvent;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.business.domain.constant.OrderConstants;
@@ -260,7 +260,7 @@ public class OutboundServiceImpl implements OutboundService {
 
     /**
      * 提交出库单
-     * 仅草稿状态可提交，提交后标记为已完成并发布库存扣减事件
+     * 仅草稿状态可提交，提交后进入待审批并发起审批请求
      *
      * @param id 出库单ID
      */
@@ -282,20 +282,7 @@ public class OutboundServiceImpl implements OutboundService {
         // 状态变为待审核
         order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsOutboundOrderMapper.updateById(order);
-
-        // 直接标记为已完成并发布库存同步事件(简化流程)
-        order.setStatus(OrderStatusEnum.APPROVED.getCode());
-        wmsOutboundOrderMapper.updateById(order);
-
-        // 查询出库明细，逐条发布库存同步事件(出库为负数)
-        List<WmsOutboundDetail> details = wmsOutboundDetailMapper.selectList(
-                new LambdaQueryWrapper<WmsOutboundDetail>()
-                        .eq(WmsOutboundDetail::getOrderId, id));
-        for (WmsOutboundDetail detail : details) {
-            eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
-                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
-        }
+        eventPublisher.publishEvent(new ApprovalRequestEvent(id, BizTypeEnum.OUTBOUND.getCode()));
     }
 
     /**

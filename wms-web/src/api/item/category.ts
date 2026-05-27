@@ -1,8 +1,13 @@
 import { get, post, put, del } from '../request'
+import type { PageParams, PageResult } from '@/types/system'
 import type { WmsCategoryVo, WmsCategoryDto, WmsSubCategoryVo, WmsSubCategoryDto } from '@/types/item'
 
+export function getCategoryPage(params: PageParams) {
+  return get<PageResult<WmsCategoryVo>>('/item/categories', params)
+}
+
 export function getCategoryList() {
-  return get<WmsCategoryVo[]>('/item/categories')
+  return get<WmsCategoryVo[]>('/item/categories/list')
 }
 
 export function addCategory(data: WmsCategoryDto) {
@@ -17,8 +22,12 @@ export function deleteCategory(id: number) {
   return del<void>(`/item/categories/${id}`)
 }
 
+export function getSubCategoryPage(categoryId: number, params: PageParams) {
+  return get<PageResult<WmsSubCategoryVo>>(`/item/categories/${categoryId}/sub`, params)
+}
+
 export function getSubCategories(categoryId: number) {
-  return get<WmsSubCategoryVo[]>(`/item/categories/${categoryId}/sub`)
+  return get<WmsSubCategoryVo[]>(`/item/categories/${categoryId}/sub/list`)
 }
 
 export function addSubCategory(categoryId: number, data: WmsSubCategoryDto) {

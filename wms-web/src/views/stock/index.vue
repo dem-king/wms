@@ -10,7 +10,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="预警筛选">
-        <el-select v-model="queryParams.alertOnly" placeholder="全部" clearable>
+        <el-select v-model="queryParams.isAlert" placeholder="全部" clearable>
           <el-option label="仅预警" :value="true" />
         </el-select>
       </el-form-item>
@@ -33,9 +33,13 @@
           <el-tag :type="row.alert ? 'danger' : 'success'">{{ row.alert ? '预警' : '正常' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" width="120">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="140">
         <template #default="{ row }">
-          <el-button type="primary" link @click="handleEditThreshold(row)">阈值设置</el-button>
+          <TableActionGroup
+            :actions="[
+              { label: '阈值设置', type: 'primary', onClick: () => handleEditThreshold(row) },
+            ]"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -79,9 +83,10 @@ import { ref, reactive, onMounted } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getStockList, updateThreshold } from '@/api/item/stock'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
-import type { WmsStockVo } from '@/types/item'
+import type { EntityId, WmsStockVo } from '@/types/item'
 import type { WmsWarehouseVo } from '@/types/warehouse'
 
 const loading = ref(false)
@@ -93,15 +98,15 @@ const queryParams = reactive({
   page: 1,
   size: 20,
   itemName: '',
-  warehouseId: undefined as number | undefined,
-  alertOnly: undefined as boolean | undefined
+  warehouseId: undefined as EntityId | undefined,
+  isAlert: undefined as boolean | undefined
 })
 
 const thresholdDialogVisible = ref(false)
 const thresholdLoading = ref(false)
 const thresholdFormRef = ref<FormInstance>()
 const thresholdForm = reactive({
-  itemId: 0,
+  itemId: '',
   itemCode: '',
   itemName: '',
   stockLowerLimit: 0,
@@ -123,7 +128,7 @@ async function handleQuery() {
 function handleReset() {
   queryParams.itemName = ''
   queryParams.warehouseId = undefined
-  queryParams.alertOnly = undefined
+  queryParams.isAlert = undefined
   queryParams.page = 1
   handleQuery()
 }

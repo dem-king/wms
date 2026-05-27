@@ -21,7 +21,7 @@
     <el-table :data="form.details" border>
       <el-table-column label="物品" min-width="200">
         <template #default="{ row }">
-          <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: number) => handleItemChange(row, val)">
+          <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="(val: EntityId) => handleItemChange(row, val)">
             <el-option v-for="item in itemList" :key="item.id" :label="`${item.itemCode} - ${item.itemName}`" :value="item.id" />
           </el-select>
         </template>
@@ -58,7 +58,7 @@ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue
 import { addScrapOrder, updateScrapOrder } from '@/api/business/scrap'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getItemList } from '@/api/item/item'
-import type { ScrapOrderVo, ScrapOrderDto, ScrapDetailDto } from '@/types/business'
+import type { EntityId, ScrapOrderVo, ScrapOrderDto, ScrapDetailDto } from '@/types/business'
 import type { WmsWarehouseVo } from '@/types/warehouse'
 import type { WmsItemVo } from '@/types/item'
 
@@ -81,7 +81,7 @@ const warehouseList = ref<WmsWarehouseVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
 
 const form = reactive<{
-  warehouseId: number | undefined
+  warehouseId: EntityId | undefined
   scrapReason: string
   remark: string
   details: DetailRow[]
@@ -122,59 +122,16 @@ watch(() => props.visible, async (val) => {
 watch(dialogVisible, (val) => { emit('update:visible', val) })
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as number, quantity: 1 })
+  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1 })
 }
 
-function handleItemChange(row: DetailRow, val: number) {
-  const item = itemList.value.find(candidate => candidate.id === val)
-  if (!item) {
-    ElMessage.warning('未找到所选物品')
-    row.itemId = undefined as unknown as number
-    return
-  }
-  const hasDuplicate = form.details.some(detail => detail !== row && detail.itemId === val)
-  if (hasDuplicate) {
-    ElMessage.warning('同一物品无需重复添加，请直接修改数量')
-    row.itemId = undefined as unknown as number
-    return
-  }
-  if (item.currentStock <= 0) {
-    ElMessage.warning(`物品“${item.itemName}”当前无可报废库存`)
-  }
-  if (item.currentStock > 0 && row.quantity > item.currentStock) {
-    row.quantity = item.currentStock
-    ElMessage.warning(`报废数量已调整为当前库存上限 ${item.currentStock}`)
-    return
-  }
-  row.quantity = Math.max(row.quantity || 1, 1)
-}
-
-function validateDetails() {
-  for (const detail of form.details) {
-    if (!detail.itemId) {
-      ElMessage.warning('请选择每一行的物品')
-      return false
-    }
-    if (!detail.quantity || detail.quantity <= 0) {
-      ElMessage.warning('报废数量必须大于 0')
-      return false
-    }
-    const item = itemList.value.find(candidate => candidate.id === detail.itemId)
-    if (item && item.currentStock > 0 && detail.quantity > item.currentStock) {
-      ElMessage.warning(`物品“${item.itemName}”的报废数量不能超过当前库存 ${item.currentStock}`)
-      return false
-    }
-  }
-  return true
+function handleItemChange(_row: DetailRow, _val: EntityId) {
 }
 
 async function handleSubmit() {
   await formRef.value?.validate()
   if (form.details.length === 0) {
     ElMessage.warning('请添加报废明细')
-    return
-  }
-  if (!validateDetails()) {
     return
   }
   submitLoading.value = true

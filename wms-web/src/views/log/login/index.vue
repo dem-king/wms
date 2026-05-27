@@ -3,6 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { getLoginLogPage } from '@/api/system/log'
 import type { SysLoginLogVo } from '@/types/system-log'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<SysLoginLogVo[]>([])
@@ -30,7 +31,7 @@ async function handleQuery() {
     const res = await getLoginLogPage(params)
     const data = res.data as any
     tableData.value = Array.isArray(data) ? data : (data?.records || [])
-    total.value = Array.isArray(data) ? data.length : (data?.total || 0)
+    total.value = normalizePageTotal(Array.isArray(data) ? data.length : data?.total)
   } finally { loading.value = false }
 }
 
@@ -62,7 +63,7 @@ onMounted(() => { handleQuery() })
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :inline="true" class="search-form">
       <el-form-item label="用户名">
         <el-input v-model="queryParams.username" placeholder="请输入用户名" clearable />
@@ -82,7 +83,8 @@ onMounted(() => { handleQuery() })
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="tableData" border>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
       <el-table-column prop="username" label="用户名" min-width="100" />
       <el-table-column prop="loginIp" label="登录IP" min-width="130" />
       <el-table-column prop="loginLocation" label="登录地点" min-width="140" />
@@ -97,7 +99,8 @@ onMounted(() => { handleQuery() })
       <el-table-column prop="loginTime" label="登录时间" min-width="160" />
     </el-table>
 
-    <el-pagination
+      <div class="pagination-container">
+        <el-pagination
       v-model:current-page="queryParams.page"
       v-model:page-size="queryParams.size"
       :total="total"
@@ -106,11 +109,32 @@ onMounted(() => { handleQuery() })
       class="pagination"
       @change="handlePageChange"
     />
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.app-container { padding: 20px; }
+.app-container.list-page {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
+}
 .search-form { margin-bottom: 16px; }
-.pagination { margin-top: 16px; justify-content: flex-end; }
+.pagination {
+  justify-content: flex-end;
+}
 </style>

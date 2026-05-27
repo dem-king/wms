@@ -30,6 +30,24 @@ public final class ApprovalConstants {
     /** 审批状态：已撤回 */
     public static final int STATUS_REVOKED = 4;
 
+    /** 首个审批步骤 */
+    public static final int FIRST_STEP_ORDER = 1;
+
+    /** 无审批步骤 */
+    public static final int EMPTY_STEP_COUNT = 0;
+
+    /** 多级审批最少步骤数 */
+    public static final int MIN_MULTI_STEP_COUNT = 2;
+
+    /** 步骤推进增量 */
+    public static final int STEP_INCREMENT = 1;
+
+    /** 审批单号前缀 */
+    public static final String APPROVAL_NO_PREFIX = "SP";
+
+    /** 免审节点名称 */
+    public static final String FREE_APPROVAL_NODE_NAME = "免审";
+
     /** 审批人类型：指定角色 */
     public static final int APPROVER_TYPE_ROLE = 1;
 

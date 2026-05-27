@@ -21,11 +21,11 @@
 
     <el-table v-loading="loading" :data="tableData" border>
       <el-table-column prop="binCode" label="库位编码" min-width="150" />
-      <el-table-column prop="rowNum" label="行号" min-width="80" />
-      <el-table-column prop="colNum" label="列号" min-width="80" />
-      <el-table-column prop="binStatus" label="状态" min-width="80">
+      <el-table-column prop="row" label="行号" min-width="80" />
+      <el-table-column prop="col" label="列号" min-width="80" />
+      <el-table-column prop="status" label="状态" min-width="80">
         <template #default="{ row }">
-          <el-tag :type="row.binStatus === 1 ? 'success' : 'danger'">{{ row.binStatus === 1 ? '正常' : row.binStatus === 0 ? '禁用' : '满' }}</el-tag>
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" class-name="table-action-column" fixed="right">
@@ -47,21 +47,20 @@
         </el-form-item>
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="行号" prop="rowNum">
-              <el-input-number v-model="form.rowNum" :min="1" />
+            <el-form-item label="行号" prop="row">
+              <el-input-number v-model="form.row" :min="1" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="列号" prop="colNum">
-              <el-input-number v-model="form.colNum" :min="1" />
+            <el-form-item label="列号" prop="col">
+              <el-input-number v-model="form.col" :min="1" />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="状态" prop="binStatus">
-          <el-radio-group v-model="form.binStatus">
-            <el-radio :value="1">正常</el-radio>
+        <el-form-item label="状态" prop="status">
+          <el-radio-group v-model="form.status">
+            <el-radio :value="1">启用</el-radio>
             <el-radio :value="0">禁用</el-radio>
-            <el-radio :value="2">满</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -141,9 +140,9 @@ const submitLoading = ref(false)
 const form = reactive<WmsBinDto & { id?: EntityId }>({
   cabinetId: '',
   binCode: '',
-  rowNum: 1,
-  colNum: 1,
-  binStatus: 1
+  row: 1,
+  col: 1,
+  status: 1
 })
 
 const rules: FormRules = {
@@ -180,13 +179,13 @@ async function handleCabinetChange(cabinetId: EntityId) {
 
 function handleAdd() {
   isEdit.value = false
-  Object.assign(form, { id: undefined, cabinetId: selectedCabinetId.value, binCode: '', rowNum: 1, colNum: 1, binStatus: 1 })
+  Object.assign(form, { id: undefined, cabinetId: selectedCabinetId.value, binCode: '', row: 1, col: 1, status: 1 })
   dialogVisible.value = true
 }
 
 function handleEdit(row: WmsBinVo) {
   isEdit.value = true
-  Object.assign(form, { id: row.id, cabinetId: row.cabinetId, binCode: row.binCode, rowNum: row.rowNum, colNum: row.colNum, binStatus: row.binStatus })
+  Object.assign(form, { id: row.id, cabinetId: row.cabinetId, binCode: row.binCode, row: row.row, col: row.col, status: row.status })
   dialogVisible.value = true
 }
 
@@ -194,7 +193,7 @@ async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto: WmsBinDto = { cabinetId: form.cabinetId, binCode: form.binCode, rowNum: form.rowNum, colNum: form.colNum, binStatus: form.binStatus }
+    const dto: WmsBinDto = { cabinetId: form.cabinetId, binCode: form.binCode, row: form.row, col: form.col, status: form.status }
     if (isEdit.value && form.id) {
       await updateBin(form.id, dto)
       ElMessage.success('编辑成功')

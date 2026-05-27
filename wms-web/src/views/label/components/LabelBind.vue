@@ -34,12 +34,12 @@ import { ref, reactive, computed } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { searchItem } from '@/api/item/item'
-import type { WmsItemVo } from '@/types/item'
+import type { EntityId, WmsItemVo } from '@/types/item'
 import { bindLabel } from '@/api/item/label'
 
 const props = defineProps<{
   /** 标签ID */
-  labelId: number
+  labelId: EntityId
   /** 弹窗可见性 */
   visible: boolean
 }>()
@@ -60,7 +60,7 @@ const itemSearchLoading = ref(false)
 const itemOptions = ref<WmsItemVo[]>([])
 
 const form = reactive({
-  itemId: undefined as number | undefined,
+  itemId: undefined as EntityId | undefined,
   bindType: 1,
 })
 

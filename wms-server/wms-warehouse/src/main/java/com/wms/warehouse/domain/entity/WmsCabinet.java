@@ -54,6 +54,18 @@ public class WmsCabinet extends BaseEntity {
     @TableField("`cols`")
     private Integer cols;
 
+    /** 渲染宽度 */
+    @Schema(description = "渲染宽度")
+    private Integer layoutWidth;
+
+    /** 渲染高度 */
+    @Schema(description = "渲染高度")
+    private Integer layoutHeight;
+
+    /** 旋转角度 */
+    @Schema(description = "旋转角度")
+    private Integer rotation;
+
     /** 排序号 */
     @Schema(description = "排序号")
     private Integer sortOrder;

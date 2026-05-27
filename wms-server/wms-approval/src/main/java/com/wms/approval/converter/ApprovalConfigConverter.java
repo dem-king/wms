@@ -29,6 +29,8 @@ public class ApprovalConfigConverter {
         vo.setAutoApprove(entity.getAutoApprove());
         vo.setConfigName(entity.getConfigName());
         vo.setRemark(entity.getRemark());
+        vo.setTimeoutHours(entity.getTimeoutHours());
+        vo.setTimeoutAction(entity.getTimeoutAction());
         vo.setCreateTime(entity.getCreateTime());
         vo.setCreateBy(entity.getCreateBy());
         return vo;

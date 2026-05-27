@@ -2,6 +2,7 @@ package com.wms.approval.strategy;
 
 import com.wms.approval.domain.constant.ApprovalConstants;
 import com.wms.approval.domain.entity.WmsApprovalConfig;
+import com.wms.common.constant.BizConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,11 +28,11 @@ public class ApprovalStrategyFactory {
      */
     public ApprovalStrategy getStrategy(WmsApprovalConfig config, int nodeCount) {
         // 免审配置
-        if (config.getAutoApprove() != null && config.getAutoApprove() == ApprovalConstants.STATUS_APPROVED) {
+        if (config.getAutoApprove() != null && config.getAutoApprove() == BizConstants.STATUS_ENABLED) {
             return freeApprovalStrategy;
         }
         // 按审批节点数量区分单级/多级
-        if (nodeCount == ApprovalConstants.RESULT_APPROVED) {
+        if (nodeCount == ApprovalConstants.FIRST_STEP_ORDER) {
             return singleApprovalStrategy;
         }
         return multiApprovalStrategy;

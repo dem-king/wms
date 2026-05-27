@@ -1,15 +1,19 @@
 /** 用户管理 */
 
+
+import type { EntityId } from './common'
+export type { EntityId } from './common'
+
 /** 用户视图对象 */
 export interface SysUserVo {
   /** 用户ID */
-  id: number
+  id: EntityId
   /** 用户名 */
   username: string
   /** 真实姓名 */
   realName: string
   /** 部门ID */
-  deptId: number
+  deptId: EntityId
   /** 部门名称 */
   deptName: string
   /** 手机号 */
@@ -19,7 +23,7 @@ export interface SysUserVo {
   /** 状态(0-禁用 1-启用) */
   status: number
   /** 角色ID列表 */
-  roleIds: number[]
+  roleIds: EntityId[]
   /** 角色名称列表 */
   roleNames: string[]
   /** 创建时间 */
@@ -37,7 +41,7 @@ export interface SysUserDto {
   /** 真实姓名 */
   realName: string
   /** 部门ID */
-  deptId: number
+  deptId: EntityId
   /** 手机号 */
   phone: string
   /** 邮箱 */
@@ -45,7 +49,7 @@ export interface SysUserDto {
   /** 状态(0-禁用 1-启用) */
   status: number
   /** 角色ID列表 */
-  roleIds: number[]
+  roleIds: EntityId[]
 }
 
 /** 角色管理 */
@@ -53,7 +57,7 @@ export interface SysUserDto {
 /** 角色视图对象 */
 export interface SysRoleVo {
   /** 角色ID */
-  id: number
+  id: EntityId
   /** 角色名称 */
   roleName: string
   /** 角色编码 */
@@ -87,7 +91,7 @@ export interface SysRoleDto {
 /** 权限视图对象 */
 export interface SysPermissionVo {
   /** 权限ID */
-  id: number
+  id: EntityId
   /** 权限名称 */
   permName: string
   /** 权限编码 */
@@ -95,7 +99,7 @@ export interface SysPermissionVo {
   /** 权限类型(1-菜单 2-按钮 3-数据) */
   permType: number
   /** 关联菜单ID */
-  menuId: number
+  menuId: EntityId
   /** 关联菜单名称 */
   menuName: string
   /** 状态(0-禁用 1-启用) */
@@ -113,7 +117,7 @@ export interface SysPermissionDto {
   /** 权限类型 */
   permType: number
   /** 关联菜单ID */
-  menuId: number
+  menuId: EntityId
   /** 状态(0-禁用 1-启用) */
   status: number
 }
@@ -123,13 +127,13 @@ export interface SysPermissionDto {
 /** 部门视图对象 */
 export interface SysDeptVo {
   /** 部门ID */
-  id: number
+  id: EntityId
   /** 部门名称 */
   deptName: string
   /** 部门编码 */
   deptCode: string
   /** 上级部门ID */
-  parentId: number
+  parentId: EntityId
   /** 负责人 */
   leader: string
   /** 排序号 */
@@ -149,7 +153,7 @@ export interface SysDeptDto {
   /** 部门编码 */
   deptCode: string
   /** 上级部门ID */
-  parentId: number
+  parentId: EntityId
   /** 负责人 */
   leader: string
   /** 排序号 */
@@ -163,7 +167,7 @@ export interface SysDeptDto {
 /** 系统配置视图对象 */
 export interface SysConfigVo {
   /** 配置ID */
-  id: number
+  id: EntityId
   /** 配置名称 */
   configName: string
   /** 配置键 */
@@ -197,7 +201,7 @@ export interface SysConfigDto {
 /** 供应商视图对象 */
 export interface SysSupplierVo {
   /** 供应商ID */
-  id: number
+  id: EntityId
   /** 供应商名称 */
   supplierName: string
   /** 供应商编码 */

@@ -92,7 +92,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getSupplierList, addSupplier, updateSupplier, deleteSupplier } from '@/api/system/supplier'
-import type { SysSupplierVo } from '@/types/system'
+import type { EntityId, SysSupplierVo } from '@/types/system'
 
 const loading = ref(false)
 const tableData = ref<SysSupplierVo[]>([])
@@ -111,7 +111,7 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
 const form = reactive({
-  id: undefined as number | undefined,
+  id: undefined as EntityId | undefined,
   supplierName: '',
   supplierCode: '',
   contactPerson: '',
@@ -174,7 +174,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteSupplier(id)
   ElMessage.success('删除成功')
   handleQuery()

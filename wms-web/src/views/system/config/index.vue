@@ -81,7 +81,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getConfigList, addConfig, updateConfig, deleteConfig } from '@/api/system/config'
-import type { SysConfigVo } from '@/types/system'
+import type { EntityId, SysConfigVo } from '@/types/system'
 
 const loading = ref(false)
 const tableData = ref<SysConfigVo[]>([])
@@ -100,7 +100,7 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
 const form = reactive({
-  id: undefined as number | undefined,
+  id: undefined as EntityId | undefined,
   configName: '',
   configKey: '',
   configValue: '',
@@ -162,7 +162,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteConfig(id)
   ElMessage.success('删除成功')
   handleQuery()

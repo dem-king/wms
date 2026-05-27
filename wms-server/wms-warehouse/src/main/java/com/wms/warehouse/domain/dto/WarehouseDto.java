@@ -1,7 +1,9 @@
 package com.wms.warehouse.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -41,6 +43,25 @@ public class WarehouseDto {
     /** 状态(1-启用 0-禁用) */
     @Schema(description = "状态(1-启用 0-禁用)")
     private Integer status;
+
+    /** 布局画布宽度 */
+    @PositiveOrZero(message = "布局画布宽度不能小于0")
+    @Schema(description = "布局画布宽度")
+    private Integer layoutWidth;
+
+    /** 布局画布高度 */
+    @PositiveOrZero(message = "布局画布高度不能小于0")
+    @Schema(description = "布局画布高度")
+    private Integer layoutHeight;
+
+    /** 布局比例尺 */
+    @DecimalMin(value = "0", message = "布局比例尺不能小于0")
+    @Schema(description = "布局比例尺")
+    private BigDecimal layoutScale;
+
+    /** 底图版本号 */
+    @Schema(description = "底图版本号")
+    private String layoutBackgroundVersion;
 
     /** 备注 */
     @Schema(description = "备注")

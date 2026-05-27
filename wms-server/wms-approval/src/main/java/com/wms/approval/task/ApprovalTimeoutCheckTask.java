@@ -6,6 +6,7 @@ import com.wms.approval.domain.entity.WmsApprovalConfig;
 import com.wms.approval.domain.entity.WmsApprovalOrder;
 import com.wms.approval.mapper.WmsApprovalConfigMapper;
 import com.wms.approval.mapper.WmsApprovalOrderMapper;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.event.ApprovalResultEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class ApprovalTimeoutCheckTask {
         List<WmsApprovalConfig> configs = wmsApprovalConfigMapper.selectList(
                 new LambdaQueryWrapper<WmsApprovalConfig>()
                         .in(WmsApprovalConfig::getBizType, bizTypes)
-                        .eq(WmsApprovalConfig::getEnabled, ApprovalConstants.STATUS_APPROVED));
+                        .eq(WmsApprovalConfig::getEnabled, BizConstants.STATUS_ENABLED));
         Map<Integer, WmsApprovalConfig> configMap = configs.stream()
                 .collect(Collectors.toMap(WmsApprovalConfig::getBizType, Function.identity(), (a, b) -> a));
 

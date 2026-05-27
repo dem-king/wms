@@ -43,6 +43,9 @@ public class CabinetConverter {
         entity.setCabinetType(dto.getCabinetType());
         entity.setRows(dto.getRows());
         entity.setCols(dto.getCols());
+        entity.setLayoutWidth(dto.getLayoutWidth());
+        entity.setLayoutHeight(dto.getLayoutHeight());
+        entity.setRotation(dto.getRotation());
         entity.setSortOrder(dto.getSortOrder());
         entity.setStatus(dto.getStatus());
         entity.setRemark(dto.getRemark());
@@ -69,6 +72,9 @@ public class CabinetConverter {
         vo.setCabinetType(entity.getCabinetType());
         vo.setRows(entity.getRows());
         vo.setCols(entity.getCols());
+        vo.setLayoutWidth(entity.getLayoutWidth());
+        vo.setLayoutHeight(entity.getLayoutHeight());
+        vo.setRotation(entity.getRotation());
         vo.setSortOrder(entity.getSortOrder() == null ? BizConstants.DEFAULT_SORT_ORDER : entity.getSortOrder());
         vo.setStatus(entity.getStatus());
         vo.setRemark(entity.getRemark());

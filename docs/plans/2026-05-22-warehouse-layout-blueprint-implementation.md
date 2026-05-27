@@ -154,28 +154,25 @@
 - Modify: `D:\Codes\WMS_code\database\wms_ddl.sql`
 - Modify: `D:\Codes\WMS_code\database\wms_full_init.sql`
 - Create: `D:\Codes\WMS_code\wms-server\wms-warehouse\src\main\java\com\wms\warehouse\domain\constant\LayoutElementConstants.java`
-- Test: `D:\Codes\WMS_code\wms-server\wms-warehouse\src\test\java\com\wms\warehouse\service\impl\CabinetServiceImplTest.java`
+- Test: `D:\Codes\WMS_code\wms-server\wms-warehouse\src\test\java\com\wms\warehouse\domain\constant\LayoutElementBaselineContractTest.java`
 
 **Step 1: Write the failing test**
 
 ```java
 @Test
-void shouldExposeLayoutFieldsWhenSavingCabinetLayout() {
-    CabinetVo cabinetVo = new CabinetVo();
-    cabinetVo.setLayoutWidth(240);
-    cabinetVo.setLayoutHeight(80);
-    cabinetVo.setRotation(30);
-
-    assertEquals(240, cabinetVo.getLayoutWidth());
-    assertEquals(80, cabinetVo.getLayoutHeight());
-    assertEquals(30, cabinetVo.getRotation());
+void shouldContainLayoutBlueprintBaselineInSqlScripts() {
+    assertTrue(content.contains("CREATE TABLE `wms_layout_element`"));
+    assertTrue(content.contains("`layout_width`"));
+    assertTrue(content.contains("`layout_height`"));
+    assertTrue(content.contains("`layout_scale`"));
+    assertTrue(content.contains("`layout_background_version`"));
 }
 ```
 
 **Step 2: Run test to verify it fails**
 
-Run: `mvn -pl wms-server/wms-warehouse -Dtest=CabinetServiceImplTest test`
-Expected: FAIL，提示 `CabinetVo` 缺少布局字段或相关映射未补齐。
+Run: `mvn -f wms-server/pom.xml -pl wms-warehouse -am "-Dtest=LayoutElementBaselineContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
+Expected: FAIL，提示 `LayoutElementConstants`、DDL 或增量脚本尚未补齐基线。
 
 **Step 3: Write minimal implementation**
 
@@ -193,13 +190,13 @@ public final class LayoutElementConstants {
 
 **Step 4: Run test to verify it passes**
 
-Run: `mvn -pl wms-server/wms-warehouse -Dtest=CabinetServiceImplTest test`
+Run: `mvn -f wms-server/pom.xml -pl wms-warehouse -am "-Dtest=LayoutElementBaselineContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add database/wms_ddl.sql database/wms_full_init.sql database/2026-05-22_warehouse_layout_blueprint.sql wms-server/wms-warehouse/src/main/java/com/wms/warehouse/domain/constant/LayoutElementConstants.java wms-server/wms-warehouse/src/test/java/com/wms/warehouse/service/impl/CabinetServiceImplTest.java
+git add database/wms_ddl.sql database/wms_full_init.sql database/2026-05-22_warehouse_layout_blueprint.sql wms-server/wms-warehouse/src/main/java/com/wms/warehouse/domain/constant/LayoutElementConstants.java wms-server/wms-warehouse/src/test/java/com/wms/warehouse/domain/constant/LayoutElementBaselineContractTest.java
 git commit -m "feat: add warehouse layout blueprint schema"
 ```
 
@@ -567,7 +564,7 @@ git commit -m "feat: support warehouse blueprint configuration flow"
 
 **Step 1: Run backend tests**
 
-Run: `mvn -pl wms-server/wms-warehouse -Dtest=CabinetServiceImplTest,LayoutElementServiceImplTest test`
+Run: `mvn -f wms-server/pom.xml -pl wms-warehouse -am "-Dtest=LayoutElementBaselineContractTest,CabinetServiceImplTest,LayoutElementServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
 Expected: PASS
 
 **Step 2: Run frontend tests**
@@ -587,7 +584,7 @@ Expected: 无新增阻塞错误
 
 **Step 5: Start local services**
 
-Run: `mvn -pl wms-server/wms-app spring-boot:run`
+Run: `mvn -f wms-server/pom.xml -pl wms-app -am spring-boot:run`
 Expected: 后端启动成功
 
 Run: `npm run dev -- --host 0.0.0.0`

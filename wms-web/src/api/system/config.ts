@@ -1,11 +1,11 @@
 import { get, post, put, del } from '../request'
-import type { SysConfigVo, SysConfigDto, PageResult, PageParams } from '@/types/system'
+import type { EntityId, SysConfigVo, SysConfigDto, PageResult, PageParams } from '@/types/system'
 
 export function getConfigList(params?: PageParams & { configKey?: string; configGroup?: string }) {
   return get<PageResult<SysConfigVo> | SysConfigVo[]>('/system/configs', params as unknown as Record<string, unknown>)
 }
 
-export function getConfig(id: number) {
+export function getConfig(id: EntityId) {
   return get<SysConfigVo>(`/system/configs/${id}`)
 }
 
@@ -13,11 +13,11 @@ export function addConfig(data: SysConfigDto) {
   return post<SysConfigVo>('/system/configs', data)
 }
 
-export function updateConfig(id: number, data: SysConfigDto) {
+export function updateConfig(id: EntityId, data: SysConfigDto) {
   return put<SysConfigVo>(`/system/configs/${id}`, data)
 }
 
-export function deleteConfig(id: number) {
+export function deleteConfig(id: EntityId) {
   return del<void>(`/system/configs/${id}`)
 }
 

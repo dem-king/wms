@@ -1,6 +1,5 @@
 package com.wms.system.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,7 +43,6 @@ public class SysLoginLog extends BaseEntity {
 
     /** 登录状态: SUCCESS/FAIL/LOGOUT */
     @Schema(description = "登录状态")
-    @TableField("`status`")
     private String status;
 
     /** 失败原因 */

@@ -1,3 +1,6 @@
+import type { EntityId } from './common'
+export type { EntityId } from './common'
+
 export interface LoginReq {
   username: string
   encryptedPassword: string
@@ -16,11 +19,11 @@ export interface LoginResp {
 }
 
 export interface UserInfoVO {
-  userId: number
+  userId: EntityId
   username: string
   realName: string
   avatar: string
-  deptId: number
+  deptId: EntityId
   phone?: string
   email?: string
 }
@@ -95,13 +98,13 @@ export interface PasswordForm {
 /** 菜单树节点 */
 export interface MenuTreeNode {
   /** 菜单ID */
-  id: number
+  id: EntityId
   /** 菜单名称 */
   menuName: string
   /** 菜单编码 */
   menuCode: string
   /** 上级菜单ID */
-  parentId: number
+  parentId: EntityId
   /** 菜单类型(1-目录 2-菜单 3-按钮/操作) */
   menuType: number
   /** 路由路径 */

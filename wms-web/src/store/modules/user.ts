@@ -6,13 +6,16 @@ import {
   getStoredPermissions,
   getStoredRoles,
   getStoredUserInfo,
+  getTokenExpiresAt,
   getToken,
   setRefreshToken,
   setStoredPermissions,
   setStoredRoles,
   setStoredUserInfo,
   setToken,
+  setTokenExpiresAt,
 } from '@/utils/auth'
+import { scheduleTokenRefresh, stopRefreshScheduler } from '@/utils/auth-refresh'
 import type { LoginReq, UserInfoVO } from '@/types/auth'
 import { usePermissionStore } from './permission'
 import router from '@/router'
@@ -33,10 +36,12 @@ export const useUserStore = defineStore('user', () => {
     token.value = data.accessToken
     setToken(data.accessToken)
     setRefreshToken(data.refreshToken)
+    setTokenExpiresAt(Date.now() + data.expiresIn * 1000)
     userInfo.value = data.userInfo
     permissions.value = data.permissions
     roles.value = []
     persistSessionState()
+    scheduleTokenRefresh()
     // 将菜单树传递给permission store
     const permissionStore = usePermissionStore()
     permissionStore.setMenuTree(data.menus || [])
@@ -50,6 +55,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       await logoutApi()
     } finally {
+      stopRefreshScheduler()
       resetState()
       clearAuth()
       const permissionStore = usePermissionStore()
@@ -76,6 +82,7 @@ export const useUserStore = defineStore('user', () => {
     token.value = storedToken || ''
 
     if (!storedToken) {
+      stopRefreshScheduler()
       resetState()
       clearAuth()
       return
@@ -84,6 +91,9 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = getStoredUserInfo()
     permissions.value = getStoredPermissions()
     roles.value = getStoredRoles()
+    if (getTokenExpiresAt()) {
+      scheduleTokenRefresh()
+    }
   }
 
   /**

@@ -51,9 +51,9 @@ function createBin(overrides: Partial<WmsBinVo> = {}): WmsBinVo {
     id: '1000',
     cabinetId: '100',
     binCode: 'KW-01',
-    row: 1,
-    col: 1,
-    status: 1,
+    rowNum: 1,
+    colNum: 1,
+    binStatus: 1,
     createTime: '2026-05-21 09:00:00',
     ...overrides,
   }
@@ -72,10 +72,10 @@ describe('warehouse visual layout builder', () => {
       createCabinet({ id: '201', areaId: '20', cabinetName: 'C 柜', sortOrder: 10, rows: 1, cols: 2 }),
     ]
     const bins = [
-      createBin({ id: '1', cabinetId: '102', row: 2, col: 1, binCode: 'B-2-1' }),
-      createBin({ id: '2', cabinetId: '102', row: 1, col: 1, binCode: 'B-1-1' }),
-      createBin({ id: '3', cabinetId: '102', row: 1, col: 2, binCode: 'B-1-2', status: VISUAL_STATUS_DISABLED }),
-      createBin({ id: '4', cabinetId: '201', row: 1, col: 2, binCode: 'C-1-2' }),
+      createBin({ id: '1', cabinetId: '102', rowNum: 2, colNum: 1, binCode: 'B-2-1' }),
+      createBin({ id: '2', cabinetId: '102', rowNum: 1, colNum: 1, binCode: 'B-1-1' }),
+      createBin({ id: '3', cabinetId: '102', rowNum: 1, colNum: 2, binCode: 'B-1-2', binStatus: VISUAL_STATUS_DISABLED }),
+      createBin({ id: '4', cabinetId: '201', rowNum: 1, colNum: 2, binCode: 'C-1-2' }),
     ]
 
     const model = buildWarehouseVisualModel({ warehouse, areas, cabinets, bins })

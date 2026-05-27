@@ -78,6 +78,7 @@ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue
 import { addReturnOrder, updateReturnOrder } from '@/api/business/return'
 import { getOutboundOrders } from '@/api/business/outbound'
 import type {
+  EntityId,
   ReturnOrderVo,
   ReturnOrderDto,
   ReturnDetailDto,
@@ -103,7 +104,7 @@ const outboundList = ref<OutboundOrderVo[]>([])
 const outboundItems = ref<OutboundDetailVo[]>([])
 
 const form = reactive<{
-  outboundOrderId: number | undefined
+  outboundOrderId: EntityId | undefined
   receiver: string
   remark: string
   details: DetailRow[]
@@ -143,7 +144,7 @@ watch(() => props.visible, async (val) => {
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
 
-function handleOutboundChange(orderId: number) {
+function handleOutboundChange(orderId: EntityId) {
   const order = outboundList.value.find(o => o.id === orderId)
   outboundItems.value = order?.details || []
   form.details = outboundItems.value.map(d => ({
@@ -155,7 +156,7 @@ function handleOutboundChange(orderId: number) {
 }
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as number, quantity: 1, conditionStatus: 0, abnormalRemark: '' })
+  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, conditionStatus: 0, abnormalRemark: '' })
 }
 
 async function handleSubmit() {

@@ -41,8 +41,8 @@ public class FreeApprovalStrategy implements ApprovalStrategy {
         order.setBizType(context.getBizType());
         order.setStatus(ApprovalConstants.STATUS_APPROVED);
         order.setApplicantId(context.getApplicantId());
-        order.setCurrentStep(ApprovalConstants.STATUS_PENDING);
-        order.setTotalSteps(ApprovalConstants.STATUS_PENDING);
+        order.setCurrentStep(ApprovalConstants.EMPTY_STEP_COUNT);
+        order.setTotalSteps(ApprovalConstants.EMPTY_STEP_COUNT);
         wmsApprovalOrderMapper.insert(order);
 
         // 免审通过发布审批结果事件，通知业务模块执行后续逻辑

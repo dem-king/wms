@@ -430,10 +430,38 @@ export interface TransferDetailDto {
 }
 
 /** 审批状态枚举 */
-export type ApprovalStatus = 'PENDING' | 'APPROVING' | 'APPROVED' | 'REJECTED' | 'REVOKED'
+export type ApprovalStatus = 0 | 1 | 2 | 3 | 4
+
+/** 审批结果枚举 */
+export type ApprovalResult = 1 | 2
 
 /** 业务类型枚举 */
-export type BizType = 'INBOUND' | 'OUTBOUND' | 'RETURN' | 'SCRAP' | 'TRANSFER'
+export type BizType = 1 | 2 | 3 | 4 | 5
+
+/** 审批人类型枚举 */
+export type ApprovalApproverType = 1 | 2 | 3
+
+/** 审批配置查询参数 */
+export interface ApprovalConfigQuery {
+  /** 当前页码 */
+  page: number
+  /** 每页条数 */
+  size: number
+  /** 业务类型 */
+  bizType?: BizType
+}
+
+/** 审批单查询参数 */
+export interface ApprovalOrderQuery {
+  /** 当前页码 */
+  page: number
+  /** 每页条数 */
+  size: number
+  /** 业务类型 */
+  bizType?: BizType
+  /** 审批状态 */
+  status?: ApprovalStatus
+}
 
 /** 审批配置视图对象 */
 export interface ApprovalConfigVo {
@@ -444,9 +472,15 @@ export interface ApprovalConfigVo {
   /** 业务类型 */
   bizType: BizType
   /** 是否启用 */
-  enabled: boolean
+  enabled: number
   /** 是否免审 */
-  autoApproved: boolean
+  autoApprove: number
+  /** 备注 */
+  remark?: string
+  /** 审批超时阈值(小时) */
+  timeoutHours: number
+  /** 超时处理方式 */
+  timeoutAction: number
   /** 审批节点列表 */
   nodes: ApprovalNodeVo[]
   /** 创建时间 */
@@ -460,11 +494,17 @@ export interface ApprovalConfigDto {
   /** 业务类型 */
   bizType: BizType
   /** 是否启用 */
-  enabled: boolean
+  enabled: number
   /** 是否免审 */
-  autoApproved: boolean
+  autoApprove: number
+  /** 备注 */
+  remark?: string
+  /** 审批超时阈值(小时) */
+  timeoutHours?: number
+  /** 超时处理方式 */
+  timeoutAction?: number
   /** 审批节点列表 */
-  nodes: ApprovalNodeVo[]
+  nodes: ApprovalNodeDto[]
 }
 
 /** 审批节点视图对象 */
@@ -474,13 +514,25 @@ export interface ApprovalNodeVo {
   /** 配置ID */
   configId: number
   /** 节点顺序 */
-  nodeOrder: number
+  stepOrder: number
   /** 节点名称 */
   nodeName: string
   /** 审批人类型(1-指定角色 2-指定用户 3-库房管理员) */
-  assigneeType: number
+  approverType: ApprovalApproverType
   /** 审批人ID */
-  assigneeId: number
+  approverId?: number
+}
+
+/** 审批节点提交对象 */
+export interface ApprovalNodeDto {
+  /** 节点顺序 */
+  stepOrder: number
+  /** 节点名称 */
+  nodeName: string
+  /** 审批人类型(1-指定角色 2-指定用户 3-库房管理员) */
+  approverType: ApprovalApproverType
+  /** 审批人/角色ID */
+  approverId?: number
 }
 
 /** 审批单视图对象 */
@@ -499,10 +551,16 @@ export interface ApprovalOrderVo {
   currentNodeName: string
   /** 审批状态 */
   status: ApprovalStatus
-  /** 申请人 */
-  applicant: string
+  /** 申请人姓名 */
+  applicantName: string
   /** 申请人ID */
   applicantId: number
+  /** 当前审批节点 */
+  currentStep: number
+  /** 总审批节点数 */
+  totalSteps: number
+  /** 备注 */
+  remark?: string
   /** 审批记录列表 */
   records: ApprovalRecordVo[]
   /** 创建时间 */
@@ -518,13 +576,13 @@ export interface ApprovalRecordVo {
   /** 节点名称 */
   nodeName: string
   /** 审批人 */
-  assigneeName: string
-  /** 审批动作(APPROVE/REJECT) */
-  action: string
+  approverName: string
+  /** 审批结果(1-通过 2-驳回) */
+  result: ApprovalResult
   /** 审批意见 */
   opinion: string
   /** 审批时间 */
-  actionTime: string
+  approveTime: string
 }
 
 /** 审批操作DTO */

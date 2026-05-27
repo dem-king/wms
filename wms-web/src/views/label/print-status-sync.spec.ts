@@ -7,7 +7,7 @@ describe('print status sync', () => {
     const refresh = vi.fn()
 
     await expect(
-      syncPrintedLabelStatus([101, 102], {
+      syncPrintedLabelStatus(['101', '102'], {
         syncLabels,
         onSuccess: refresh,
       }),
@@ -16,7 +16,7 @@ describe('print status sync', () => {
       message: '打印状态同步成功',
     })
 
-    expect(syncLabels).toHaveBeenCalledWith({ labelIds: [101, 102] })
+    expect(syncLabels).toHaveBeenCalledWith({ labelIds: ['101', '102'] })
     expect(refresh).toHaveBeenCalledTimes(1)
   })
 
@@ -25,7 +25,7 @@ describe('print status sync', () => {
     const refresh = vi.fn()
 
     await expect(
-      syncPrintedLabelStatus([201], {
+      syncPrintedLabelStatus(['201'], {
         syncLabels,
         onSuccess: refresh,
       }),
@@ -34,7 +34,7 @@ describe('print status sync', () => {
       message: '打印状态同步失败，请稍后重试',
     })
 
-    expect(syncLabels).toHaveBeenCalledWith({ labelIds: [201] })
+    expect(syncLabels).toHaveBeenCalledWith({ labelIds: ['201'] })
     expect(refresh).not.toHaveBeenCalled()
   })
 })

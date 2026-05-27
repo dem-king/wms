@@ -107,7 +107,7 @@ import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getPermissionList, addPermission, updatePermission, deletePermission } from '@/api/system/permission'
 import { getMenuTree } from '@/api/system/menu'
-import type { SysPermissionVo } from '@/types/system'
+import type { EntityId, SysPermissionVo } from '@/types/system'
 import type { MenuTreeNode } from '@/types/auth'
 
 const loading = ref(false)
@@ -128,11 +128,11 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
 const form = reactive({
-  id: undefined as number | undefined,
+  id: undefined as EntityId | undefined,
   permName: '',
   permCode: '',
   permType: 2,
-  menuId: undefined as number | undefined,
+  menuId: undefined as EntityId | undefined,
   status: 1,
 })
 
@@ -191,7 +191,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deletePermission(id)
   ElMessage.success('删除成功')
   handleQuery()

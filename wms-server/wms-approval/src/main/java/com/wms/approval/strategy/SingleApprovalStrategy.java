@@ -38,7 +38,7 @@ public class SingleApprovalStrategy implements ApprovalStrategy {
         log.info("单级审批策略执行: bizId={}, bizType={}", context.getBizId(), context.getBizType());
 
         List<WmsApprovalNode> nodes = context.getNodes();
-        if (nodes.size() != ApprovalConstants.RESULT_APPROVED) {
+        if (nodes.size() != ApprovalConstants.FIRST_STEP_ORDER) {
             throw new BizException("单级审批配置应有且仅有1个审批节点，当前有" + nodes.size() + "个");
         }
 
@@ -47,7 +47,7 @@ public class SingleApprovalStrategy implements ApprovalStrategy {
         order.setBizType(context.getBizType());
         order.setStatus(ApprovalConstants.STATUS_APPROVING);
         order.setApplicantId(context.getApplicantId());
-        order.setCurrentStep(ApprovalConstants.STATUS_APPROVED);
+        order.setCurrentStep(ApprovalConstants.FIRST_STEP_ORDER);
         order.setTotalSteps(nodes.size());
         wmsApprovalOrderMapper.insert(order);
 

@@ -1,5 +1,7 @@
 package com.wms.item.service;
 
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.item.domain.dto.TagDto;
 import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.domain.vo.TagVo;
@@ -11,6 +13,14 @@ import java.util.List;
  * 提供标签CRUD和按标签筛选物品功能
  */
 public interface TagService {
+
+    /**
+     * 标签分页列表
+     *
+     * @param pageParam 分页参数
+     * @return 分页结果
+     */
+    PageResult<TagVo> page(PageParam pageParam);
 
     /**
      * 查询所有标签列表

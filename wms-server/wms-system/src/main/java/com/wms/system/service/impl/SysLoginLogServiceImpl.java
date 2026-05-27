@@ -30,14 +30,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     private final SysLoginLogMapper sysLoginLogMapper;
     private final SysLoginLogConverter sysLoginLogConverter;
 
-    /**
-     * 分页查询登录日志
-     * 
-     * @param pageParam 分页参数
-     * @param username 用户名(可选)
-     * @param status 状态(可选)
-     * @return 登录日志分页结果
-     */
     @Override
     public PageResult<SysLoginLogVo> page(PageParam pageParam, SysLoginLogQueryDto queryDto) {
         LambdaQueryWrapper<SysLoginLog> wrapper = new LambdaQueryWrapper<>();
@@ -70,18 +62,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
         return result;
     }
 
-    /**
-     * 记录登录日志
-     * 
-     * @param userId 用户ID
-     * @param username 用户名
-     * @param loginIp 登录IP
-     * @param loginLocation 登录地点
-     * @param browser 浏览器
-     * @param os 操作系统
-     * @param status 状态
-     * @param failReason 失败原因
-     */
     @Override
     @Async
     public void recordLoginLog(Long userId, String username, String loginIp, String loginLocation,
@@ -104,12 +84,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
         }
     }
 
-    /**
-     * 查询用户最近一次成功登录记录
-     * 
-     * @param userId 用户ID
-     * @return 登录日志实体
-     */
     @Override
     public SysLoginLog getLatestSuccessLoginLog(Long userId) {
         if (userId == null) {

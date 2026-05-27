@@ -1,15 +1,19 @@
 /** 电子标签管理 */
 
+
+import type { EntityId } from './common'
+export type { EntityId } from './common'
+
 /** 电子标签视图对象 */
 export interface ElectronicLabelVo {
   /** 标签ID */
-  id: number
+  id: EntityId
   /** 标签编号 */
   labelNo: string
   /** 标签类型(1-二维码 2-条形码 3-RFID) */
   labelType: number
   /** 物品ID */
-  itemId: number | null
+  itemId: EntityId | null
   /** 物品名称 */
   itemName: string | null
   /** 物品编码 */
@@ -39,7 +43,7 @@ export interface ElectronicLabelVo {
 /** 标签生成DTO */
 export interface LabelGenerateDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 生成数量 */
   count: number
   /** 标签类型(1-二维码 2-条形码 3-RFID) */
@@ -55,7 +59,7 @@ export interface LabelListParams {
   /** 每页数量 */
   size?: number
   /** 物品ID */
-  itemId?: number
+  itemId?: EntityId
   /** 标签类型 */
   labelType?: number
   /** 标签状态 */
@@ -65,7 +69,7 @@ export interface LabelListParams {
 /** 标签绑定DTO */
 export interface LabelBindDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 绑定类型(1-单品对应 2-批次对应) */
   bindType: number
 }
@@ -79,19 +83,19 @@ export interface LabelStatusDto {
 /** 批量打印请求DTO */
 export interface LabelBatchPrintDto {
   /** 标签ID列表 */
-  labelIds: number[]
+  labelIds: EntityId[]
 }
 
 /** 扫码查询结果 */
 export interface LabelScanResultVo {
   /** 标签ID */
-  id: number
+  id: EntityId
   /** 标签编号 */
   labelNo: string
   /** 标签类型 */
   labelType: number
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品名称 */
   itemName: string
   /** 物品编码 */

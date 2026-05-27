@@ -1,9 +1,12 @@
 package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.item.domain.constant.ItemConstants;
 import com.wms.item.domain.dto.CategoryDto;
@@ -35,6 +38,40 @@ public class CategoryServiceImpl implements CategoryService {
     private final WmsCategoryMapper wmsCategoryMapper;
     private final WmsSubCategoryMapper wmsSubCategoryMapper;
     private final CategoryConverter categoryConverter;
+
+    /**
+     * 主类目分页列表
+     *
+     * @param pageParam 分页参数
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<CategoryVo> page(PageParam pageParam) {
+        return page(pageParam.getPage(), pageParam.getSize());
+    }
+
+    /**
+     * 主类目分页列表
+     *
+     * @param page 当前页
+     * @param size 每页数量
+     * @return 分页结果
+     */
+    public PageResult<CategoryVo> page(int page, int size) {
+        Page<WmsCategory> pageData = wmsCategoryMapper.selectPage(
+                new Page<>(page, size),
+                new LambdaQueryWrapper<WmsCategory>()
+                        .orderByAsc(WmsCategory::getSortOrder)
+                        .orderByDesc(WmsCategory::getCreateTime)
+        );
+
+        PageResult<CategoryVo> result = new PageResult<>();
+        result.setRecords(categoryConverter.toVoList(pageData.getRecords()));
+        result.setTotal(pageData.getTotal());
+        result.setPage(page);
+        result.setSize(size);
+        return result;
+    }
 
     /**
      * 查询所有主类目列表(含细分类目)
@@ -156,6 +193,43 @@ public class CategoryServiceImpl implements CategoryService {
                         .orderByDesc(WmsSubCategory::getCreateTime)
         );
         return subCategories.stream().map(categoryConverter::toSubCategoryVo).collect(Collectors.toList());
+    }
+
+    /**
+     * 分页查询指定主类目下的细分类目列表
+     *
+     * @param categoryId 主类目ID
+     * @param pageParam 分页参数
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<SubCategoryVo> pageSubCategories(Long categoryId, PageParam pageParam) {
+        return pageSubCategories(categoryId, pageParam.getPage(), pageParam.getSize());
+    }
+
+    /**
+     * 分页查询指定主类目下的细分类目列表
+     *
+     * @param categoryId 主类目ID
+     * @param page 当前页
+     * @param size 每页数量
+     * @return 分页结果
+     */
+    public PageResult<SubCategoryVo> pageSubCategories(Long categoryId, int page, int size) {
+        Page<WmsSubCategory> pageData = wmsSubCategoryMapper.selectPage(
+                new Page<>(page, size),
+                new LambdaQueryWrapper<WmsSubCategory>()
+                        .eq(WmsSubCategory::getCategoryId, categoryId)
+                        .orderByAsc(WmsSubCategory::getSortOrder)
+                        .orderByDesc(WmsSubCategory::getCreateTime)
+        );
+
+        PageResult<SubCategoryVo> result = new PageResult<>();
+        result.setRecords(categoryConverter.toSubCategoryVoList(pageData.getRecords()));
+        result.setTotal(pageData.getTotal());
+        result.setPage(page);
+        result.setSize(size);
+        return result;
     }
 
     /**

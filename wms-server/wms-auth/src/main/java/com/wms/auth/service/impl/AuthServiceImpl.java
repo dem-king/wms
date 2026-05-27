@@ -16,9 +16,6 @@ import com.wms.auth.enums.AuthOperTypeEnum;
 import com.wms.auth.service.*;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.exception.BizException;
-import com.wms.common.storage.StorageConstants;
-import com.wms.common.storage.StorageStrategy;
-import com.wms.common.util.IpRegionResolver;
 import com.wms.common.util.SecurityUtil;
 import com.wms.common.util.UserAgentParser;
 import com.wms.system.domain.entity.SysUser;
@@ -31,21 +28,21 @@ import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 认证服务实现类
- * 处理登录、登出、令牌刷新、用户资料查询与更新、头像上传等业务逻辑
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -61,18 +58,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserService sysUserService;
     private final SysMenuService sysMenuService;
     private final AuthProperties authProperties;
-    private final StorageStrategy storageStrategy;
-    private final IpRegionResolver ipRegionResolver;
 
-    /**
-     * 用户登录
-     * 依次执行: 限流校验→验证码校验→锁定校验→密码解密→用户校验→权限加载→令牌生成→会话创建→登录记录
-     * 
-     * @param req 登录请求
-     * @param clientIp 客户端IP
-     * @param userAgent 用户代理
-     * @return 登录响应(含令牌、权限、菜单)
-     */
     @Override
     public LoginResp login(LoginReq req, String clientIp, String userAgent) {
         rateLimiterService.tryAcquire(clientIp);
@@ -160,12 +146,6 @@ public class AuthServiceImpl implements AuthService {
         return resp;
     }
 
-    /**
-     * 用户登出
-     * 撤销令牌和所有关联令牌，记录操作日志
-     * 
-     * @param accessToken 访问令牌
-     */
     @Override
     public void logout(String accessToken) {
         try {
@@ -188,23 +168,11 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    /**
-     * 刷新令牌
-     * 
-     * @param req 刷新令牌请求
-     * @return 新的令牌对
-     */
     @Override
     public TokenResp refreshToken(RefreshTokenReq req) {
         return tokenService.refreshToken(req.getRefreshToken());
     }
 
-    /**
-     * 获取当前登录用户资料
-     * 包括用户信息、权限、角色和最近登录信息
-     * 
-     * @return 用户资料VO
-     */
     @Override
     public AuthProfileVo getCurrentProfile() {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -227,12 +195,6 @@ public class AuthServiceImpl implements AuthService {
         return profile;
     }
 
-    /**
-     * 更新当前登录用户资料
-     * 
-     * @param dto 资料更新参数
-     * @return 更新后的用户资料VO
-     */
     @Override
     public AuthProfileVo updateCurrentProfile(UpdateProfileDto dto) {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -261,13 +223,6 @@ public class AuthServiceImpl implements AuthService {
         return profile;
     }
 
-    /**
-     * 上传当前用户头像
-     * 通过StorageStrategy统一上传
-     * 
-     * @param file 头像文件
-     * @return 头像上传结果VO
-     */
     @Override
     public UploadAvatarVo uploadCurrentUserAvatar(MultipartFile file) {
         Long userId = SecurityUtil.getCurrentUserId();
@@ -278,45 +233,41 @@ public class AuthServiceImpl implements AuthService {
         validateAvatarFile(file);
         String extension = resolveFileExtension(file.getOriginalFilename(), file.getContentType());
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
-        String objectName = userId + "/" + storedFileName;
+        Path userAvatarDir = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId));
+        Path targetPath = userAvatarDir.resolve(storedFileName);
 
-        // 通过StorageStrategy统一上传，自动适配本地/MinIO存储
-        String url;
         try {
-            url = storageStrategy.upload(StorageConstants.BUCKET_AVATARS, objectName,
-                    file.getInputStream(), file.getContentType(), file.getSize());
-        } catch (Exception e) {
-            throw new BizException("头像上传失败: " + e.getMessage());
+            Files.createDirectories(userAvatarDir);
+            file.transferTo(targetPath);
+        } catch (IOException e) {
+            throw new BizException("头像上传失败");
         }
 
         UploadAvatarVo uploadAvatarVo = new UploadAvatarVo();
-        uploadAvatarVo.setAvatarUrl(url);
+        uploadAvatarVo.setAvatarUrl(authProperties.getAvatarUrlPrefix() + "/" + userId + "/" + storedFileName);
         return uploadAvatarVo;
     }
 
-    /**
-     * 加载头像资源
-     * 
-     * @param userId 用户ID
-     * @param fileName 文件名
-     * @return 头像资源
-     */
     @Override
     public Resource loadAvatarResource(Long userId, String fileName) {
-        // 通过StorageStrategy统一读取，支持本地/MinIO存储
-        String objectName = userId + "/" + fileName;
-        InputStream is = storageStrategy.download(StorageConstants.BUCKET_AVATARS, objectName);
-        return new InputStreamResource(is);
+        Path avatarPath = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId), fileName).normalize();
+        try {
+            Resource resource = new UrlResource(avatarPath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new BizException("头像不存在");
+            }
+            return resource;
+        } catch (MalformedURLException e) {
+            throw new BizException("头像不存在");
+        }
     }
 
     private void recordLoginSuccess(String username, Long userId, String ip, String ua) {
         UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
-        String loginLocation = ipRegionResolver.resolve(ip);
         authAuditService.recordLoginLog(
                 userId,
                 username,
                 ip,
-                loginLocation,
                 parsedUserAgent.browser(),
                 parsedUserAgent.os(),
                 SysLogConstants.LOGIN_STATUS_SUCCESS,
@@ -326,12 +277,10 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordLoginFail(String username, Long userId, String ip, String ua, String reason) {
         UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
-        String loginLocation = ipRegionResolver.resolve(ip);
         authAuditService.recordLoginLog(
                 userId,
                 username,
                 ip,
-                loginLocation,
                 parsedUserAgent.browser(),
                 parsedUserAgent.os(),
                 SysLogConstants.LOGIN_STATUS_FAIL,

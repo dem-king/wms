@@ -253,7 +253,7 @@ import LabelBind from './components/LabelBind.vue'
 import LabelPrintComponent from './components/LabelPrint.vue'
 import { getLabelList, getLabel, generateLabels, updateLabelStatus, batchPrintLabels, getIdleLabels } from '@/api/item/label'
 import { searchItem } from '@/api/item/item'
-import type { ElectronicLabelVo, LabelGenerateDto, LabelStatusDto } from '@/types/label'
+import type { EntityId, ElectronicLabelVo, LabelGenerateDto, LabelStatusDto } from '@/types/label'
 import type { WmsItemVo } from '@/types/item'
 import { resolveLabelCodeDisplay } from './code-display'
 import { syncPrintedLabelStatus } from './print-status-sync'
@@ -297,7 +297,7 @@ const queryParams = reactive({
   size: 20,
   labelType: undefined as number | undefined,
   labelStatus: undefined as number | undefined,
-  itemId: undefined as number | undefined,
+  itemId: undefined as EntityId | undefined,
 })
 
 /** 远程搜索物品(搜索栏) */
@@ -332,7 +332,7 @@ function handleReset() {
 }
 
 /** 多选 */
-const selectedIds = ref<number[]>([])
+const selectedIds = ref<EntityId[]>([])
 const selectedLabels = ref<ElectronicLabelVo[]>([])
 
 function handleSelectionChange(rows: ElectronicLabelVo[]) {
@@ -348,7 +348,7 @@ const generateItemLoading = ref(false)
 const generateItemOptions = ref<WmsItemVo[]>([])
 
 const generateForm = reactive<LabelGenerateDto>({
-  itemId: undefined as unknown as number,
+  itemId: undefined as unknown as EntityId,
   count: 1,
   labelType: 1,
   bindType: 1,
@@ -397,7 +397,7 @@ function handleGenerateClose() {
 
 /** 绑定弹窗 */
 const bindVisible = ref(false)
-const bindLabelId = ref(0)
+const bindLabelId = ref<EntityId>('')
 
 function handleBind(row: ElectronicLabelVo) {
   bindLabelId.value = row.id

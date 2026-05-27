@@ -71,7 +71,7 @@ import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getMachineSpareList, addMachineSpare, updateMachineSpare, deleteMachineSpare } from '@/api/item/machineSpare'
 import { getItemList } from '@/api/item/item'
-import type { MachineSpareVo, MachineSpareDto } from '@/types/business'
+import type { EntityId, MachineSpareVo, MachineSpareDto } from '@/types/business'
 import type { WmsItemVo } from '@/types/item'
 
 const loading = ref(false)
@@ -88,12 +88,12 @@ const formVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
-const editingId = ref<number | null>(null)
+const editingId = ref<EntityId | null>(null)
 
 const form = reactive<{
   machineName: string
   machineCode: string
-  itemId: number | undefined
+  itemId: EntityId | undefined
   quantity: number
   remark: string
 }>({
@@ -171,7 +171,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await ElMessageBox.confirm('确定删除该关联记录吗？', '提示', { type: 'warning' })
   await deleteMachineSpare(id)
   ElMessage.success('删除成功')

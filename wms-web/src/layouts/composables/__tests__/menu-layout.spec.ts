@@ -32,10 +32,10 @@ describe('resolveLayoutFlags', () => {
 describe('buildSplitMenuState', () => {
   const tree = [
     {
-      id: 1,
+      id: '1',
       menuName: '系统管理',
       menuCode: 'system',
-      parentId: 0,
+      parentId: '0',
       menuType: 1,
       path: 'system',
       component: '',
@@ -48,10 +48,10 @@ describe('buildSplitMenuState', () => {
       permCode: '',
       children: [
         {
-          id: 2,
+          id: '2',
           menuName: '用户管理',
           menuCode: 'user',
-          parentId: 1,
+          parentId: '1',
           menuType: 2,
           path: 'user',
           component: '',
@@ -71,26 +71,26 @@ describe('buildSplitMenuState', () => {
   it('finds the active root menu from nested child routes', () => {
     const state = buildSplitMenuState(tree, '/system/user')
 
-    expect(state.activeRootMenu?.id).toBe(1)
+    expect(state.activeRootMenu?.id).toBe('1')
     expect(state.sidebarMenus).toHaveLength(1)
     expect(state.sidebarBasePath).toBe('/system')
   })
 
   it('keeps active root menu when clicking a root item with children', () => {
-    const state = buildSplitMenuState(tree, '/system/user', 1)
+    const state = buildSplitMenuState(tree, '/system/user', '1')
 
-    expect(state.activeRootMenu?.id).toBe(1)
-    expect(state.sidebarMenus[0]?.id).toBe(2)
+    expect(state.activeRootMenu?.id).toBe('1')
+    expect(state.sidebarMenus[0]?.id).toBe('2')
     expect(state.sidebarBasePath).toBe('/system')
   })
 })
 
 describe('isRootMenuHighlighted', () => {
   const rootMenu = {
-    id: 10,
+    id: '10',
     menuName: '库存管理',
     menuCode: 'stock',
-    parentId: 0,
+    parentId: '0',
     menuType: 1,
     path: 'stock',
     component: '',
@@ -103,10 +103,10 @@ describe('isRootMenuHighlighted', () => {
     permCode: '',
     children: [
       {
-        id: 11,
+        id: '11',
         menuName: '库存台账',
         menuCode: 'ledger',
-        parentId: 10,
+        parentId: '10',
         menuType: 2,
         path: 'ledger',
         component: '',
@@ -127,7 +127,7 @@ describe('isRootMenuHighlighted', () => {
   })
 
   it('keeps root menu highlighted when shared active root menu id matches', () => {
-    expect(isRootMenuHighlighted(rootMenu, '/other/path', 10)).toBe(true)
+    expect(isRootMenuHighlighted(rootMenu, '/other/path', '10')).toBe(true)
   })
 })
 

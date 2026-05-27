@@ -39,7 +39,7 @@ public class MultiApprovalStrategy implements ApprovalStrategy {
                 context.getBizId(), context.getBizType(), context.getNodes().size());
 
         List<WmsApprovalNode> nodes = context.getNodes();
-        if (nodes.size() < ApprovalConstants.RESULT_REJECTED) {
+        if (nodes.size() < ApprovalConstants.MIN_MULTI_STEP_COUNT) {
             throw new BizException("多级审批配置应至少有2个审批节点，当前有" + nodes.size() + "个");
         }
 
@@ -49,7 +49,7 @@ public class MultiApprovalStrategy implements ApprovalStrategy {
         order.setStatus(ApprovalConstants.STATUS_APPROVING);
         order.setApplicantId(context.getApplicantId());
         // 从第1个节点开始审批
-        order.setCurrentStep(ApprovalConstants.STATUS_APPROVED);
+        order.setCurrentStep(ApprovalConstants.FIRST_STEP_ORDER);
         order.setTotalSteps(nodes.size());
         wmsApprovalOrderMapper.insert(order);
 

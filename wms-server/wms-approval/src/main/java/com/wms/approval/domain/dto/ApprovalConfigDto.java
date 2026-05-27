@@ -38,6 +38,14 @@ public class ApprovalConfigDto {
     @Schema(description = "备注")
     private String remark;
 
+    /** 审批超时阈值(小时) */
+    @Schema(description = "审批超时阈值(小时)")
+    private Integer timeoutHours;
+
+    /** 超时处理方式(1-自动提醒 2-自动取消) */
+    @Schema(description = "超时处理方式(1-自动提醒 2-自动取消)")
+    private Integer timeoutAction;
+
     /** 审批节点列表 */
     @Schema(description = "审批节点列表")
     @Valid

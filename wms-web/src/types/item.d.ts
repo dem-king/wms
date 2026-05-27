@@ -10,10 +10,16 @@ export interface WmsCategoryVo {
   categoryCode: string
   /** 排序号 */
   sortOrder: number
-  /** 状态(0-禁用 1-启用) */
-  status: number
+  /** 标识颜色 */
+  categoryColor?: string
+  /** 图标 */
+  icon?: string
+  /** 是否消耗品(0-否 1-是) */
+  isConsumable?: number
   /** 创建时间 */
   createTime: string
+  /** 细分类目列表 */
+  subCategories?: WmsSubCategoryVo[]
 }
 
 /** 主类目新增/编辑DTO */
@@ -24,8 +30,12 @@ export interface WmsCategoryDto {
   categoryCode: string
   /** 排序号 */
   sortOrder: number
-  /** 状态(0-禁用 1-启用) */
-  status: number
+  /** 标识颜色 */
+  categoryColor?: string
+  /** 图标 */
+  icon?: string
+  /** 是否消耗品(0-否 1-是) */
+  isConsumable?: number
 }
 
 /** 细分类目视图对象 */
@@ -40,24 +50,18 @@ export interface WmsSubCategoryVo {
   subCategoryCode: string
   /** 排序号 */
   sortOrder: number
-  /** 状态(0-禁用 1-启用) */
-  status: number
   /** 创建时间 */
   createTime: string
 }
 
 /** 细分类目新增/编辑DTO */
 export interface WmsSubCategoryDto {
-  /** 主类目ID */
-  categoryId: number
   /** 细分类目名称 */
   subCategoryName: string
   /** 细分类目编码 */
   subCategoryCode: string
   /** 排序号 */
   sortOrder: number
-  /** 状态(0-禁用 1-启用) */
-  status: number
 }
 
 /** 标签视图对象 */
@@ -66,14 +70,14 @@ export interface WmsTagVo {
   id: number
   /** 标签名称 */
   tagName: string
-  /** 标签编码 */
-  tagCode: string
   /** 标签颜色 */
-  color: string
+  tagColor?: string
   /** 描述 */
-  description: string
-  /** 状态(0-禁用 1-启用) */
-  status: number
+  tagDesc?: string
+  /** 关联范围(0-全局 1-主类目 2-细分类目 3-具体物品) */
+  scopeType?: number
+  /** 关联范围对象ID */
+  scopeId?: number
   /** 创建时间 */
   createTime: string
 }
@@ -82,14 +86,14 @@ export interface WmsTagVo {
 export interface WmsTagDto {
   /** 标签名称 */
   tagName: string
-  /** 标签编码 */
-  tagCode: string
   /** 标签颜色 */
-  color: string
+  tagColor?: string
   /** 描述 */
-  description: string
-  /** 状态(0-禁用 1-启用) */
-  status: number
+  tagDesc?: string
+  /** 关联范围(0-全局 1-主类目 2-细分类目 3-具体物品) */
+  scopeType?: number
+  /** 关联范围对象ID */
+  scopeId?: number
 }
 
 /** 物品视图对象 */

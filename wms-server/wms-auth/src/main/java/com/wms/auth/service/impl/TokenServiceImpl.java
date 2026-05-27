@@ -21,10 +21,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 令牌服务实现类
- * 处理JWT令牌的生成、解析、验证、撤销、刷新及会话管理
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,14 +34,6 @@ public class TokenServiceImpl implements TokenService {
         return Keys.hmacShaKeyFor(Arrays.copyOf(keyBytes, TokenConstants.HMAC_KEY_LENGTH));
     }
 
-    /**
-     * 生成访问令牌和刷新令牌对
-     * 
-     * @param userId 用户ID
-     * @param username 用户名
-     * @param roles 角色列表
-     * @return 令牌对响应
-     */
     @Override
     public TokenResp generateTokenPair(Long userId, String username, List<String> roles) {
         Instant now = Instant.now();
@@ -66,10 +54,23 @@ public class TokenServiceImpl implements TokenService {
                 .subject(String.valueOf(userId))
                 .id(refreshJti)
                 .claim("type", "refresh")
+                .claim("username", username)
+                .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(authProperties.getRefreshTokenExpire())))
                 .signWith(getSigningKey())
                 .compact();
+
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    AuthRedisKey.REFRESH_PREFIX + userId,
+                    refreshToken,
+                    authProperties.getRefreshTokenExpire(),
+                    TimeUnit.SECONDS
+            );
+        } catch (Exception e) {
+            log.warn("保存Refresh Token失败, userId={}: {}", userId, e.getMessage());
+        }
 
         TokenResp resp = new TokenResp();
         resp.setAccessToken(accessToken);
@@ -79,13 +80,6 @@ public class TokenServiceImpl implements TokenService {
         return resp;
     }
 
-    /**
-     * 解析JWT令牌
-     * 
-     * @param token JWT令牌字符串
-     * @return Claims声明
-     * @throws BizException 令牌过期或无效时抛出
-     */
     @Override
     public Claims parseToken(String token) {
         try {
@@ -101,12 +95,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 校验令牌有效性(签名+撤销状态)
-     * 
-     * @param token JWT令牌字符串
-     * @return 是否有效
-     */
     @Override
     public boolean validateToken(String token) {
         try {
@@ -121,13 +109,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 判断令牌是否已被撤销
-     * Redis不可用时降级为仅签名校验
-     * 
-     * @param tokenId 令牌唯一标识(jti)
-     * @return 是否已撤销
-     */
     @Override
     public boolean isTokenRevoked(String tokenId) {
         try {
@@ -139,12 +120,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 撤销指定访问令牌
-     * 将令牌jti写入Redis并设置剩余过期时间
-     * 
-     * @param accessToken 访问令牌
-     */
     @Override
     public void revokeToken(String accessToken) {
         try {
@@ -162,13 +137,29 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 撤销用户所有令牌(删除会话)
-     * 
-     * @param userId 用户ID
-     */
     @Override
     public void revokeAllTokens(Long userId) {
+        String refreshToken = stringRedisTemplate.opsForValue().get(AuthRedisKey.REFRESH_PREFIX + userId);
+        if (refreshToken != null) {
+            try {
+                Claims refreshClaims = parseToken(refreshToken);
+                long remainingSeconds = refreshClaims.getExpiration().getTime() / 1000
+                        - System.currentTimeMillis() / 1000;
+                if (remainingSeconds > 0) {
+                    stringRedisTemplate.opsForValue().set(
+                            AuthRedisKey.TOKEN_PREFIX + refreshClaims.getId(),
+                            TokenConstants.REVOKE_FLAG,
+                            remainingSeconds,
+                            TimeUnit.SECONDS
+                    );
+                }
+            } catch (BizException e) {
+                log.debug("撤销Refresh Token时解析失败, userId={}: {}", userId, e.getMessage());
+            } finally {
+                stringRedisTemplate.delete(AuthRedisKey.REFRESH_PREFIX + userId);
+            }
+        }
+
         String sessionKey = AuthRedisKey.SESSION_PREFIX + userId;
         String sessionData = stringRedisTemplate.opsForValue().get(sessionKey);
         if (sessionData != null) {
@@ -176,15 +167,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 创建用户会话
-     * 将会话信息存入Redis
-     * 
-     * @param userId 用户ID
-     * @param accessToken 访问令牌
-     * @param clientIp 客户端IP
-     * @param userAgent 用户代理
-     */
     @Override
     public void createSession(Long userId, String accessToken, String clientIp, String userAgent) {
         String sessionKey = AuthRedisKey.SESSION_PREFIX + userId;
@@ -198,11 +180,6 @@ public class TokenServiceImpl implements TokenService {
                 authProperties.getAccessTokenExpire(), TimeUnit.SECONDS);
     }
 
-    /**
-     * 踢出用户旧会话
-     * 
-     * @param userId 用户ID
-     */
     @Override
     public void kickOutOldSession(Long userId) {
         String sessionKey = AuthRedisKey.SESSION_PREFIX + userId;
@@ -212,13 +189,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 使用刷新令牌获取新的令牌对
-     * 校验刷新令牌类型和撤销状态，撤销旧刷新令牌
-     * 
-     * @param refreshToken 刷新令牌
-     * @return 新的令牌对响应
-     */
     @Override
     public TokenResp refreshToken(String refreshToken) {
         Claims claims = parseToken(refreshToken);
@@ -249,13 +219,6 @@ public class TokenServiceImpl implements TokenService {
         return generateTokenPair(userId, username != null ? username : "", roles);
     }
 
-    /**
-     * 判断令牌是否需要续期
-     * 剩余时间小于续期阈值时返回true
-     * 
-     * @param accessToken 访问令牌
-     * @return 是否需要续期
-     */
     @Override
     public boolean renewTokenIfNeeded(String accessToken) {
         try {
@@ -269,12 +232,6 @@ public class TokenServiceImpl implements TokenService {
         }
     }
 
-    /**
-     * 校验令牌并返回令牌信息
-     * 
-     * @param token JWT令牌字符串
-     * @return 令牌校验结果VO
-     */
     @Override
     public TokenValidateResp validateTokenInfo(String token) {
         TokenValidateResp resp = new TokenValidateResp();

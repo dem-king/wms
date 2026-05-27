@@ -1,8 +1,11 @@
 package com.wms.item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.item.domain.constant.TagConstants;
 import com.wms.item.domain.dto.TagDto;
@@ -39,6 +42,38 @@ public class TagServiceImpl implements TagService {
     private final WmsItemMapper wmsItemMapper;
     private final TagConverter tagConverter;
     private final ItemConverter itemConverter;
+
+    /**
+     * 标签分页列表
+     *
+     * @param pageParam 分页参数
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<TagVo> page(PageParam pageParam) {
+        return page(pageParam.getPage(), pageParam.getSize());
+    }
+
+    /**
+     * 标签分页列表
+     *
+     * @param page 当前页
+     * @param size 每页数量
+     * @return 分页结果
+     */
+    public PageResult<TagVo> page(int page, int size) {
+        Page<WmsTag> pageData = wmsTagMapper.selectPage(
+                new Page<>(page, size),
+                new LambdaQueryWrapper<WmsTag>().orderByDesc(WmsTag::getCreateTime)
+        );
+
+        PageResult<TagVo> result = new PageResult<>();
+        result.setRecords(tagConverter.toVoList(pageData.getRecords()));
+        result.setTotal(pageData.getTotal());
+        result.setPage(page);
+        result.setSize(size);
+        return result;
+    }
 
     /**
      * 查询所有标签列表

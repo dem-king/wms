@@ -86,7 +86,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Sort } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getDeptList, getDeptTree, addDept, updateDept, deleteDept } from '@/api/system/dept'
-import type { SysDeptVo } from '@/types/system'
+import type { EntityId, SysDeptVo } from '@/types/system'
 
 const loading = ref(false)
 const deptTree = ref<SysDeptVo[]>([])
@@ -99,8 +99,8 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
 const form = reactive({
-  id: undefined as number | undefined,
-  parentId: 0,
+  id: undefined as EntityId | undefined,
+  parentId: '0',
   deptName: '',
   deptCode: '',
   leader: '',
@@ -118,7 +118,7 @@ async function loadDeptTree() {
   try {
     const [listRes, treeRes] = await Promise.all([getDeptList(), getDeptTree()])
     deptTree.value = listRes.data
-    deptTreeForSelect.value = [{ id: 0, deptName: '根部门', deptCode: '', parentId: 0, leader: '', sortOrder: 0, status: 1, createTime: '', children: treeRes.data || [] } as SysDeptVo]
+    deptTreeForSelect.value = [{ id: '0', deptName: '根部门', deptCode: '', parentId: '0', leader: '', sortOrder: 0, status: 1, createTime: '', children: treeRes.data || [] } as SysDeptVo]
   } finally {
     loading.value = false
   }
@@ -129,9 +129,9 @@ function toggleExpand() {
   loadDeptTree()
 }
 
-function handleAdd(parentId?: number) {
+function handleAdd(parentId?: EntityId) {
   isEdit.value = false
-  form.parentId = parentId ?? 0
+  form.parentId = parentId ?? '0'
   dialogVisible.value = true
 }
 
@@ -159,7 +159,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteDept(id)
   ElMessage.success('删除成功')
   loadDeptTree()
@@ -168,7 +168,7 @@ async function handleDelete(id: number) {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
-  Object.assign(form, { id: undefined, parentId: 0, deptName: '', deptCode: '', leader: '', sortOrder: 0, status: 1 })
+  Object.assign(form, { id: undefined, parentId: '0', deptName: '', deptCode: '', leader: '', sortOrder: 0, status: 1 })
 }
 
 onMounted(() => {

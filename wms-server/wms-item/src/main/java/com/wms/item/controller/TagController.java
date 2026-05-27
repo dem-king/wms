@@ -2,6 +2,8 @@ package com.wms.item.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.item.domain.dto.TagDto;
 import com.wms.item.domain.vo.ItemVo;
@@ -31,10 +33,21 @@ public class TagController {
     private final TagService tagService;
 
     /**
-     * 标签列表
+     * 标签分页列表
      */
     @Operation(summary = "标签列表")
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<TagVo>> page(PageParam pageParam) {
+        return R.ok(tagService.page(pageParam));
+    }
+
+    /**
+     * 标签列表
+     */
+    @Operation(summary = "标签列表")
+    @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     @DataScope
     public R<List<TagVo>> listAll() {

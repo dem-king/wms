@@ -12,6 +12,7 @@ import com.wms.approval.domain.vo.ApprovalConfigVo;
 import com.wms.approval.mapper.WmsApprovalConfigMapper;
 import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.service.ApprovalConfigService;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
@@ -123,10 +124,12 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     public ApprovalConfigVo createConfig(ApprovalConfigDto dto) {
         WmsApprovalConfig config = new WmsApprovalConfig();
         config.setBizType(dto.getBizType());
-        config.setEnabled(dto.getEnabled() != null ? dto.getEnabled() : ApprovalConstants.STATUS_APPROVED);
-        config.setAutoApprove(dto.getAutoApprove() != null ? dto.getAutoApprove() : ApprovalConstants.STATUS_PENDING);
+        config.setEnabled(dto.getEnabled() != null ? dto.getEnabled() : BizConstants.STATUS_ENABLED);
+        config.setAutoApprove(dto.getAutoApprove() != null ? dto.getAutoApprove() : BizConstants.STATUS_DISABLED);
         config.setConfigName(dto.getConfigName());
         config.setRemark(dto.getRemark());
+        config.setTimeoutHours(dto.getTimeoutHours() != null ? dto.getTimeoutHours() : ApprovalConstants.DEFAULT_TIMEOUT_HOURS);
+        config.setTimeoutAction(dto.getTimeoutAction() != null ? dto.getTimeoutAction() : ApprovalConstants.TIMEOUT_ACTION_REMIND);
         wmsApprovalConfigMapper.insert(config);
 
         // 保存审批节点配置
@@ -177,6 +180,12 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         }
         config.setConfigName(dto.getConfigName());
         config.setRemark(dto.getRemark());
+        if (dto.getTimeoutHours() != null) {
+            config.setTimeoutHours(dto.getTimeoutHours());
+        }
+        if (dto.getTimeoutAction() != null) {
+            config.setTimeoutAction(dto.getTimeoutAction());
+        }
         wmsApprovalConfigMapper.updateById(config);
 
         // 逻辑删除原有节点

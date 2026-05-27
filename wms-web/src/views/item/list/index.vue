@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
       <el-form-item label="物品编码">
         <el-input v-model="queryParams.itemCode" placeholder="请输入物品编码" clearable @keyup.enter="handleQuery" />
@@ -40,7 +40,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
       <el-table-column label="图片" width="70">
         <template #default="{ row }">
           <el-image
@@ -76,7 +77,8 @@
       </el-table-column>
     </el-table>
 
-    <el-pagination
+      <div class="pagination-container">
+        <el-pagination
       v-model:current-page="queryParams.page"
       v-model:page-size="queryParams.size"
       :total="total"
@@ -86,6 +88,8 @@
       @size-change="handleQuery"
       @current-change="handleQuery"
     />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑物品' : '新增物品'" width="750px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -217,6 +221,7 @@ import { getSupplierList } from '@/api/system/supplier'
 import type { WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
 import type { SysSupplierVo } from '@/types/system'
 import { useFileUpload } from '@/hooks/useFileUpload'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<WmsItemVo[]>([])
@@ -269,7 +274,7 @@ async function handleQuery() {
   try {
     const res = await getItemList(queryParams)
     tableData.value = res.data.records
-    total.value = res.data.total
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -281,7 +286,7 @@ async function handleQuickSearch() {
   try {
     const res = await searchItem(quickSearchKeyword.value.trim())
     tableData.value = res.data
-    total.value = res.data.length
+    total.value = normalizePageTotal(res.data.length)
   } finally {
     loading.value = false
   }
@@ -405,8 +410,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -418,7 +438,6 @@ onMounted(() => {
 }
 
 .pagination {
-  margin-top: 16px;
   justify-content: flex-end;
 }
 

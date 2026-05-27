@@ -4,10 +4,13 @@ import type {
   ApprovalConfigVo,
   ApprovalConfigDto,
   ApprovalActionDto,
+  ApprovalConfigQuery,
+  ApprovalOrderQuery,
+  BizType,
 } from '@/types/business'
-import type { PageResult, PageParams } from '@/types/system'
+import type { PageResult } from '@/types/system'
 
-export function getApprovalOrders(params?: PageParams & { bizType?: string; status?: string }) {
+export function getApprovalOrders(params: ApprovalOrderQuery) {
   return get<PageResult<ApprovalOrderVo>>('/approval', params as unknown as Record<string, unknown>)
 }
 
@@ -15,7 +18,7 @@ export function getApprovalOrder(id: number) {
   return get<ApprovalOrderVo>(`/approval/${id}`)
 }
 
-export function getApprovalByBiz(bizId: number, bizType: string) {
+export function getApprovalByBiz(bizId: number, bizType: BizType) {
   return get<ApprovalOrderVo>('/approval/biz', { bizId, bizType })
 }
 
@@ -31,7 +34,7 @@ export function revokeOrder(id: number) {
   return post<void>(`/approval/${id}/revoke`)
 }
 
-export function getApprovalConfigs(params?: PageParams) {
+export function getApprovalConfigs(params: ApprovalConfigQuery) {
   return get<PageResult<ApprovalConfigVo>>('/approval/config', params as unknown as Record<string, unknown>)
 }
 

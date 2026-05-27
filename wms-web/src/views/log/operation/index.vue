@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, onActivated } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { getOperLogPage } from '@/api/system/log'
 import type { SysOperLogVo } from '@/types/system-log'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<SysOperLogVo[]>([])
@@ -33,7 +34,7 @@ async function handleQuery() {
     const res = await getOperLogPage(params)
     const data = res.data as any
     tableData.value = Array.isArray(data) ? data : (data?.records || [])
-    total.value = Array.isArray(data) ? data.length : (data?.total || 0)
+    total.value = normalizePageTotal(Array.isArray(data) ? data.length : data?.total)
   } finally { loading.value = false }
 }
 
@@ -72,7 +73,7 @@ onActivated(() => { handleQuery() })
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :inline="true" class="search-form">
       <el-form-item label="操作模块">
         <el-input v-model="queryParams.module" placeholder="请输入模块" clearable />
@@ -92,7 +93,8 @@ onActivated(() => { handleQuery() })
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="tableData" border>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
       <el-table-column prop="operatorName" label="操作人" min-width="90" />
       <el-table-column prop="module" label="操作模块" min-width="100" />
       <el-table-column prop="type" label="操作类型" min-width="80" />
@@ -113,7 +115,8 @@ onActivated(() => { handleQuery() })
       </el-table-column>
     </el-table>
 
-    <el-pagination
+      <div class="pagination-container">
+        <el-pagination
       v-model:current-page="queryParams.page"
       v-model:page-size="queryParams.size"
       :total="total"
@@ -122,6 +125,8 @@ onActivated(() => { handleQuery() })
       class="pagination"
       @change="handlePageChange"
     />
+      </div>
+    </div>
 
     <el-dialog v-model="detailVisible" title="操作日志详情" width="700px">
       <el-descriptions :column="2" border v-if="currentRow">
@@ -148,9 +153,28 @@ onActivated(() => { handleQuery() })
 </template>
 
 <style scoped lang="scss">
-.app-container { padding: 20px; }
+.app-container.list-page {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
+}
 .search-form { margin-bottom: 16px; }
-.pagination { margin-top: 16px; justify-content: flex-end; }
+.pagination {
+  justify-content: flex-end;
+}
 .json-pre { max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 12px; margin: 0; }
 .error-text { color: var(--el-color-danger); }
 </style>

@@ -2,6 +2,7 @@ import type { UserInfoVO } from '@/types/auth'
 
 const TOKEN_KEY = 'wms_token'
 const REFRESH_TOKEN_KEY = 'wms_refresh_token'
+const TOKEN_EXPIRES_AT_KEY = 'wms_access_token_expires_at'
 const USER_INFO_KEY = 'wms_user_info'
 const PERMISSIONS_KEY = 'wms_permissions'
 const ROLES_KEY = 'wms_roles'
@@ -28,6 +29,29 @@ export function setRefreshToken(token: string) {
 
 export function removeRefreshToken() {
   localStorage.removeItem(REFRESH_TOKEN_KEY)
+}
+
+export function getTokenExpiresAt(): number | null {
+  const value = localStorage.getItem(TOKEN_EXPIRES_AT_KEY)
+  if (!value) {
+    return null
+  }
+
+  const expiresAt = Number(value)
+  if (Number.isNaN(expiresAt) || expiresAt <= 0) {
+    localStorage.removeItem(TOKEN_EXPIRES_AT_KEY)
+    return null
+  }
+
+  return expiresAt
+}
+
+export function setTokenExpiresAt(expiresAt: number) {
+  localStorage.setItem(TOKEN_EXPIRES_AT_KEY, String(expiresAt))
+}
+
+export function removeTokenExpiresAt() {
+  localStorage.removeItem(TOKEN_EXPIRES_AT_KEY)
 }
 
 export function getStoredUserInfo(): UserInfoVO | null {
@@ -57,6 +81,7 @@ export function setStoredRoles(roles: string[]) {
 export function clearAuth() {
   removeToken()
   removeRefreshToken()
+  removeTokenExpiresAt()
   localStorage.removeItem(USER_INFO_KEY)
   localStorage.removeItem(PERMISSIONS_KEY)
   localStorage.removeItem(ROLES_KEY)

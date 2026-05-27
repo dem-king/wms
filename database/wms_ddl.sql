@@ -1,9 +1,9 @@
 -- ============================================================
 -- 备品备件库房管理平台 - DDL建表脚本
--- 数据库: MySQL 8.0+
+-- 数据库: MySQL 8.0+（增量脚本若使用 ADD COLUMN IF NOT EXISTS，需 MySQL 8.0.29+）
 -- 字符集: utf8mb4
 -- 约定:
---   1. 所有表主键自增
+--   1. 所有表主键使用雪花ID，不使用自增
 --   2. 所有表逻辑删除(del_flag: 0-正常 1-已删除),禁止物理删除
 --   4. 所有表包含创建时间/创建人/更新时间/更新人
 -- ============================================================
@@ -226,6 +226,10 @@ CREATE TABLE `wms_warehouse` (
     `length`          DECIMAL(10,2) DEFAULT NULL           COMMENT '长度(米)',
     `width`           DECIMAL(10,2) DEFAULT NULL           COMMENT '宽度(米)',
     `height`          DECIMAL(10,2) DEFAULT NULL           COMMENT '高度(米)',
+    `layout_width`    INT          DEFAULT NULL            COMMENT '布局画布宽度',
+    `layout_height`   INT          DEFAULT NULL            COMMENT '布局画布高度',
+    `layout_scale`    DECIMAL(10,2) DEFAULT NULL           COMMENT '布局比例尺',
+    `layout_background_version` VARCHAR(32) DEFAULT NULL   COMMENT '底图版本号',
     `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
     `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -248,6 +252,10 @@ CREATE TABLE `wms_area` (
     `area_color`      VARCHAR(20)  DEFAULT NULL            COMMENT '区域标识颜色',
     `coord_x`         DECIMAL(10,2) DEFAULT NULL           COMMENT 'X坐标(2D图形用)',
     `coord_y`         DECIMAL(10,2) DEFAULT NULL           COMMENT 'Y坐标(2D图形用)',
+    `shape_type`      VARCHAR(16)  DEFAULT NULL            COMMENT '区域形状(rect/polygon)',
+    `polygon_points`  TEXT         DEFAULT NULL            COMMENT '多边形点位JSON',
+    `label_x`         INT          DEFAULT NULL            COMMENT '标题X坐标',
+    `label_y`         INT          DEFAULT NULL            COMMENT '标题Y坐标',
     `sort_order`      INT          DEFAULT 0               COMMENT '排序号',
     `status`          TINYINT      DEFAULT 1               COMMENT '状态(1-启用 0-禁用)',
     `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
@@ -275,6 +283,9 @@ CREATE TABLE `wms_cabinet` (
     `cols`            INT          DEFAULT 1               COMMENT '列数',
     `position_x`      INT          DEFAULT NULL            COMMENT 'X坐标(可视化位置)',
     `position_y`      INT          DEFAULT NULL            COMMENT 'Y坐标(可视化位置)',
+    `layout_width`    INT          DEFAULT NULL            COMMENT '渲染宽度',
+    `layout_height`   INT          DEFAULT NULL            COMMENT '渲染高度',
+    `rotation`        INT          DEFAULT 0               COMMENT '旋转角度',
     `sort_order`      INT          DEFAULT 0               COMMENT '排序号',
     `status`          TINYINT      DEFAULT 1               COMMENT '状态(1-启用 0-禁用)',
     `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
@@ -310,6 +321,38 @@ CREATE TABLE `wms_bin` (
     UNIQUE KEY `uk_bin_code` (`cabinet_id`, `bin_code`, `del_flag`),
     KEY `idx_cabinet_id` (`cabinet_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库位表';
+
+-- 15. 布局元素表
+DROP TABLE IF EXISTS `wms_layout_element`;
+CREATE TABLE `wms_layout_element` (
+    `id`              BIGINT       NOT NULL COMMENT '主键',
+    `warehouse_id`    BIGINT       NOT NULL                COMMENT '所属库房ID',
+    `area_id`         BIGINT       DEFAULT NULL            COMMENT '关联区域ID',
+    `element_code`    VARCHAR(64)  DEFAULT NULL            COMMENT '元素编码',
+    `element_name`    VARCHAR(100) NOT NULL                COMMENT '元素名称',
+    `element_type`    VARCHAR(32)  NOT NULL                COMMENT '元素类型(wall/aisle/reserved/device/text/dimension)',
+    `shape_type`      VARCHAR(16)  NOT NULL                COMMENT '形状类型(line/rect/polygon/circle/text)',
+    `position_x`      INT          DEFAULT NULL            COMMENT 'X坐标',
+    `position_y`      INT          DEFAULT NULL            COMMENT 'Y坐标',
+    `layout_width`    INT          DEFAULT NULL            COMMENT '宽度',
+    `layout_height`   INT          DEFAULT NULL            COMMENT '高度',
+    `rotation`        INT          DEFAULT 0               COMMENT '旋转角度',
+    `point_data`      TEXT         DEFAULT NULL            COMMENT '点位数据JSON',
+    `style_data`      TEXT         DEFAULT NULL            COMMENT '样式数据JSON',
+    `label_text`      VARCHAR(255) DEFAULT NULL            COMMENT '展示文本',
+    `sort_order`      INT          DEFAULT 0               COMMENT '排序号',
+    `status`          TINYINT      DEFAULT 1               COMMENT '状态(1-启用 0-禁用)',
+    `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
+    `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    KEY `idx_warehouse_id` (`warehouse_id`),
+    KEY `idx_area_id` (`area_id`),
+    KEY `idx_type_sort` (`element_type`, `sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库房布局元素表';
 
 -- ============================================================
 -- 三、类目与标签模块
@@ -623,9 +666,12 @@ DROP TABLE IF EXISTS `wms_return_order`;
 CREATE TABLE `wms_return_order` (
     `id`              BIGINT       NOT NULL COMMENT '主键',
     `order_no`        VARCHAR(50)  NOT NULL                COMMENT '归还单号',
-    `outbound_order_id` BIGINT     NOT NULL                COMMENT '关联出库单ID',
-    `receiver`        VARCHAR(64)  DEFAULT ''              COMMENT '归还人',
-    `order_status`    TINYINT      DEFAULT 0               COMMENT '单据状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)',
+    `outbound_id`     BIGINT       NOT NULL                COMMENT '关联出库单ID',
+    `returner_id`     BIGINT       NOT NULL                COMMENT '归还人ID',
+    `handler_id`      BIGINT       DEFAULT NULL            COMMENT '经办人ID',
+    `return_time`     DATETIME     DEFAULT NULL            COMMENT '归还时间',
+    `return_status`   TINYINT      DEFAULT 1               COMMENT '归还状态(1-正常 2-损坏 3-丢失 4-数量不符)',
+    `is_overdue`      TINYINT      DEFAULT 0               COMMENT '是否逾期(0-否 1-是)',
     `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
     `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -634,8 +680,9 @@ CREATE TABLE `wms_return_order` (
     `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_no` (`order_no`, `del_flag`),
-    KEY `idx_outbound_order_id` (`outbound_order_id`),
-    KEY `idx_order_status` (`order_status`)
+    KEY `idx_outbound_id` (`outbound_id`),
+    KEY `idx_returner_id` (`returner_id`),
+    KEY `idx_return_time` (`return_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='归还单主表';
 
 -- 29. 归还明细表
@@ -646,9 +693,8 @@ CREATE TABLE `wms_return_detail` (
     `item_id`         BIGINT   NOT NULL                COMMENT '物品ID',
     `label_id`        BIGINT   DEFAULT NULL            COMMENT '电子标签ID',
     `quantity`        INT      NOT NULL                COMMENT '归还数量',
-    `condition_status` TINYINT DEFAULT 1               COMMENT '物品状态(1-正常 2-损坏 3-丢失 4-数量不符)',
-    `abnormal_remark` VARCHAR(500) DEFAULT NULL        COMMENT '异常说明',
-    `actual_quantity` INT DEFAULT NULL                 COMMENT '实际归还数量(数量不符时记录)',
+    `return_status`   TINYINT  DEFAULT 1               COMMENT '归还状态(1-正常 2-损坏 3-丢失 4-数量不符)',
+    `abnormal_desc`   VARCHAR(500) DEFAULT NULL        COMMENT '异常描述',
     `bin_id`          BIGINT   DEFAULT NULL            COMMENT '归还库位ID',
     `del_flag`        TINYINT  DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

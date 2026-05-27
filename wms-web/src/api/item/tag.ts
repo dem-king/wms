@@ -1,8 +1,13 @@
 import { get, post, put, del } from '../request'
+import type { PageParams, PageResult } from '@/types/system'
 import type { WmsTagVo, WmsTagDto } from '@/types/item'
 
+export function getTagPage(params: PageParams) {
+  return get<PageResult<WmsTagVo>>('/item/tags', params)
+}
+
 export function getTagList() {
-  return get<WmsTagVo[]>('/item/tags')
+  return get<WmsTagVo[]>('/item/tags/list')
 }
 
 export function addTag(data: WmsTagDto) {

@@ -4,10 +4,10 @@ import type { ElectronicLabelVo } from '@/types/label'
 
 function createLabel(overrides: Partial<ElectronicLabelVo>): ElectronicLabelVo {
   return {
-    id: 1,
+    id: '1',
     labelNo: 'LBL-2026-001',
     labelType: 1,
-    itemId: 10,
+    itemId: '10',
     itemName: '轴承',
     itemCode: 'WB-001',
     batchNo: '',

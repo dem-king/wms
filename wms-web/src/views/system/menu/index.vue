@@ -111,7 +111,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Sort } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getMenuList, addMenu, updateMenu, deleteMenu, getMenuTree } from '@/api/system/menu'
-import type { MenuTreeNode } from '@/types/auth'
+import type { EntityId, MenuTreeNode } from '@/types/auth'
 
 const loading = ref(false)
 const menuTree = ref<MenuTreeNode[]>([])
@@ -124,8 +124,8 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
 const form = reactive({
-  id: undefined as number | undefined,
-  parentId: 0,
+  id: undefined as EntityId | undefined,
+  parentId: '0',
   menuType: 1,
   menuName: '',
   icon: '',
@@ -147,7 +147,7 @@ async function loadMenuTree() {
     const res = await getMenuList()
     menuTree.value = res.data
     const treeRes = await getMenuTree()
-    menuTreeForSelect.value = [{ id: 0, menuName: '根目录', menuCode: '', parentId: 0, menuType: 1, path: '', component: '', redirect: '', icon: '', isExternal: 0, isCache: 0, visible: 1, sortOrder: 0, permCode: '', children: treeRes.data || [] } as MenuTreeNode]
+    menuTreeForSelect.value = [{ id: '0', menuName: '根目录', menuCode: '', parentId: '0', menuType: 1, path: '', component: '', redirect: '', icon: '', isExternal: 0, isCache: 0, visible: 1, sortOrder: 0, permCode: '', children: treeRes.data || [] } as MenuTreeNode]
   } finally {
     loading.value = false
   }
@@ -158,9 +158,9 @@ function toggleExpand() {
   loadMenuTree()
 }
 
-function handleAdd(parentId?: number) {
+function handleAdd(parentId?: EntityId) {
   isEdit.value = false
-  form.parentId = parentId ?? 0
+  form.parentId = parentId ?? '0'
   form.menuType = parentId ? 2 : 1
   dialogVisible.value = true
 }
@@ -200,7 +200,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteMenu(id)
   ElMessage.success('删除成功')
   loadMenuTree()
@@ -209,7 +209,7 @@ async function handleDelete(id: number) {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
-  Object.assign(form, { id: undefined, parentId: 0, menuType: 1, menuName: '', icon: '', path: '', component: '', permCode: '', sortOrder: 0, visible: 1 })
+  Object.assign(form, { id: undefined, parentId: '0', menuType: 1, menuName: '', icon: '', path: '', component: '', permCode: '', sortOrder: 0, visible: 1 })
 }
 
 onMounted(() => {

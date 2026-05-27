@@ -119,8 +119,6 @@ export interface WmsCabinetVo {
 export interface WmsCabinetDto {
   /** 区域ID */
   areaId: EntityId
-  /** 所属库房ID */
-  warehouseId: EntityId
   /** 存放柜名称 */
   cabinetName: string
   /** 存放柜编码 */
@@ -169,24 +167,14 @@ export interface WmsBinVo {
   id: EntityId
   /** 存放柜ID */
   cabinetId: EntityId
-  /** 所属库房ID */
-  warehouseId?: EntityId
   /** 库位编码 */
   binCode: string
   /** 行号 */
-  rowNum: number
+  row: number
   /** 列号 */
-  colNum: number
-  /** 容量(0为不限) */
-  capacity?: number
-  /** 已用容量 */
-  usedCapacity?: number
-  /** 是否占用(0-空闲 1-占用) */
-  isOccupied?: number
-  /** 占用状态描述 */
-  occupiedDesc?: string
-  /** 状态(0-禁用 1-正常 2-满) */
-  binStatus: number
+  col: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
   /** 创建时间 */
   createTime: string
 }
@@ -195,22 +183,14 @@ export interface WmsBinVo {
 export interface WmsBinDto {
   /** 存放柜ID */
   cabinetId: EntityId
-  /** 所属库房ID */
-  warehouseId?: EntityId
   /** 库位编码 */
   binCode: string
   /** 行号 */
-  rowNum: number
+  row: number
   /** 列号 */
-  colNum: number
-  /** 容量(0为不限) */
-  capacity?: number
-  /** 已用容量 */
-  usedCapacity?: number
-  /** 是否占用(0-空闲 1-占用) */
-  isOccupied?: number
-  /** 状态(0-禁用 1-正常 2-满) */
-  binStatus: number
+  col: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
 }
 
 /** 批量生成库位DTO */

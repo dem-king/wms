@@ -1,5 +1,6 @@
 import { get, post, put } from '../request'
 import type {
+  EntityId,
   ElectronicLabelVo,
   LabelGenerateDto,
   LabelBindDto,
@@ -16,7 +17,7 @@ export function getLabelList(params?: LabelListParams) {
 }
 
 /** 标签详情 */
-export function getLabel(id: number) {
+export function getLabel(id: EntityId) {
   return get<ElectronicLabelVo>(`/labels/${id}`)
 }
 
@@ -26,12 +27,12 @@ export function generateLabels(data: LabelGenerateDto) {
 }
 
 /** 标签绑定物品 */
-export function bindLabel(id: number, data: LabelBindDto) {
+export function bindLabel(id: EntityId, data: LabelBindDto) {
   return put<ElectronicLabelVo>(`/labels/${id}/bind`, data)
 }
 
 /** 更新标签状态 */
-export function updateLabelStatus(id: number, data: LabelStatusDto) {
+export function updateLabelStatus(id: EntityId, data: LabelStatusDto) {
   return put<ElectronicLabelVo>(`/labels/${id}/status`, data)
 }
 

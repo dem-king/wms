@@ -33,57 +33,57 @@ describe('outbound api', () => {
 
   it('maps form payloads to the backend outbound dto fields', () => {
     addOutboundOrder({
-      warehouseId: 1,
+      warehouseId: '1',
       outboundType: 'BORROW',
       recipient: '张三',
       purpose: '检修领用',
       returnDate: '2026-05-30',
       remark: '扫码出库',
       details: [
-        { itemId: 101, quantity: 2, unitPrice: 99, binId: 7 },
+        { itemId: '101', quantity: 2, unitPrice: 99, binId: '7' },
       ],
     })
 
     expect(requestMocks.post).toHaveBeenCalledWith('/outbound', {
-      warehouseId: 1,
+      warehouseId: '1',
       orderType: 1,
       receiver: '张三',
       purpose: '检修领用',
       expectedReturnDate: '2026-05-30T00:00:00',
       remark: '扫码出库',
       details: [
-        { itemId: 101, quantity: 2, binId: 7 },
+        { itemId: '101', quantity: 2, binId: '7' },
       ],
     })
   })
 
   it('uses backend detail, submit and scan endpoints', () => {
-    getOutboundOrder(20)
-    updateOutboundOrder(20, {
-      warehouseId: 1,
+    getOutboundOrder('20')
+    updateOutboundOrder('20', {
+      warehouseId: '1',
       outboundType: 'SCRAP',
       recipient: '李四',
       purpose: '报废处理',
       returnDate: '',
       remark: '',
-      details: [{ itemId: 1, quantity: 1, unitPrice: 0 }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0 }],
     })
-    submitOutboundOrder(20)
-    deleteOutboundOrder(20)
-    scanOutboundOrder({ code: 'LBL-002', currentLabelIds: [3, 4] })
+    submitOutboundOrder('20')
+    deleteOutboundOrder('20')
+    scanOutboundOrder({ code: 'LBL-002', currentLabelIds: ['3', '4'] })
 
     expect(requestMocks.get).toHaveBeenCalledWith('/outbound/20')
     expect(requestMocks.put).toHaveBeenCalledWith('/outbound/20', {
-      warehouseId: 1,
+      warehouseId: '1',
       orderType: 3,
       receiver: '李四',
       purpose: '报废处理',
       expectedReturnDate: undefined,
       remark: '',
-      details: [{ itemId: 1, quantity: 1 }],
+      details: [{ itemId: '1', quantity: 1, binId: undefined }],
     })
     expect(requestMocks.post).toHaveBeenCalledWith('/outbound/20/submit')
     expect(requestMocks.del).toHaveBeenCalledWith('/outbound/20')
-    expect(requestMocks.post).toHaveBeenCalledWith('/outbound/scan', { code: 'LBL-002', currentLabelIds: [3, 4] })
+    expect(requestMocks.post).toHaveBeenCalledWith('/outbound/scan', { code: 'LBL-002', currentLabelIds: ['3', '4'] })
   })
 })

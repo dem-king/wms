@@ -2,6 +2,8 @@ package com.wms.item.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.item.domain.dto.CategoryDto;
 import com.wms.item.domain.dto.SubCategoryDto;
@@ -32,10 +34,21 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     /**
-     * 主类目列表(含细分类目)
+     * 主类目分页列表
      */
     @Operation(summary = "主类目列表")
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<CategoryVo>> page(PageParam pageParam) {
+        return R.ok(categoryService.page(pageParam));
+    }
+
+    /**
+     * 主类目列表(含细分类目)
+     */
+    @Operation(summary = "主类目列表")
+    @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     @DataScope
     public R<List<CategoryVo>> listAll() {
@@ -77,10 +90,21 @@ public class CategoryController {
     }
 
     /**
-     * 细分类目列表
+     * 细分类目分页列表
      */
     @Operation(summary = "细分类目列表")
     @GetMapping("/{categoryId}/sub")
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<SubCategoryVo>> pageSubCategories(@PathVariable Long categoryId, PageParam pageParam) {
+        return R.ok(categoryService.pageSubCategories(categoryId, pageParam));
+    }
+
+    /**
+     * 细分类目列表
+     */
+    @Operation(summary = "细分类目列表")
+    @GetMapping("/{categoryId}/sub/list")
     @PreAuthorize("isAuthenticated()")
     @DataScope
     public R<List<SubCategoryVo>> listSubCategories(@PathVariable Long categoryId) {

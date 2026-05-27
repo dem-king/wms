@@ -46,6 +46,22 @@ public class WarehouseVo {
     @Schema(description = "状态(1-启用 0-禁用)")
     private Integer status;
 
+    /** 布局画布宽度 */
+    @Schema(description = "布局画布宽度")
+    private Integer layoutWidth;
+
+    /** 布局画布高度 */
+    @Schema(description = "布局画布高度")
+    private Integer layoutHeight;
+
+    /** 布局比例尺 */
+    @Schema(description = "布局比例尺")
+    private BigDecimal layoutScale;
+
+    /** 底图版本号 */
+    @Schema(description = "底图版本号")
+    private String layoutBackgroundVersion;
+
     /** 备注 */
     @Schema(description = "备注")
     private String remark;

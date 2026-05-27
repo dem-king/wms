@@ -21,11 +21,11 @@ import { ref, watch, nextTick } from 'vue'
 import type { ElTree } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { getRoleMenus, assignRoleMenus, getMenuTreeForRole } from '@/api/system/role'
-import type { MenuTreeNode } from '@/types/auth'
+import type { EntityId, MenuTreeNode } from '@/types/auth'
 
 const props = defineProps<{
   visible: boolean
-  roleId: number | undefined
+  roleId: EntityId | undefined
   roleName: string | undefined
 }>()
 const emit = defineEmits<{
@@ -53,7 +53,7 @@ async function handleSubmit() {
   if (!props.roleId) return
   submitLoading.value = true
   try {
-    const menuIds = treeRef.value?.getCheckedKeys() as number[]
+    const menuIds = treeRef.value?.getCheckedKeys() as EntityId[]
     await assignRoleMenus(props.roleId, menuIds)
     ElMessage.success('分配菜单成功')
     emit('success')

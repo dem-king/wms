@@ -1,5 +1,6 @@
 import { get, post, put, del } from '../request'
 import type {
+  EntityId,
   OrderScanResult,
   OrderStatus,
   OutboundOrderVo,
@@ -10,18 +11,18 @@ import type {
 import type { PageResult, PageParams } from '@/types/system'
 
 interface OutboundOrderApiDetailVo {
-  id: number
-  itemId: number
+  id: EntityId
+  itemId: EntityId
   itemCode: string
   itemName: string
   quantity: number
-  binId?: number
+  binId?: EntityId
 }
 
 interface OutboundOrderApiVo {
-  id: number
+  id: EntityId
   orderNo: string
-  warehouseId: number
+  warehouseId: EntityId
   warehouseName: string
   orderType: number
   status: number
@@ -75,9 +76,9 @@ function toExpectedReturnDate(value: string): string | undefined {
 
 function normalizeOutboundOrder(data?: Partial<OutboundOrderApiVo>): OutboundOrderVo {
   return {
-    id: Number(data?.id || 0),
+    id: data?.id || '',
     orderNo: data?.orderNo || '',
-    warehouseId: Number(data?.warehouseId || 0),
+    warehouseId: data?.warehouseId || '',
     warehouseName: data?.warehouseName || '',
     outboundType: CODE_TO_OUTBOUND_TYPE[Number(data?.orderType)] || 'BORROW',
     recipient: data?.receiver || '',
@@ -87,9 +88,9 @@ function normalizeOutboundOrder(data?: Partial<OutboundOrderApiVo>): OutboundOrd
     totalAmount: 0,
     remark: data?.remark || '',
     details: (data?.details || []).map((detail) => ({
-      id: detail.id,
-      orderId: Number(data?.id || 0),
-      itemId: detail.itemId,
+      id: detail.id || '',
+      orderId: data?.id || '',
+      itemId: detail.itemId || '',
       itemCode: detail.itemCode || '',
       itemName: detail.itemName || '',
       specModel: '',
@@ -111,7 +112,7 @@ function toOutboundPayload(data: OutboundOrderDto) {
     expectedReturnDate: toExpectedReturnDate(data.returnDate),
     remark: data.remark,
     details: data.details.map((detail) => ({
-      itemId: detail.itemId,
+      itemId: detail.itemId || '',
       quantity: detail.quantity,
       binId: detail.binId,
     })),
@@ -136,7 +137,7 @@ export function getOutboundOrders(params?: PageParams & { orderNo?: string; stat
     }))
 }
 
-export function getOutboundOrder(id: number) {
+export function getOutboundOrder(id: EntityId) {
   return get<OutboundOrderApiVo>(`/outbound/${id}`)
     .then((res) => ({
       ...res,
@@ -152,7 +153,7 @@ export function addOutboundOrder(data: OutboundOrderDto) {
     }))
 }
 
-export function updateOutboundOrder(id: number, data: OutboundOrderDto) {
+export function updateOutboundOrder(id: EntityId, data: OutboundOrderDto) {
   return put<OutboundOrderApiVo>(`/outbound/${id}`, toOutboundPayload(data))
     .then((res) => ({
       ...res,
@@ -160,11 +161,11 @@ export function updateOutboundOrder(id: number, data: OutboundOrderDto) {
     }))
 }
 
-export function submitOutboundOrder(id: number) {
+export function submitOutboundOrder(id: EntityId) {
   return post<void>(`/outbound/${id}/submit`)
 }
 
-export function deleteOutboundOrder(id: number) {
+export function deleteOutboundOrder(id: EntityId) {
   return del<void>(`/outbound/${id}`)
 }
 

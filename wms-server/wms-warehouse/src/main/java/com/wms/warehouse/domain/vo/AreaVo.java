@@ -45,6 +45,22 @@ public class AreaVo {
     @Schema(description = "状态(1-启用 0-禁用)")
     private Integer status;
 
+    /** 区域形状 */
+    @Schema(description = "区域形状")
+    private String shapeType;
+
+    /** 多边形点位JSON */
+    @Schema(description = "多边形点位JSON")
+    private String polygonPoints;
+
+    /** 标题X坐标 */
+    @Schema(description = "标题X坐标")
+    private Integer labelX;
+
+    /** 标题Y坐标 */
+    @Schema(description = "标题Y坐标")
+    private Integer labelY;
+
     /** 备注 */
     @Schema(description = "备注")
     private String remark;

@@ -1,5 +1,6 @@
 import { get, post, put, del } from '../request'
 import type {
+  EntityId,
   InboundOrderVo,
   InboundOrderDto,
   InboundScanRequest,
@@ -10,22 +11,22 @@ import type {
 import type { PageResult, PageParams } from '@/types/system'
 
 interface InboundOrderApiDetailVo {
-  id: number
-  itemId: number
+  id: EntityId
+  itemId: EntityId
   itemCode: string
   itemName: string
   quantity: number
   unitPrice?: number
   amount?: number
-  binId?: number
+  binId?: EntityId
 }
 
 interface InboundOrderApiVo {
-  id: number
+  id: EntityId
   orderNo: string
-  warehouseId: number
+  warehouseId: EntityId
   warehouseName: string
-  supplierId: number
+  supplierId: EntityId
   supplierName: string
   orderType: number
   status: number
@@ -65,11 +66,11 @@ const CODE_TO_ORDER_STATUS: Record<number, OrderStatus> = {
 
 function normalizeInboundOrder(data?: Partial<InboundOrderApiVo>): InboundOrderVo {
   return {
-    id: Number(data?.id || 0),
+    id: data?.id || '',
     orderNo: data?.orderNo || '',
-    warehouseId: Number(data?.warehouseId || 0),
+    warehouseId: data?.warehouseId || '',
     warehouseName: data?.warehouseName || '',
-    supplierId: Number(data?.supplierId || 0),
+    supplierId: data?.supplierId || '',
     supplierName: data?.supplierName || '',
     inboundType: CODE_TO_INBOUND_TYPE[Number(data?.orderType)] || 'PURCHASE',
     status: CODE_TO_ORDER_STATUS[Number(data?.status)] || 'DRAFT',
@@ -77,9 +78,9 @@ function normalizeInboundOrder(data?: Partial<InboundOrderApiVo>): InboundOrderV
     remark: data?.remark || '',
     createTime: data?.createTime || '',
     details: (data?.details || []).map((detail) => ({
-      id: detail.id,
-      orderId: Number(data?.id || 0),
-      itemId: detail.itemId,
+      id: detail.id || '',
+      orderId: data?.id || '',
+      itemId: detail.itemId || '',
       itemCode: detail.itemCode || '',
       itemName: detail.itemName || '',
       specModel: '',
@@ -98,7 +99,7 @@ function toInboundPayload(data: InboundOrderDto) {
     orderType: INBOUND_TYPE_TO_CODE[data.inboundType],
     remark: data.remark,
     details: data.details.map((detail) => ({
-      itemId: detail.itemId,
+      itemId: detail.itemId || '',
       quantity: detail.quantity,
       unitPrice: detail.unitPrice,
       binId: detail.binId,
@@ -124,7 +125,7 @@ export function getInboundOrders(params?: PageParams & { orderNo?: string; statu
     }))
 }
 
-export function getInboundOrder(id: number) {
+export function getInboundOrder(id: EntityId) {
   return get<InboundOrderApiVo>(`/inbound/${id}`)
     .then((res) => ({
       ...res,
@@ -140,7 +141,7 @@ export function addInboundOrder(data: InboundOrderDto) {
     }))
 }
 
-export function updateInboundOrder(id: number, data: InboundOrderDto) {
+export function updateInboundOrder(id: EntityId, data: InboundOrderDto) {
   return put<InboundOrderApiVo>(`/inbound/${id}`, toInboundPayload(data))
     .then((res) => ({
       ...res,
@@ -148,11 +149,11 @@ export function updateInboundOrder(id: number, data: InboundOrderDto) {
     }))
 }
 
-export function submitInboundOrder(id: number) {
+export function submitInboundOrder(id: EntityId) {
   return post<void>(`/inbound/${id}/submit`)
 }
 
-export function deleteInboundOrder(id: number) {
+export function deleteInboundOrder(id: EntityId) {
   return del<void>(`/inbound/${id}`)
 }
 

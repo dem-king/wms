@@ -12,7 +12,7 @@ import { batchPrintLabels, scanLabel } from './label'
 
 describe('label api', () => {
   it('sends batch print requests as a label id array', () => {
-    const payload = { labelIds: [1, 2, 3] }
+    const payload = { labelIds: ['1', '2', '3'] }
 
     batchPrintLabels(payload)
 

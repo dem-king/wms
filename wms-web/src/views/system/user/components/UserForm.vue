@@ -53,7 +53,7 @@ import { ElMessage } from 'element-plus'
 import { addUser, updateUser } from '@/api/system/user'
 import { getDeptTree } from '@/api/system/dept'
 import { getAllRoles } from '@/api/system/role'
-import type { SysUserDto, SysUserVo, SysDeptVo, SysRoleVo } from '@/types/system'
+import type { EntityId, SysUserDto, SysUserVo, SysDeptVo, SysRoleVo } from '@/types/system'
 
 const props = defineProps<{
   visible: boolean
@@ -75,11 +75,11 @@ const form = reactive({
   username: '',
   password: '',
   realName: '',
-  deptId: undefined as number | undefined,
+  deptId: undefined as EntityId | undefined,
   phone: '',
   email: '',
   status: 1,
-  roleIds: [] as number[],
+  roleIds: [] as EntityId[],
 })
 
 const rules: FormRules = {

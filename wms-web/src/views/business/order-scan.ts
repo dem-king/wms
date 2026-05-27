@@ -1,6 +1,6 @@
 import type { OrderScanDetailRow, OrderScanResult } from '@/types/business'
 
-export function collectScannedLabelIds(details: OrderScanDetailRow[]): number[] {
+export function collectScannedLabelIds(details: OrderScanDetailRow[]): string[] {
   return details.flatMap((detail) => detail.scannedLabels?.map((label) => label.labelId) || [])
 }
 

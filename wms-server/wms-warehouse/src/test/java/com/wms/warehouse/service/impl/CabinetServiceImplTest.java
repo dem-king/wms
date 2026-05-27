@@ -9,10 +9,15 @@ import com.wms.warehouse.converter.CabinetConverter;
 import com.wms.warehouse.domain.dto.CabinetDto;
 import com.wms.warehouse.domain.dto.CabinetLayoutBatchSaveDto;
 import com.wms.warehouse.domain.dto.CabinetLayoutItemDto;
+import com.wms.warehouse.domain.dto.AreaDto;
+import com.wms.warehouse.domain.dto.WarehouseDto;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsCabinet;
+import com.wms.warehouse.domain.entity.WmsWarehouse;
+import com.wms.warehouse.domain.vo.AreaVo;
 import com.wms.warehouse.domain.vo.CabinetLayoutSaveVo;
 import com.wms.warehouse.domain.vo.CabinetVo;
+import com.wms.warehouse.domain.vo.WarehouseVo;
 import com.wms.warehouse.mapper.WmsAreaMapper;
 import com.wms.warehouse.mapper.WmsBinMapper;
 import com.wms.warehouse.mapper.WmsCabinetMapper;
@@ -76,6 +81,95 @@ class CabinetServiceImplTest {
         assertEquals(10, result.get(0).getPositionX());
         assertEquals(20, result.get(0).getPositionY());
         assertEquals(2, result.get(1).getSortOrder());
+    }
+
+    @Test
+    @DisplayName("存放柜转换器应映射布局宽高和旋转角")
+    void shouldMapCabinetLayoutFieldsBetweenDtoEntityAndVo() {
+        CabinetDto dto = new CabinetDto();
+        dto.setAreaId(10L);
+        dto.setWarehouseId(20L);
+        dto.setCabinetName("测试柜");
+        dto.setLayoutWidth(240);
+        dto.setLayoutHeight(80);
+        dto.setRotation(30);
+
+        WmsCabinet entity = cabinetConverter.toEntity(dto);
+
+        assertEquals(240, entity.getLayoutWidth());
+        assertEquals(80, entity.getLayoutHeight());
+        assertEquals(30, entity.getRotation());
+
+        entity.setId(101L);
+        CabinetVo vo = cabinetConverter.toVo(entity, "A区", 2);
+
+        assertEquals(240, vo.getLayoutWidth());
+        assertEquals(80, vo.getLayoutHeight());
+        assertEquals(30, vo.getRotation());
+    }
+
+    @Test
+    @DisplayName("库房和区域对象应暴露布局字段")
+    void shouldExposeWarehouseAndAreaLayoutFields() {
+        WarehouseDto warehouseDto = new WarehouseDto();
+        warehouseDto.setLayoutWidth(1200);
+        warehouseDto.setLayoutHeight(800);
+        warehouseDto.setLayoutScale(new java.math.BigDecimal("1.25"));
+        warehouseDto.setLayoutBackgroundVersion("v1");
+        assertEquals(1200, warehouseDto.getLayoutWidth());
+        assertEquals(800, warehouseDto.getLayoutHeight());
+        assertEquals(new java.math.BigDecimal("1.25"), warehouseDto.getLayoutScale());
+        assertEquals("v1", warehouseDto.getLayoutBackgroundVersion());
+
+        WmsWarehouse warehouse = new WmsWarehouse();
+        warehouse.setLayoutWidth(1200);
+        warehouse.setLayoutHeight(800);
+        warehouse.setLayoutScale(new java.math.BigDecimal("1.25"));
+        warehouse.setLayoutBackgroundVersion("v1");
+        assertEquals(1200, warehouse.getLayoutWidth());
+        assertEquals(800, warehouse.getLayoutHeight());
+        assertEquals(new java.math.BigDecimal("1.25"), warehouse.getLayoutScale());
+        assertEquals("v1", warehouse.getLayoutBackgroundVersion());
+
+        WarehouseVo warehouseVo = new WarehouseVo();
+        warehouseVo.setLayoutWidth(1200);
+        warehouseVo.setLayoutHeight(800);
+        warehouseVo.setLayoutScale(new java.math.BigDecimal("1.25"));
+        warehouseVo.setLayoutBackgroundVersion("v1");
+        assertEquals(1200, warehouseVo.getLayoutWidth());
+        assertEquals(800, warehouseVo.getLayoutHeight());
+        assertEquals(new java.math.BigDecimal("1.25"), warehouseVo.getLayoutScale());
+        assertEquals("v1", warehouseVo.getLayoutBackgroundVersion());
+
+        AreaDto areaDto = new AreaDto();
+        areaDto.setShapeType("polygon");
+        areaDto.setPolygonPoints("[[0,0],[10,10],[20,0]]");
+        areaDto.setLabelX(32);
+        areaDto.setLabelY(64);
+        assertEquals("polygon", areaDto.getShapeType());
+        assertEquals("[[0,0],[10,10],[20,0]]", areaDto.getPolygonPoints());
+        assertEquals(32, areaDto.getLabelX());
+        assertEquals(64, areaDto.getLabelY());
+
+        WmsArea area = new WmsArea();
+        area.setShapeType("polygon");
+        area.setPolygonPoints("[[0,0],[10,10],[20,0]]");
+        area.setLabelX(32);
+        area.setLabelY(64);
+        assertEquals("polygon", area.getShapeType());
+        assertEquals("[[0,0],[10,10],[20,0]]", area.getPolygonPoints());
+        assertEquals(32, area.getLabelX());
+        assertEquals(64, area.getLabelY());
+
+        AreaVo areaVo = new AreaVo();
+        areaVo.setShapeType("polygon");
+        areaVo.setPolygonPoints("[[0,0],[10,10],[20,0]]");
+        areaVo.setLabelX(32);
+        areaVo.setLabelY(64);
+        assertEquals("polygon", areaVo.getShapeType());
+        assertEquals("[[0,0],[10,10],[20,0]]", areaVo.getPolygonPoints());
+        assertEquals(32, areaVo.getLabelX());
+        assertEquals(64, areaVo.getLabelY());
     }
 
     @Test

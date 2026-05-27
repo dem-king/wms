@@ -7,7 +7,7 @@ export interface PrintStatusSyncOptions {
 }
 
 export async function syncPrintedLabelStatus(
-  labelIds: number[],
+  labelIds: string[],
   options: PrintStatusSyncOptions,
 ): Promise<PrintFeedback> {
   const { syncLabels, onSuccess } = options

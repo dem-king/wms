@@ -38,6 +38,14 @@ public class ApprovalConfigVo {
     @Schema(description = "备注")
     private String remark;
 
+    /** 审批超时阈值(小时) */
+    @Schema(description = "审批超时阈值(小时)")
+    private Integer timeoutHours;
+
+    /** 超时处理方式 */
+    @Schema(description = "超时处理方式")
+    private Integer timeoutAction;
+
     /** 创建时间 */
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
