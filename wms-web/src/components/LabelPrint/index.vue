@@ -4,7 +4,7 @@
       <el-button type="primary" :icon="Printer" @click="handlePrint">打印</el-button>
       <span class="print-tip">共 {{ labels.length }} 个标签</span>
     </div>
-    <div class="print-content" id="label-print-area">
+    <div ref="printAreaRef" class="print-content">
       <div v-for="label in labels" :key="label.id" class="label-card">
         <div class="label-card__header">
           <span class="label-card__no">{{ label.labelNo }}</span>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Printer, Cpu } from '@element-plus/icons-vue'
 import QrBarCode from '@/components/QrBarCode/index.vue'
 import type { ElectronicLabelVo } from '@/types/label'
@@ -70,6 +70,7 @@ const dialogVisible = computed({
   get: () => props.visible,
   set: (val) => emit('update:visible', val),
 })
+const printAreaRef = ref<HTMLDivElement>()
 
 function labelTypeTagType(labelType: number): 'success' | 'warning' | 'info' {
   const map: Record<number, 'success' | 'warning' | 'info'> = { 1: 'success', 2: 'warning', 3: 'info' }
@@ -78,7 +79,7 @@ function labelTypeTagType(labelType: number): 'success' | 'warning' | 'info' {
 
 /** 使用iframe方式打印 */
 function handlePrint() {
-  const printArea = document.getElementById('label-print-area')
+  const printArea = printAreaRef.value
   if (!printArea) return
 
   const iframe = document.createElement('iframe')
@@ -89,7 +90,10 @@ function handlePrint() {
   document.body.appendChild(iframe)
 
   const doc = iframe.contentWindow?.document
-  if (!doc) return
+  if (!doc) {
+    cleanupIframe(iframe)
+    return
+  }
 
   doc.open()
   doc.write(`
@@ -106,16 +110,33 @@ function handlePrint() {
         @media print { .label-card { page-break-inside: avoid; } }
       </style>
     </head>
-    <body>${printArea.innerHTML}</body>
+    <body></body>
     </html>
   `)
   doc.close()
 
-  iframe.contentWindow?.focus()
-  iframe.contentWindow?.print()
-  document.body.removeChild(iframe)
+  const printContent = printArea.cloneNode(true)
+  doc.body.appendChild(printContent)
+
+  const printWindow = iframe.contentWindow
+  if (!printWindow) {
+    cleanupIframe(iframe)
+    return
+  }
+
+  const cleanup = () => cleanupIframe(iframe)
+  printWindow.addEventListener('afterprint', cleanup, { once: true })
+  window.setTimeout(cleanup, 1000)
+  printWindow.focus()
+  printWindow.print()
 
   emit('printed')
+}
+
+function cleanupIframe(iframe: HTMLIFrameElement) {
+  if (document.body.contains(iframe)) {
+    document.body.removeChild(iframe)
+  }
 }
 
 function handleClose() {

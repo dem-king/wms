@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onActivated } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { getOperLogPage } from '@/api/system/log'
 import type { SysOperLogVo } from '@/types/system-log'
@@ -68,6 +68,7 @@ function getStatusLabel(status: string) {
 }
 
 onMounted(() => { handleQuery() })
+onActivated(() => { handleQuery() })
 </script>
 
 <template>

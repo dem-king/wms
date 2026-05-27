@@ -38,4 +38,13 @@ public final class ApprovalConstants {
 
     /** 审批人类型：库房管理员 */
     public static final int APPROVER_TYPE_WAREHOUSE_ADMIN = 3;
+
+    /** 审批超时默认阈值(小时) */
+    public static final int DEFAULT_TIMEOUT_HOURS = 48;
+
+    /** 审批超时处理：自动提醒 */
+    public static final int TIMEOUT_ACTION_REMIND = 1;
+
+    /** 审批超时处理：自动取消 */
+    public static final int TIMEOUT_ACTION_CANCEL = 2;
 }

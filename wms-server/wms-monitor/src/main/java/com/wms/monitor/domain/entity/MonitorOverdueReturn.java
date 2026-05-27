@@ -1,5 +1,6 @@
 package com.wms.monitor.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -64,5 +65,6 @@ public class MonitorOverdueReturn extends BaseEntity {
 
     /** 处理状态: PENDING/RESOLVED */
     @Schema(description = "处理状态")
+    @TableField("`status`")
     private String status;
 }

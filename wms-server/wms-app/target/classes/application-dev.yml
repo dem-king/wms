@@ -28,6 +28,9 @@ wms:
     captcha-expire: 300
     rsa-key-expire: 86400
     captcha-enabled: true
+  ip-region:
+    enabled: ${IP_REGION_ENABLED:true}
+    xdb-path: ${IP2REGION_XDB_PATH:classpath:ip2region.xdb}
   storage:
     minio-endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
     minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}

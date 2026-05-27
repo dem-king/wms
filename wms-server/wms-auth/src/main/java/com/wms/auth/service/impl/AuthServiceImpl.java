@@ -18,6 +18,7 @@ import com.wms.common.constant.BizConstants;
 import com.wms.common.exception.BizException;
 import com.wms.common.storage.StorageConstants;
 import com.wms.common.storage.StorageStrategy;
+import com.wms.common.util.IpRegionResolver;
 import com.wms.common.util.SecurityUtil;
 import com.wms.common.util.UserAgentParser;
 import com.wms.system.domain.entity.SysUser;
@@ -61,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysMenuService sysMenuService;
     private final AuthProperties authProperties;
     private final StorageStrategy storageStrategy;
+    private final IpRegionResolver ipRegionResolver;
 
     /**
      * 用户登录
@@ -309,10 +311,12 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordLoginSuccess(String username, Long userId, String ip, String ua) {
         UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
+        String loginLocation = ipRegionResolver.resolve(ip);
         authAuditService.recordLoginLog(
                 userId,
                 username,
                 ip,
+                loginLocation,
                 parsedUserAgent.browser(),
                 parsedUserAgent.os(),
                 SysLogConstants.LOGIN_STATUS_SUCCESS,
@@ -322,10 +326,12 @@ public class AuthServiceImpl implements AuthService {
 
     private void recordLoginFail(String username, Long userId, String ip, String ua, String reason) {
         UserAgentParser.ParsedUserAgent parsedUserAgent = UserAgentParser.parse(ua);
+        String loginLocation = ipRegionResolver.resolve(ip);
         authAuditService.recordLoginLog(
                 userId,
                 username,
                 ip,
+                loginLocation,
                 parsedUserAgent.browser(),
                 parsedUserAgent.os(),
                 SysLogConstants.LOGIN_STATUS_FAIL,

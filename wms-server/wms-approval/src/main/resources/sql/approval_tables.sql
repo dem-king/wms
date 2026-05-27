@@ -6,6 +6,8 @@ CREATE TABLE wms_approval_config (
     `auto_approve`    TINYINT      DEFAULT 0 COMMENT '是否免审(0-否 1-是)',
     `config_name`     VARCHAR(128) NOT NULL COMMENT '配置名称',
     `remark`          VARCHAR(512) DEFAULT '' COMMENT '备注',
+    `timeout_hours`   INT          DEFAULT 48 COMMENT '审批超时阈值(小时)',
+    `timeout_action`  TINYINT      DEFAULT 1 COMMENT '超时处理方式(1-自动提醒 2-自动取消)',
     `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',

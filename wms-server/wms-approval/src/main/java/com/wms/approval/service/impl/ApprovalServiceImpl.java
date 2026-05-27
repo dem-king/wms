@@ -15,6 +15,9 @@ import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.mapper.WmsApprovalOrderMapper;
 import com.wms.approval.mapper.WmsApprovalRecordMapper;
 import com.wms.approval.service.ApprovalService;
+import com.wms.approval.strategy.ApprovalContext;
+import com.wms.approval.strategy.ApprovalStrategy;
+import com.wms.approval.strategy.ApprovalStrategyFactory;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
@@ -32,6 +35,7 @@ import java.util.List;
 /**
  * 审批服务实现类
  * 处理审批流程的发起、审批通过、驳回、撤回等业务逻辑
+ * 使用策略模式区分免审/单级/多级审批
  */
 @Service
 @RequiredArgsConstructor
@@ -43,10 +47,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final WmsApprovalNodeMapper wmsApprovalNodeMapper;
     private final ApprovalOrderConverter approvalOrderConverter;
     private final ApplicationEventPublisher eventPublisher;
+    private final ApprovalStrategyFactory approvalStrategyFactory;
 
     /**
      * 发起审批
-     * 查询审批配置，若免审则直接返回已通过状态，否则创建审批单
+     * 查询审批配置，通过策略工厂选择审批策略(免审/单级/多级)并执行
      *
      * @param bizId   业务单据ID
      * @param bizType 业务类型
@@ -67,41 +72,30 @@ public class ApprovalServiceImpl implements ApprovalService {
             throw new BizException("审批配置已删除");
         }
 
-        // 若免审则直接返回已通过状态的审批单
-        if (config.getAutoApprove() != null && config.getAutoApprove() == ApprovalConstants.STATUS_APPROVED) {
-            WmsApprovalOrder order = new WmsApprovalOrder();
-            order.setBizId(bizId);
-            order.setBizType(bizType);
-            order.setStatus(ApprovalConstants.STATUS_APPROVED);
-            order.setApplicantId(SecurityUtil.getCurrentUserId());
-            order.setCurrentStep(ApprovalConstants.STATUS_PENDING);
-            order.setTotalSteps(ApprovalConstants.STATUS_PENDING);
-            wmsApprovalOrderMapper.insert(order);
-            // 免审通过也发布审批结果事件，通知业务模块执行后续逻辑
-            eventPublisher.publishEvent(new ApprovalResultEvent(bizId, bizType, true));
-            return approvalOrderConverter.toVo(order);
-        }
-
         // 查询审批节点列表
         List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
                 new LambdaQueryWrapper<WmsApprovalNode>()
                         .eq(WmsApprovalNode::getConfigId, config.getId())
                         .orderByAsc(WmsApprovalNode::getStepOrder));
-        if (nodes.isEmpty()) {
+
+        // 非免审时必须有审批节点
+        if (!(config.getAutoApprove() != null && config.getAutoApprove() == ApprovalConstants.STATUS_APPROVED)
+                && nodes.isEmpty()) {
             throw new BizException("审批配置未设置审批节点");
         }
 
-        // 创建审批单
-        WmsApprovalOrder order = new WmsApprovalOrder();
-        order.setBizId(bizId);
-        order.setBizType(bizType);
-        order.setStatus(ApprovalConstants.STATUS_APPROVING);
-        order.setApplicantId(SecurityUtil.getCurrentUserId());
-        order.setCurrentStep(ApprovalConstants.STATUS_APPROVED);
-        order.setTotalSteps(nodes.size());
-        wmsApprovalOrderMapper.insert(order);
+        // 构建审批上下文
+        ApprovalContext context = ApprovalContext.builder()
+                .bizId(bizId)
+                .bizType(bizType)
+                .applicantId(SecurityUtil.getCurrentUserId())
+                .config(config)
+                .nodes(nodes)
+                .build();
 
-        return approvalOrderConverter.toVo(order);
+        // 通过策略工厂选择并执行审批策略
+        ApprovalStrategy strategy = approvalStrategyFactory.getStrategy(config, nodes.size());
+        return strategy.execute(context);
     }
 
     /**
@@ -190,7 +184,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     /**
      * 撤回审批
-     * 校验审批单状态为待审批或审批中时允许撤回
+     * 校验审批单状态为待审批或审批中时允许撤回，撤回后发布审批结果事件(驳回)通知业务回退
      *
      * @param approvalId 审批单ID
      */
@@ -212,6 +206,9 @@ public class ApprovalServiceImpl implements ApprovalService {
         // 标记审批单为已撤回
         order.setStatus(ApprovalConstants.STATUS_REVOKED);
         wmsApprovalOrderMapper.updateById(order);
+
+        // 撤回后发布审批结果事件(驳回)，通知业务模块将单据状态回退为草稿
+        eventPublisher.publishEvent(new ApprovalResultEvent(order.getBizId(), order.getBizType(), false));
     }
 
     /**

@@ -23,8 +23,8 @@ public class WmsReturnOrder extends BaseEntity {
     @Schema(description = "关联出库单ID")
     private Long outboundOrderId;
 
-    /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
-    @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
+    /** 状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成) */
+    @Schema(description = "状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)")
     private Integer status;
 
     /** 归还人 */

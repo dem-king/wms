@@ -177,8 +177,8 @@ const widgetListen = computed(() => ({
     class="preferences-drawer"
   >
     <div class="drawer-intro">
-      <div class="intro-title">后台外观与布局</div>
-      <div class="intro-description">按参考项目风格自由调整主题、布局、标签页和顶部工具区。</div>
+      <div class="intro-title">系统外观与布局</div>
+      <div class="intro-description">自由调整主题、布局、标签页和顶部工具区。</div>
     </div>
 
     <el-tabs v-model="activeTab" class="drawer-tabs">

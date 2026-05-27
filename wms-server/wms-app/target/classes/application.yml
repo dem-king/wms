@@ -18,6 +18,9 @@ spring:
       max-request-size: 20MB
 
 wms:
+  ip-region:
+    enabled: ${IP_REGION_ENABLED:true}
+    xdb-path: ${IP2REGION_XDB_PATH:classpath:ip2region.xdb}
   storage:
     type: ${STORAGE_TYPE:local}
     local-base-dir: ${STORAGE_LOCAL_DIR:storage}

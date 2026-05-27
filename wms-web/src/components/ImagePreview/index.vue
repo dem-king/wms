@@ -2,13 +2,14 @@
   <div class="image-preview">
     <el-image
       v-for="(img, index) in images"
-      :key="img.id || index"
+      :key="img.id || img.imageUrl || index"
       :src="resolveUrl(img.imageUrl)"
       :preview-src-list="previewList"
       :initial-index="index"
       fit="cover"
       class="image-preview-item"
       :preview-teleported="true"
+      :alt="img.imageName || '图片'"
     >
       <template #error>
         <div class="image-preview-error">
@@ -40,11 +41,21 @@ const props = defineProps<{
  */
 function resolveUrl(url: string): string {
   if (!url) return ''
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  if (
+    url.startsWith('http://')
+    || url.startsWith('https://')
+    || url.startsWith('data:')
+    || url.startsWith('blob:')
+  ) {
     return url
   }
-  // 相对路径，通过Vite proxy或后端访问
-  return url
+  if (url.startsWith('/api')) {
+    return url
+  }
+  if (url.startsWith('/')) {
+    return `/api${url}`
+  }
+  return `/api/${url}`
 }
 
 const previewList = computed(() => props.images.map(img => resolveUrl(img.imageUrl)))

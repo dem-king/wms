@@ -12,6 +12,7 @@ import com.wms.auth.service.LoginLockService;
 import com.wms.auth.service.RateLimiterService;
 import com.wms.auth.service.TokenService;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.IpRegionResolver;
 import com.wms.system.domain.constant.SysLogConstants;
 import com.wms.system.domain.entity.SysOperLog;
 import com.wms.system.domain.entity.SysUser;
@@ -74,6 +75,9 @@ class AuthServiceImplAuthFlowTest {
     @Mock
     private AuthProperties authProperties;
 
+    @Mock
+    private IpRegionResolver ipRegionResolver;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -104,6 +108,7 @@ class AuthServiceImplAuthFlowTest {
         when(authorizeService.getUserPermissions(1001L)).thenReturn(List.of("system:user:list"));
         when(sysMenuService.getUserMenuTree()).thenReturn(Collections.emptyList());
         when(tokenService.generateTokenPair(1001L, "admin", Collections.emptyList())).thenReturn(tokenResp);
+        when(ipRegionResolver.resolve("127.0.0.1")).thenReturn("内网IP");
 
         LoginResp result = authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA);
 
@@ -113,6 +118,7 @@ class AuthServiceImplAuthFlowTest {
                 1001L,
                 "admin",
                 "127.0.0.1",
+                "内网IP",
                 "Chrome 124",
                 "Windows 10",
                 SysLogConstants.LOGIN_STATUS_SUCCESS,
@@ -131,6 +137,7 @@ class AuthServiceImplAuthFlowTest {
         when(loginLockService.isLocked("ghost")).thenReturn(false);
         when(cryptoService.decryptPassword("cipher-text")).thenReturn("plain-password");
         when(sysUserService.getByUsername("ghost")).thenReturn(null);
+        when(ipRegionResolver.resolve("127.0.0.1")).thenReturn("内网IP");
 
         assertThrows(BizException.class, () -> authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA));
 
@@ -138,6 +145,7 @@ class AuthServiceImplAuthFlowTest {
                 null,
                 "ghost",
                 "127.0.0.1",
+                "内网IP",
                 "Chrome 124",
                 "Windows 10",
                 SysLogConstants.LOGIN_STATUS_FAIL,

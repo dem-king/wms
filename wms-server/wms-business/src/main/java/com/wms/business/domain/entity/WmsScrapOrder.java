@@ -1,5 +1,6 @@
 package com.wms.business.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,6 +22,7 @@ public class WmsScrapOrder extends BaseEntity {
 
     /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
     @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
+    @TableField("order_status")
     private Integer status;
 
     /** 报废原因 */

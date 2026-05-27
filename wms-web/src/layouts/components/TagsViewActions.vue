@@ -32,6 +32,11 @@ const emit = defineEmits<{
   align-items: flex-end;
   padding: 0;
   height: 100%;
+
+  &.tags-view--card,
+  &.tags-view--plain {
+    align-items: center;
+  }
 }
 
 .action-button {
@@ -49,7 +54,11 @@ const emit = defineEmits<{
   border-radius: 8px 8px 0 0; /* 与下方内容区域吸附 */
   margin-bottom: -1px; /* 遮盖底边框，实现物理上的吸附 */
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   outline: none;
   position: relative;
 
@@ -65,6 +74,40 @@ const emit = defineEmits<{
     border-color: transparent;
     border-bottom-color: transparent;
     z-index: 1;
+  }
+
+  &:focus-visible {
+    color: var(--color-primary);
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.18);
+  }
+}
+
+.tags-view-actions.tags-view--card {
+  .action-button {
+    height: 30px;
+    margin-bottom: 0;
+    border-color: hsl(var(--border));
+    border-radius: 10px;
+    background: hsl(var(--background));
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+
+    &:hover {
+      border-color: hsl(var(--primary) / 0.24);
+      background: hsl(var(--accent) / 0.5);
+    }
+  }
+}
+
+.tags-view-actions.tags-view--plain {
+  .action-button {
+    height: 28px;
+    margin-bottom: 0;
+    padding: 0 12px;
+    border-radius: 999px;
+
+    &:hover {
+      background: hsl(var(--accent) / 0.42);
+    }
   }
 }
 </style>

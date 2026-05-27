@@ -17,7 +17,6 @@ import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
-import com.wms.common.enums.ItemStatusEnum;
 import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.event.ApprovalRequestEvent;
 import com.wms.common.exception.BizException;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 
 /**
  * 归还单服务实现类
- * 处理归还单的创建、更新、删除、提交等业务逻辑
+ * 处理归还单的创建、更新、删除、提交、异常登记等业务逻辑
  */
 @Service
 @RequiredArgsConstructor
@@ -108,16 +107,17 @@ public class ReturnServiceImpl implements ReturnService {
             throw new BizException("归还单已删除");
         }
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
-        vo.setDetails(returnOrderConverter.toDetailVoList(
-                wmsReturnDetailMapper.selectList(
-                        new LambdaQueryWrapper<WmsReturnDetail>()
-                                .eq(WmsReturnDetail::getOrderId, id))));
+        List<WmsReturnDetail> details = wmsReturnDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsReturnDetail>()
+                        .eq(WmsReturnDetail::getOrderId, id));
+        vo.setDetails(returnOrderConverter.toDetailVoList(details, buildItemMap(details)));
         return vo;
     }
 
     /**
      * 创建归还单
      * 校验关联出库单，生成归还单号，保存归还单及明细
+     * 支持异常归还登记：明细中conditionStatus可标记损坏/丢失/数量不符
      *
      * @param dto 归还单创建参数，包含出库单ID、明细列表
      * @return 创建后的归还单VO
@@ -125,7 +125,7 @@ public class ReturnServiceImpl implements ReturnService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ReturnOrderVo createOrder(ReturnOrderDto dto) {
-        // 校验关联出库单存在
+        // 校验关联出库单存在且未删除
         WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(dto.getOutboundOrderId());
         if (outboundOrder == null) {
             throw new BizException("关联出库单不存在");
@@ -143,37 +143,19 @@ public class ReturnServiceImpl implements ReturnService {
         order.setRemark(dto.getRemark());
 
         wmsReturnOrderMapper.insert(order);
-        // 保存归还明细
-        List<WmsReturnDetail> detailList = new ArrayList<>();
-        for (ReturnOrderDto.ReturnDetailDto detailDto : dto.getDetails()) {
-            // 校验物品存在
-            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null) {
-                throw new BizException("物品不存在: " + detailDto.getItemId());
-            }
-            if (item.getDelFlag() == DelFlagConstants.DELETED) {
-                throw new BizException("物品已删除: " + detailDto.getItemId());
-            }
-            WmsReturnDetail detail = new WmsReturnDetail();
-            detail.setOrderId(order.getId());
-            detail.setItemId(detailDto.getItemId());
-            detail.setQuantity(detailDto.getQuantity());
-            // 默认物品状态为正常
-            detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : ItemStatusEnum.IN_STOCK.getCode());
-            detail.setAbnormalRemark(detailDto.getAbnormalRemark());
-            detailList.add(detail);
-        }
+        // 保存归还明细(含异常登记信息)
+        List<WmsReturnDetail> detailList = buildDetails(order.getId(), dto.getDetails());
         if (!detailList.isEmpty()) {
             Db.saveBatch(detailList);
         }
 
-        // 归还单创建时不直接发布库存同步事件，需走审批流程后在submitOrder中发布
+        // 归还单创建时不直接发布库存同步事件，需走审批流程后在审批通过时发布
 
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
-        vo.setDetails(returnOrderConverter.toDetailVoList(
-                wmsReturnDetailMapper.selectList(
-                        new LambdaQueryWrapper<WmsReturnDetail>()
-                                .eq(WmsReturnDetail::getOrderId, order.getId()))));
+        List<WmsReturnDetail> savedDetails = wmsReturnDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsReturnDetail>()
+                        .eq(WmsReturnDetail::getOrderId, order.getId()));
+        vo.setDetails(returnOrderConverter.toDetailVoList(savedDetails, buildItemMap(savedDetails)));
         return vo;
     }
 
@@ -227,33 +209,17 @@ public class ReturnServiceImpl implements ReturnService {
             Db.updateBatchById(updateDetails);
         }
 
-        // 保存新明细
-        List<WmsReturnDetail> newDetailList = new ArrayList<>();
-        for (ReturnOrderDto.ReturnDetailDto detailDto : dto.getDetails()) {
-            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
-            if (item == null) {
-                throw new BizException("物品不存在: " + detailDto.getItemId());
-            }
-            if (item.getDelFlag() == DelFlagConstants.DELETED) {
-                throw new BizException("物品已删除: " + detailDto.getItemId());
-            }
-            WmsReturnDetail detail = new WmsReturnDetail();
-            detail.setOrderId(id);
-            detail.setItemId(detailDto.getItemId());
-            detail.setQuantity(detailDto.getQuantity());
-            detail.setConditionStatus(detailDto.getConditionStatus() != null ? detailDto.getConditionStatus() : ItemStatusEnum.IN_STOCK.getCode());
-            detail.setAbnormalRemark(detailDto.getAbnormalRemark());
-            newDetailList.add(detail);
-        }
+        // 保存新明细(含异常登记信息)
+        List<WmsReturnDetail> newDetailList = buildDetails(id, dto.getDetails());
         if (!newDetailList.isEmpty()) {
             Db.saveBatch(newDetailList);
         }
 
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
-        vo.setDetails(returnOrderConverter.toDetailVoList(
-                wmsReturnDetailMapper.selectList(
-                        new LambdaQueryWrapper<WmsReturnDetail>()
-                                .eq(WmsReturnDetail::getOrderId, id))));
+        List<WmsReturnDetail> savedDetails = wmsReturnDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsReturnDetail>()
+                        .eq(WmsReturnDetail::getOrderId, id));
+        vo.setDetails(returnOrderConverter.toDetailVoList(savedDetails, buildItemMap(savedDetails)));
         return vo;
     }
 
@@ -300,7 +266,7 @@ public class ReturnServiceImpl implements ReturnService {
 
     /**
      * 提交归还单
-     * 仅草稿状态可提交，提交后状态变为待审核并发起审批请求，库存同步延迟到审批通过后
+     * 仅草稿状态可提交，提交后状态变为待审批并发起审批请求，库存同步延迟到审批通过后
      *
      * @param id 归还单ID
      */
@@ -318,12 +284,72 @@ public class ReturnServiceImpl implements ReturnService {
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("只有草稿状态的归还单可以提交");
         }
-        // 提交归还单，状态改为待审核
+        // 校验明细中异常归还必须有异常说明
+        List<WmsReturnDetail> details = wmsReturnDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsReturnDetail>()
+                        .eq(WmsReturnDetail::getOrderId, id));
+        for (WmsReturnDetail detail : details) {
+            if (detail.getConditionStatus() != null
+                    && detail.getConditionStatus() != OrderConstants.RETURN_CONDITION_NORMAL
+                    && (detail.getAbnormalRemark() == null || detail.getAbnormalRemark().isBlank())) {
+                throw new BizException("异常归还明细必须填写异常说明: 物品ID=" + detail.getItemId());
+            }
+        }
+        // 提交归还单，状态改为待审批
         order.setStatus(OrderStatusEnum.PENDING.getCode());
         wmsReturnOrderMapper.updateById(order);
 
         // 发起审批请求，库存同步延迟到审批通过后
         eventPublisher.publishEvent(new ApprovalRequestEvent(id, BizTypeEnum.RETURN.getCode()));
+    }
+
+    /**
+     * 构建归还明细列表
+     * 校验物品存在，设置默认状态和异常登记字段
+     *
+     * @param orderId 归还单ID
+     * @param detailDtos 明细DTO列表
+     * @return 归还明细实体列表
+     */
+    private List<WmsReturnDetail> buildDetails(Long orderId, List<ReturnOrderDto.ReturnDetailDto> detailDtos) {
+        List<WmsReturnDetail> detailList = new ArrayList<>();
+        for (ReturnOrderDto.ReturnDetailDto detailDto : detailDtos) {
+            // 校验物品存在
+            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
+            if (item == null) {
+                throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
+            }
+            WmsReturnDetail detail = new WmsReturnDetail();
+            detail.setOrderId(orderId);
+            detail.setItemId(detailDto.getItemId());
+            detail.setQuantity(detailDto.getQuantity());
+            // 默认物品状态为正常
+            detail.setConditionStatus(detailDto.getConditionStatus() != null
+                    ? detailDto.getConditionStatus() : OrderConstants.RETURN_CONDITION_NORMAL);
+            detail.setAbnormalRemark(detailDto.getAbnormalRemark());
+            detail.setActualQuantity(detailDto.getActualQuantity());
+            detailList.add(detail);
+        }
+        return detailList;
+    }
+
+    /**
+     * 批量查询物品构建Map，避免N+1查询
+     *
+     * @param details 归还明细列表
+     * @return 物品ID到实体的映射
+     */
+    private Map<Long, WmsItem> buildItemMap(List<WmsReturnDetail> details) {
+        Set<Long> itemIds = details.stream()
+                .map(WmsReturnDetail::getItemId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        return itemIds.isEmpty() ? Map.of()
+                : wmsItemMapper.selectBatchIds(itemIds).stream()
+                        .collect(Collectors.toMap(WmsItem::getId, Function.identity()));
     }
 
     /**

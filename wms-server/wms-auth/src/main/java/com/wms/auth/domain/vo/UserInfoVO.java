@@ -3,6 +3,9 @@ package com.wms.auth.domain.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+/**
+ * 用户信息
+ */
 @Data
 @Schema(description = "用户信息")
 public class UserInfoVo {

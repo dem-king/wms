@@ -1,6 +1,9 @@
 package com.wms.business.listener;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.business.domain.entity.WmsInboundDetail;
+import com.wms.business.domain.entity.WmsInboundOrder;
+import com.wms.business.domain.entity.WmsOutboundDetail;
 import com.wms.business.domain.entity.WmsOutboundOrder;
 import com.wms.business.domain.entity.WmsReturnDetail;
 import com.wms.business.domain.entity.WmsReturnOrder;
@@ -9,6 +12,9 @@ import com.wms.business.domain.entity.WmsScrapOrder;
 import com.wms.business.domain.entity.WmsTransferDetail;
 import com.wms.business.domain.entity.WmsTransferOrder;
 import com.wms.business.event.StockSyncEvent;
+import com.wms.business.mapper.WmsInboundDetailMapper;
+import com.wms.business.mapper.WmsInboundOrderMapper;
+import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.mapper.WmsReturnDetailMapper;
 import com.wms.business.mapper.WmsReturnOrderMapper;
@@ -16,6 +22,7 @@ import com.wms.business.mapper.WmsScrapDetailMapper;
 import com.wms.business.mapper.WmsScrapOrderMapper;
 import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
+import com.wms.business.domain.constant.OrderConstants;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
@@ -38,13 +45,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApprovalResultEventListener {
 
+    private final WmsInboundOrderMapper wmsInboundOrderMapper;
+    private final WmsInboundDetailMapper wmsInboundDetailMapper;
+    private final WmsOutboundOrderMapper wmsOutboundOrderMapper;
+    private final WmsOutboundDetailMapper wmsOutboundDetailMapper;
     private final WmsScrapOrderMapper wmsScrapOrderMapper;
     private final WmsScrapDetailMapper wmsScrapDetailMapper;
     private final WmsTransferOrderMapper wmsTransferOrderMapper;
     private final WmsTransferDetailMapper wmsTransferDetailMapper;
     private final WmsReturnOrderMapper wmsReturnOrderMapper;
     private final WmsReturnDetailMapper wmsReturnDetailMapper;
-    private final WmsOutboundOrderMapper wmsOutboundOrderMapper;
+
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -80,6 +91,12 @@ public class ApprovalResultEventListener {
         }
 
         switch (bizType) {
+            case INBOUND:
+                handleInboundApproved(event.getBizId());
+                break;
+            case OUTBOUND:
+                handleOutboundApproved(event.getBizId());
+                break;
             case SCRAP:
                 handleScrapApproved(event.getBizId());
                 break;
@@ -90,8 +107,62 @@ public class ApprovalResultEventListener {
                 handleReturnApproved(event.getBizId());
                 break;
             default:
-                log.info("业务类型{}暂不需要审批后库存同步", bizType.getDesc());
+                log.warn("未知的业务类型: {}", bizType.getDesc());
                 break;
+        }
+    }
+
+    /**
+     * 入库单审批通过
+     * 标记入库单为已完成，发布库存同步事件(入库)
+     *
+     * @param bizId 入库单ID
+     */
+    private void handleInboundApproved(Long bizId) {
+        WmsInboundOrder order = wmsInboundOrderMapper.selectById(bizId);
+        if (order == null) {
+            log.warn("入库单不存在: {}", bizId);
+            return;
+        }
+        // 标记为已完成
+        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
+        wmsInboundOrderMapper.updateById(order);
+
+        // 入库完成后增加库存(入库)
+        List<WmsInboundDetail> details = wmsInboundDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsInboundDetail>()
+                        .eq(WmsInboundDetail::getOrderId, bizId));
+        for (WmsInboundDetail detail : details) {
+            eventPublisher.publishEvent(new StockSyncEvent(
+                    detail.getItemId(), order.getWarehouseId(), null,
+                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
+        }
+    }
+
+    /**
+     * 出库单审批通过
+     * 标记出库单为已完成，发布库存扣减事件(出库)
+     *
+     * @param bizId 出库单ID
+     */
+    private void handleOutboundApproved(Long bizId) {
+        WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(bizId);
+        if (order == null) {
+            log.warn("出库单不存在: {}", bizId);
+            return;
+        }
+        // 标记为已完成
+        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
+        wmsOutboundOrderMapper.updateById(order);
+
+        // 出库完成后扣减库存(出库)
+        List<WmsOutboundDetail> details = wmsOutboundDetailMapper.selectList(
+                new LambdaQueryWrapper<WmsOutboundDetail>()
+                        .eq(WmsOutboundDetail::getOrderId, bizId));
+        for (WmsOutboundDetail detail : details) {
+            eventPublisher.publishEvent(new StockSyncEvent(
+                    detail.getItemId(), order.getWarehouseId(), null,
+                    -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
         }
     }
 
@@ -157,6 +228,7 @@ public class ApprovalResultEventListener {
     /**
      * 归还单审批通过
      * 标记归还单为已完成，查关联出库单获取warehouseId，发布库存同步事件(归还入库)
+     * 异常归还处理：损坏/丢失的明细不入库，数量不符的按实际归还数量入库
      *
      * @param bizId 归还单ID
      */
@@ -180,9 +252,25 @@ public class ApprovalResultEventListener {
                 new LambdaQueryWrapper<WmsReturnDetail>()
                         .eq(WmsReturnDetail::getOrderId, bizId));
         for (WmsReturnDetail detail : details) {
-            eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), outboundOrder.getWarehouseId(), null,
-                    detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
+            // 异常归还：损坏或丢失的物品不归还入库
+            if (detail.getConditionStatus() != null
+                    && (detail.getConditionStatus() == OrderConstants.RETURN_CONDITION_DAMAGED
+                    || detail.getConditionStatus() == OrderConstants.RETURN_CONDITION_LOST)) {
+                log.info("异常归还不入库: itemId={}, conditionStatus={}", detail.getItemId(), detail.getConditionStatus());
+                continue;
+            }
+            // 数量不符时按实际归还数量入库，否则按原数量入库
+            int returnQty = detail.getQuantity();
+            if (detail.getConditionStatus() != null
+                    && detail.getConditionStatus() == OrderConstants.RETURN_CONDITION_MISMATCH
+                    && detail.getActualQuantity() != null) {
+                returnQty = detail.getActualQuantity();
+            }
+            if (returnQty > 0) {
+                eventPublisher.publishEvent(new StockSyncEvent(
+                        detail.getItemId(), outboundOrder.getWarehouseId(), null,
+                        returnQty, BizConstants.STOCK_SYNC_IN));
+            }
         }
     }
 
@@ -200,6 +288,12 @@ public class ApprovalResultEventListener {
         }
 
         switch (bizType) {
+            case INBOUND:
+                handleInboundRejected(event.getBizId());
+                break;
+            case OUTBOUND:
+                handleOutboundRejected(event.getBizId());
+                break;
             case SCRAP:
                 handleScrapRejected(event.getBizId());
                 break;
@@ -210,9 +304,41 @@ public class ApprovalResultEventListener {
                 handleReturnRejected(event.getBizId());
                 break;
             default:
-                log.info("业务类型{}暂不需要审批驳回处理", bizType.getDesc());
+                log.warn("未知的业务类型: {}", bizType.getDesc());
                 break;
         }
+    }
+
+    /**
+     * 入库单审批驳回
+     * 将入库单状态回退为草稿
+     *
+     * @param bizId 入库单ID
+     */
+    private void handleInboundRejected(Long bizId) {
+        WmsInboundOrder order = wmsInboundOrderMapper.selectById(bizId);
+        if (order == null) {
+            log.warn("入库单不存在: {}", bizId);
+            return;
+        }
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
+        wmsInboundOrderMapper.updateById(order);
+    }
+
+    /**
+     * 出库单审批驳回
+     * 将出库单状态回退为草稿
+     *
+     * @param bizId 出库单ID
+     */
+    private void handleOutboundRejected(Long bizId) {
+        WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(bizId);
+        if (order == null) {
+            log.warn("出库单不存在: {}", bizId);
+            return;
+        }
+        order.setStatus(OrderStatusEnum.DRAFT.getCode());
+        wmsOutboundOrderMapper.updateById(order);
     }
 
     /**

@@ -16,6 +16,10 @@ public class SecurityUtil {
     public static String getCurrentUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
+            // JWT 认证链路中 principal 保存的是 userId，username 放在 details 里。
+            if (auth.getDetails() instanceof String details && !details.isBlank()) {
+                return details;
+            }
             return auth.getName();
         }
         return "anonymous";

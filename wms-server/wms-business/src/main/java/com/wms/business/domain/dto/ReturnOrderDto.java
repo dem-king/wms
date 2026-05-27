@@ -51,12 +51,16 @@ public class ReturnOrderDto {
         @Schema(description = "数量")
         private Integer quantity;
 
-        /** 物品状态(1-正常 2-损坏) */
-        @Schema(description = "物品状态(1-正常 2-损坏)")
+        /** 物品状态(1-正常 2-损坏 3-丢失 4-数量不符) */
+        @Schema(description = "物品状态(1-正常 2-损坏 3-丢失 4-数量不符)")
         private Integer conditionStatus;
 
         /** 异常说明 */
         @Schema(description = "异常说明")
         private String abnormalRemark;
+
+        /** 实际归还数量(数量不符时填写) */
+        @Schema(description = "实际归还数量")
+        private Integer actualQuantity;
     }
 }

@@ -1,5 +1,6 @@
 package com.wms.system.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +19,7 @@ public class SysUser extends BaseEntity {
 
     /** 密码(BCrypt加密) */
     @Schema(description = "密码(BCrypt加密)")
+    @TableField("`password`")
     private String password;
 
     /** 真实姓名 */

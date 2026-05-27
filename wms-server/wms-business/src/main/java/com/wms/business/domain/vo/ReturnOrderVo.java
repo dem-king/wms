@@ -30,8 +30,8 @@ public class ReturnOrderVo {
     @Schema(description = "关联出库单号")
     private String outboundOrderNo;
 
-    /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
-    @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
+    /** 状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成) */
+    @Schema(description = "状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)")
     private Integer status;
 
     /** 归还人 */
@@ -81,12 +81,16 @@ public class ReturnOrderVo {
         @Schema(description = "数量")
         private Integer quantity;
 
-        /** 物品状态(1-正常 2-损坏) */
-        @Schema(description = "物品状态(1-正常 2-损坏)")
+        /** 物品状态(1-正常 2-损坏 3-丢失 4-数量不符) */
+        @Schema(description = "物品状态(1-正常 2-损坏 3-丢失 4-数量不符)")
         private Integer conditionStatus;
 
         /** 异常说明 */
         @Schema(description = "异常说明")
         private String abnormalRemark;
+
+        /** 实际归还数量(数量不符时记录) */
+        @Schema(description = "实际归还数量")
+        private Integer actualQuantity;
     }
 }

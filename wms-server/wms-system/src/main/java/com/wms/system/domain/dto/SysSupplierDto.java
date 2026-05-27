@@ -42,4 +42,8 @@ public class SysSupplierDto {
     /** 备注 */
     @Schema(description = "备注")
     private String remark;
+
+    /** 状态：0-禁用 1-启用 */
+    @Schema(description = "状态：0-禁用 1-启用")
+    private Integer status;
 }

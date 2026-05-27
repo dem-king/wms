@@ -45,6 +45,7 @@ public class WmsOutboundOrder extends BaseEntity {
 
     /** 预计归还日期 */
     @Schema(description = "预计归还日期")
+    @TableField("expected_return")
     private LocalDateTime expectedReturnDate;
 
     /** 备注 */

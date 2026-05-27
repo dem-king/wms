@@ -5,9 +5,7 @@ import type { MenuTreeNode } from '@/types/auth'
 import router from '@/router'
 
 const Layout = () => import('@/layouts/DefaultLayout.vue')
-
-/** 动态路由是否已生成 */
-const isRoutesAdded = ref(false)
+const NOT_FOUND_ROUTE_NAME = 'DynamicNotFound'
 
 export const usePermissionStore = defineStore('permission', () => {
   /** 用户菜单树 */
@@ -15,6 +13,12 @@ export const usePermissionStore = defineStore('permission', () => {
 
   /** 动态路由列表 */
   const dynamicRoutes = ref<RouteRecordRaw[]>([])
+
+  /** 动态路由是否已生成 */
+  const isRoutesAdded = ref(false)
+
+  /** 已注册到 router 实例的动态路由名称 */
+  const addedRouteNames = ref<string[]>([])
 
   /**
    * 设置菜单树数据
@@ -29,6 +33,7 @@ export const usePermissionStore = defineStore('permission', () => {
    * 核心逻辑：遍历菜单树，将目录和菜单类型的节点转换为 Vue Router 路由配置
    */
   function generateRoutes(menus: MenuTreeNode[]) {
+    cleanupDynamicRoutes()
     const routes: RouteRecordRaw[] = []
     for (const menu of menus) {
       const route = transformMenuToRoute(menu)
@@ -45,9 +50,11 @@ export const usePermissionStore = defineStore('permission', () => {
     // 添加兜底404路由(放在最后)
     router.addRoute({
       path: '/:pathMatch(.*)*',
+      name: NOT_FOUND_ROUTE_NAME,
       redirect: '/404',
       meta: { hidden: true }
     })
+    addedRouteNames.value = [...collectRouteNames(routes), NOT_FOUND_ROUTE_NAME]
     isRoutesAdded.value = true
   }
 
@@ -55,8 +62,10 @@ export const usePermissionStore = defineStore('permission', () => {
    * 重置权限状态(登出时调用)
    */
   function resetPermission() {
+    cleanupDynamicRoutes()
     menuTree.value = []
     dynamicRoutes.value = []
+    addedRouteNames.value = []
     isRoutesAdded.value = false
   }
 
@@ -65,6 +74,16 @@ export const usePermissionStore = defineStore('permission', () => {
    */
   function hasRoutes(): boolean {
     return isRoutesAdded.value
+  }
+
+  function cleanupDynamicRoutes() {
+    const routeNames = [...new Set([...addedRouteNames.value, NOT_FOUND_ROUTE_NAME])]
+    routeNames.forEach((routeName) => {
+      if (router.hasRoute(routeName)) {
+        router.removeRoute(routeName)
+      }
+    })
+    addedRouteNames.value = []
   }
 
   return {
@@ -76,6 +95,19 @@ export const usePermissionStore = defineStore('permission', () => {
     hasRoutes
   }
 })
+
+function collectRouteNames(routes: RouteRecordRaw[]): string[] {
+  const names: string[] = []
+  for (const route of routes) {
+    if (route.name) {
+      names.push(String(route.name))
+    }
+    if (route.children?.length) {
+      names.push(...collectRouteNames(route.children))
+    }
+  }
+  return names
+}
 
 /**
  * 将单个菜单节点转换为 Vue Router 路由配置

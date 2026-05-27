@@ -16,8 +16,18 @@ interface TokenResp {
   expiresIn: number
 }
 
+interface RetryableRequestConfig extends AxiosRequestConfig {
+  _retry?: boolean
+}
+
+interface PendingRequest {
+  config: RetryableRequestConfig
+  resolve: (value: unknown) => void
+  reject: (reason?: unknown) => void
+}
+
 let isRefreshing = false
-let pendingRequests: Array<() => void> = []
+let pendingRequests: PendingRequest[] = []
 
 const service: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -36,27 +46,31 @@ service.interceptors.request.use(
 )
 
 service.interceptors.response.use(
-  (response: AxiosResponse<R>) => {
+  ((response: AxiosResponse<R>) => {
+    if (response.config.responseType === 'blob') {
+      return response.data as unknown as Blob
+    }
     const res = response.data
     if (res.code !== 200) {
       ElMessage.error(res.msg || '请求失败')
       return Promise.reject(new Error(res.msg))
     }
     return res as unknown as AxiosResponse<R>
-  },
+  }) as (value: AxiosResponse<R>) => AxiosResponse<R> | Promise<AxiosResponse<R>>,
   async (error) => {
-    const originalRequest = error.config
+    const originalRequest = error.config as RetryableRequestConfig
     if (error.response?.status === 401 && !originalRequest._retry) {
       const refreshTokenValue = getRefreshToken()
       if (!refreshTokenValue) {
-        clearAuthAndRedirect()
+        clearAuthAndRedirect(error)
         return Promise.reject(error)
       }
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          pendingRequests.push(() => {
-            originalRequest._retry = true
-            resolve(service(originalRequest))
+        return new Promise((resolve, reject) => {
+          pendingRequests.push({
+            config: originalRequest,
+            resolve,
+            reject,
           })
         })
       }
@@ -71,16 +85,19 @@ service.interceptors.response.use(
           const { accessToken, refreshToken: newRefreshToken } = resData.data
           setToken(accessToken)
           setRefreshToken(newRefreshToken)
-          pendingRequests.forEach((cb) => cb())
-          pendingRequests = []
+          flushPendingRequests(accessToken)
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${accessToken}`
+          }
           originalRequest.headers['Authorization'] = `Bearer ${accessToken}`
           return service(originalRequest)
         } else {
-          clearAuthAndRedirect()
+          clearAuthAndRedirect(error)
           return Promise.reject(error)
         }
       } catch {
-        clearAuthAndRedirect()
+        clearAuthAndRedirect(error)
         return Promise.reject(error)
       } finally {
         isRefreshing = false
@@ -92,9 +109,26 @@ service.interceptors.response.use(
   }
 )
 
-function clearAuthAndRedirect() {
-  clearAuth()
+function flushPendingRequests(accessToken: string) {
+  pendingRequests.forEach(({ config, resolve }) => {
+    config._retry = true
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${accessToken}`
+    }
+    resolve(service(config))
+  })
   pendingRequests = []
+}
+
+function rejectPendingRequests(reason: unknown) {
+  pendingRequests.forEach(({ reject }) => reject(reason))
+  pendingRequests = []
+}
+
+function clearAuthAndRedirect(reason?: unknown) {
+  clearAuth()
+  rejectPendingRequests(reason)
   router.push('/login')
 }
 

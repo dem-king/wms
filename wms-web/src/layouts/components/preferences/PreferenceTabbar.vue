@@ -31,10 +31,10 @@ const tabbarDraggable = defineModel<boolean>('tabbarDraggable')
         <span>右侧更多</span>
         <el-switch v-model="tabbarShowMore" size="small" />
       </div>
-      <div class="control-item">
+      <!-- <div class="control-item">
         <span>最大化按钮</span>
         <el-switch v-model="tabbarShowMaximize" size="small" />
-      </div>
+      </div> -->
       <div class="control-item">
         <span>拖拽排序</span>
         <el-switch v-model="tabbarDraggable" size="small" />

@@ -17,6 +17,9 @@ minio:
   bucket-name: wms
 
 wms:
+  ip-region:
+    enabled: ${IP_REGION_ENABLED:true}
+    xdb-path: ${IP2REGION_XDB_PATH:classpath:ip2region.xdb}
   storage:
     type: ${STORAGE_TYPE:minio}
     minio-endpoint: http://minio:9000

@@ -1,5 +1,6 @@
 package com.wms.system.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,14 +20,17 @@ public class SysOperLog extends BaseEntity {
 
     /** 操作模块 */
     @Schema(description = "操作模块")
+    @TableField("`module`")
     private String module;
 
     /** 操作类型 */
     @Schema(description = "操作类型")
+    @TableField("`type`")
     private String type;
 
     /** 操作描述 */
     @Schema(description = "操作描述")
+    @TableField("`desc`")
     private String desc;
 
     /** 操作人ID */
@@ -59,6 +63,7 @@ public class SysOperLog extends BaseEntity {
 
     /** 操作状态: SUCCESS/FAIL */
     @Schema(description = "操作状态")
+    @TableField("`status`")
     private String status;
 
     /** 异常信息 */

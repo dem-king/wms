@@ -35,13 +35,13 @@ public class AuthAuditServiceImpl implements AuthAuditService {
      * @param failReason 失败原因
      */
     @Override
-    public void recordLoginLog(Long userId, String username, String loginIp, String browser,
+    public void recordLoginLog(Long userId, String username, String loginIp, String loginLocation, String browser,
                                String os, String status, String failReason) {
         sysLoginLogService.recordLoginLog(
                 userId,
                 username,
                 loginIp,
-                null,
+                loginLocation,
                 browser,
                 os,
                 status,

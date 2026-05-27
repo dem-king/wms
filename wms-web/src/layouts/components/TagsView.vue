@@ -1,5 +1,5 @@
 <template>
-  <div class="tags-view">
+  <div class="tags-view" :class="tabbarStyleClass">
     <div class="tags-view-scroll">
       <button
         v-for="tag in visitedViews"
@@ -22,6 +22,8 @@
 
     <TagsViewActions
       v-if="preferences.tabbar.showMore"
+      class="tags-view-actions-panel"
+      :class="tabbarStyleClass"
       @close-all="closeAllTags"
       @close-others="closeOtherTags"
     />
@@ -29,9 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { preferences } from '@/utils/preferences'
+import { resolveTabbarStyleClass } from '../composables/tabbar-style'
 import TagsViewActions from './TagsViewActions.vue'
 
 const route = useRoute()
@@ -46,6 +49,8 @@ interface TagView {
 const visitedViews = ref<TagView[]>([
   { path: '/dashboard', name: 'Dashboard', meta: { title: '首页', affix: true } }
 ])
+
+const tabbarStyleClass = computed(() => resolveTabbarStyleClass(preferences.tabbar.styleType))
 
 watch(
   () => route.path,
@@ -95,6 +100,100 @@ function closeAllTags() {
   padding: 8px 16px 0;
   background: transparent;
   border-bottom: 1px solid transparent;
+
+  &.tags-view--chrome {
+    .tag-item {
+      border-radius: 8px 8px 0 0;
+
+      &:hover {
+        color: var(--text-foreground);
+        background: hsl(var(--accent) / 0.5);
+      }
+
+      &.active {
+        color: var(--color-primary);
+        background: transparent;
+        border-color: transparent;
+        border-bottom-color: transparent;
+        z-index: 1;
+
+        &::before {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: var(--color-primary);
+          border-radius: 0;
+        }
+      }
+    }
+  }
+
+  &.tags-view--card {
+    align-items: center;
+    padding-top: 4px;
+
+    .tags-view-scroll {
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-item {
+      height: 30px;
+      margin-bottom: 0;
+      border-color: hsl(var(--border));
+      border-radius: 10px;
+      background: hsl(var(--background));
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+
+      &:hover {
+        color: var(--text-foreground);
+        border-color: hsl(var(--primary) / 0.28);
+        background: hsl(var(--accent) / 0.5);
+      }
+
+      &.active {
+        color: var(--color-primary);
+        border-color: hsl(var(--primary) / 0.24);
+        background: hsl(var(--primary) / 0.08);
+        box-shadow: 0 4px 12px rgb(37 99 235 / 0.12);
+      }
+    }
+  }
+
+  &.tags-view--plain {
+    align-items: center;
+    padding-top: 4px;
+
+    .tags-view-scroll {
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-item {
+      height: 28px;
+      margin-bottom: 0;
+      padding: 0 8px 0 10px;
+      border-radius: 999px;
+      color: var(--text-muted-foreground);
+
+      &:hover {
+        color: var(--text-foreground);
+        background: hsl(var(--accent) / 0.42);
+      }
+
+      &.active {
+        color: var(--color-primary);
+        background: hsl(var(--primary) / 0.1);
+      }
+    }
+
+    .tag-label {
+      font-weight: 500;
+    }
+  }
 }
 
 .tags-view-scroll {
@@ -121,31 +220,11 @@ function closeAllTags() {
   color: var(--text-muted-foreground);
   cursor: pointer;
   position: relative;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--text-foreground);
-    background: hsl(var(--accent) / 0.5);
-  }
-
-  &.active {
-    color: var(--color-primary);
-    background: transparent;
-    border-color: transparent;
-    border-bottom-color: transparent;
-    z-index: 1;
-
-    &::before {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background-color: var(--color-primary);
-      border-radius: 0;
-    }
-  }
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .tag-label {

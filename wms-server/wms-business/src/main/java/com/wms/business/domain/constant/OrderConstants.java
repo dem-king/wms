@@ -23,4 +23,16 @@ public final class OrderConstants {
 
     /** 调拨单号前缀 */
     public static final String TRANSFER_NO_PREFIX = "DB";
+
+    /** 归还物品状态：正常 */
+    public static final int RETURN_CONDITION_NORMAL = 1;
+
+    /** 归还物品状态：损坏 */
+    public static final int RETURN_CONDITION_DAMAGED = 2;
+
+    /** 归还物品状态：丢失 */
+    public static final int RETURN_CONDITION_LOST = 3;
+
+    /** 归还物品状态：数量不符 */
+    public static final int RETURN_CONDITION_MISMATCH = 4;
 }
