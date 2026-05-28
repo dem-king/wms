@@ -12,6 +12,6 @@ describe('role list page', () => {
 
     expect(source).toContain('Array.isArray(res.data)')
     expect(source).toContain('res.data.records')
-    expect(source).toContain('roles.length : res.data.total')
+    expect(source).toContain('roles.length : normalizePageTotal(res.data.total)')
   })
 })
