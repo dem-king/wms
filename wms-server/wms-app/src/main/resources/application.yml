@@ -18,6 +18,10 @@ spring:
       max-request-size: 20MB
 
 wms:
+  amap:
+    key: ${AMAP_KEY:}
+    geocode-url: ${AMAP_GEOCODE_URL:https://restapi.amap.com/v3/geocode/regeo}
+    weather-url: ${AMAP_WEATHER_URL:https://restapi.amap.com/v3/weather/weatherInfo}
   ip-region:
     enabled: ${IP_REGION_ENABLED:true}
     xdb-path: ${IP2REGION_XDB_PATH:classpath:ip2region.xdb}

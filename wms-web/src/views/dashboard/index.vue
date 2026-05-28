@@ -5,7 +5,15 @@
         <h2>智能工作台</h2>
         <p>欢迎回来，今日库存动态、待办事项与风险提醒都已为你整理好。</p>
       </div>
-
+      <div class="weather-card">
+        <div class="weather-card__header">
+          <span class="weather-card__tag">实时天气</span>
+          <el-button link type="primary" @click="loadLocationWeather">重新获取</el-button>
+        </div>
+        <h3 class="weather-card__location">{{ locationWeather.locationText }}</h3>
+        <p class="weather-card__weather">{{ locationWeather.weatherText }}</p>
+        <p class="weather-card__detail">{{ locationWeather.detailText }}</p>
+      </div>
     </div>
 
     <div v-loading="loading">
@@ -56,6 +64,7 @@ import { ref, computed, onMounted } from 'vue'
 import { getDashboardData, dismissAlert } from '@/api/dashboard'
 import type { DashboardData } from '@/types/dashboard'
 import { ElMessage } from 'element-plus'
+import { useDashboardLocationWeather } from './useDashboardLocationWeather'
 
 import MetricCarousel from './components/MetricCarousel.vue'
 import TaskList from './components/TaskList.vue'
@@ -67,6 +76,7 @@ import DistributionChart from './components/DistributionChart.vue'
 
 const loading = ref(false)
 const dashboardData = ref<DashboardData | null>(null)
+const { locationWeather, loadLocationWeather } = useDashboardLocationWeather()
 
 // 全量显示指标
 const displayMetrics = computed(() => {
@@ -111,6 +121,7 @@ const handleDismissAlert = async (id: string) => {
 
 onMounted(() => {
   loadData()
+  loadLocationWeather()
 })
 </script>
 
@@ -150,6 +161,56 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 16px;
+    }
+
+    .weather-card {
+      min-width: 320px;
+      max-width: 360px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
+      backdrop-filter: blur(10px);
+
+      &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      &__tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #2563eb;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      &__location {
+        margin: 14px 0 8px;
+        font-size: 24px;
+        line-height: 1.3;
+        color: #111827;
+      }
+
+      &__weather {
+        margin: 0;
+        font-size: 16px;
+        color: #1f2937;
+        font-weight: 600;
+      }
+
+      &__detail {
+        margin: 10px 0 0;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #6b7280;
+      }
     }
   }
 
@@ -207,6 +268,17 @@ onMounted(() => {
       grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
+    .dashboard-header {
+      flex-direction: column;
+      gap: 16px;
+
+      .weather-card {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+      }
+    }
+
     .bento-panel--tasks,
     .bento-panel--compare,
     .bento-panel--distribution,
@@ -244,6 +316,30 @@ onMounted(() => {
     .side-stack {
       grid-template-rows: repeat(2, minmax(220px, auto));
       gap: 16px;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .dashboard-container {
+    .dashboard-header {
+      padding: 16px;
+
+      .title {
+        margin-left: 0;
+      }
+    }
+
+    .dashboard-bento {
+      grid-template-columns: 1fr;
+    }
+
+    .bento-panel--tasks,
+    .bento-panel--compare,
+    .bento-panel--distribution,
+    .bento-panel--trend,
+    .bento-panel--side {
+      grid-column: span 1;
     }
   }
 }

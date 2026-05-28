@@ -1,4 +1,5 @@
 import type { DashboardData, DashboardConfig } from '@/types/dashboard'
+import type { DashboardLocationWeatherResponse } from '@/types/location-weather'
 import { get, post } from '@/api/request'
 
 export const getDashboardData = (_role: string = 'admin') => {
@@ -21,4 +22,8 @@ export const completeTask = (_id: string) => {
 export const dismissAlert = (_id: string) => {
   // 暂时保留，对接到预警处理接口
   return post<void>(`/monitor/alert/${_id}/dismiss`)
+}
+
+export const getDashboardLocationWeather = (params: { latitude: number; longitude: number }) => {
+  return get<DashboardLocationWeatherResponse>('/report/dashboard/location-weather', params)
 }

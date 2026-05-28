@@ -18,8 +18,10 @@ import com.wms.report.domain.vo.OutboundReportVo;
 import com.wms.report.domain.vo.StockReportVo;
 import com.wms.report.domain.vo.dashboard.DashboardConfigVo;
 import com.wms.report.domain.vo.dashboard.DashboardDataVo;
+import com.wms.report.domain.vo.dashboard.DashboardLocationWeatherVo;
 import com.wms.report.mapper.ReportMonitorStockAlertMapper;
 import com.wms.report.service.AlertReportService;
+import com.wms.report.service.DashboardLocationWeatherService;
 import com.wms.report.service.DashboardService;
 import com.wms.report.service.InboundReportService;
 import com.wms.report.service.OutboundReportService;
@@ -45,6 +47,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final InboundReportService inboundReportService;
     private final OutboundReportService outboundReportService;
     private final AlertReportService alertReportService;
+    private final DashboardLocationWeatherService dashboardLocationWeatherService;
     
     private final WmsInboundOrderMapper inboundOrderMapper;
     private final WmsOutboundOrderMapper outboundOrderMapper;
@@ -75,6 +78,11 @@ public class DashboardServiceImpl implements DashboardService {
         dashboard.setQuickActions(buildQuickActions());
         
         return dashboard;
+    }
+
+    @Override
+    public DashboardLocationWeatherVo getLocationWeather(Double latitude, Double longitude) {
+        return dashboardLocationWeatherService.getLocationWeather(latitude, longitude);
     }
 
     private List<DashboardDataVo.MetricItemVo> buildMetrics() {

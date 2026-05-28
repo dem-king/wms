@@ -5,14 +5,20 @@ import com.wms.common.domain.R;
 import com.wms.report.domain.dto.dashboard.DashboardConfigDto;
 import com.wms.report.domain.vo.dashboard.DashboardConfigVo;
 import com.wms.report.domain.vo.dashboard.DashboardDataVo;
+import com.wms.report.domain.vo.dashboard.DashboardLocationWeatherVo;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import com.wms.report.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "首页工作台接口")
+@Validated
 @RestController
 @RequestMapping("/report/dashboard")
 @RequiredArgsConstructor
@@ -26,6 +32,16 @@ public class DashboardController {
     @GetMapping("/data")
     public R<DashboardDataVo> getDashboardData(@RequestParam(required = false, defaultValue = "admin") String role) {
         return R.ok(dashboardService.getDashboardData(role));
+    }
+
+    @DataScope
+    @Operation(summary = "获取首页位置天气")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/location-weather")
+    public R<DashboardLocationWeatherVo> getLocationWeather(
+            @RequestParam @NotNull @DecimalMin(value = "-90.0") @DecimalMax(value = "90.0") Double latitude,
+            @RequestParam @NotNull @DecimalMin(value = "-180.0") @DecimalMax(value = "180.0") Double longitude) {
+        return R.ok(dashboardService.getLocationWeather(latitude, longitude));
     }
 
     @Operation(summary = "获取首页配置")
