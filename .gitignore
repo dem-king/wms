@@ -44,8 +44,12 @@ minio/
 # Project directories to exclude
 aryn-mall-ui/
 redis/
+/nul
 
 # Maven/Gradle build output
 target/
 !**/src/**/target/
 .worktrees/
+
+# Documentation
+docs/

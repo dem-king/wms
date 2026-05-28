@@ -1,5 +1,6 @@
 package com.wms.business.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.wms.common.domain.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,6 +26,7 @@ public class WmsReturnOrder extends BaseEntity {
 
     /** 状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成) */
     @Schema(description = "状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)")
+    @TableField("order_status")
     private Integer status;
 
     /** 归还人 */

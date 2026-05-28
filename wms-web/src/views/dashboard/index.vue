@@ -132,9 +132,9 @@ onMounted(() => {
   .dashboard-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 24px;
-    padding: 20px 24px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 14px 20px;
     background: linear-gradient(90deg, #ffffff 0%, #f0f7ff 50%, #e0f2fe 100%);
     border-radius: 12px;
     border: 1px solid #dbeafe;
@@ -144,15 +144,15 @@ onMounted(() => {
 
       h2 {
         margin: 0;
-        font-size: 24px;
+        font-size: 20px;
         color: #1f2937;
         font-weight: 600;
       }
 
       p {
-        margin: 8px 0 0;
-        font-size: 14px;
-        line-height: 1.6;
+        margin: 4px 0 0;
+        font-size: 13px;
+        line-height: 1.5;
         color: #6b7280;
       }
     }
@@ -164,51 +164,54 @@ onMounted(() => {
     }
 
     .weather-card {
-      min-width: 320px;
-      max-width: 360px;
-      padding: 16px 18px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.82);
-      box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
-      backdrop-filter: blur(10px);
+      min-width: 280px;
+      max-width: 320px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      border: none;
 
       &__header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
+        margin-bottom: 6px;
       }
 
       &__tag {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 4px 10px;
+        padding: 2px 8px;
         border-radius: 999px;
-        background: #dbeafe;
+        background: rgba(59, 130, 246, 0.12);
         color: #2563eb;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
       }
 
       &__location {
-        margin: 14px 0 8px;
-        font-size: 24px;
+        margin: 0;
+        font-size: 15px;
         line-height: 1.3;
         color: #111827;
+        font-weight: 600;
       }
 
       &__weather {
-        margin: 0;
-        font-size: 16px;
+        margin: 2px 0 0;
+        font-size: 13px;
         color: #1f2937;
         font-weight: 600;
       }
 
       &__detail {
-        margin: 10px 0 0;
-        font-size: 13px;
-        line-height: 1.6;
+        margin: 4px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
         color: #6b7280;
       }
     }
