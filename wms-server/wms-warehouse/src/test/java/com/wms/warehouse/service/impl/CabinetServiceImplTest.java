@@ -1,8 +1,11 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.converter.CabinetConverter;
@@ -81,6 +84,38 @@ class CabinetServiceImplTest {
         assertEquals(10, result.get(0).getPositionX());
         assertEquals(20, result.get(0).getPositionY());
         assertEquals(2, result.get(1).getSortOrder());
+    }
+
+    @Test
+    @DisplayName("按区域分页查询时应返回分页结果和柜体列表")
+    void shouldReturnCabinetPageByAreaId() {
+        PageParam pageParam = new PageParam();
+        pageParam.setPage(1);
+        pageParam.setSize(20);
+
+        WmsCabinet cabinet = buildCabinet(2001L, 10L, "A柜", 10, 20);
+        cabinet.setRows(4);
+        cabinet.setCols(6);
+        cabinet.setSortOrder(1);
+        cabinet.setStatus(BizConstants.STATUS_ENABLED);
+
+        Page<WmsCabinet> page = new Page<>(1, 20, 1);
+        page.setRecords(List.of(cabinet));
+        when(wmsCabinetMapper.selectPage(any(Page.class), any(LambdaQueryWrapper.class))).thenReturn(page);
+
+        WmsArea area = new WmsArea();
+        area.setId(10L);
+        area.setAreaName("A区");
+        when(wmsAreaMapper.selectBatchIds(any())).thenReturn(List.of(area));
+
+        PageResult<CabinetVo> result = cabinetService.page(pageParam, 10L);
+
+        assertEquals(1L, result.getTotal());
+        assertEquals(1, result.getPage());
+        assertEquals(20, result.getSize());
+        assertEquals(1, result.getRecords().size());
+        assertEquals("A柜", result.getRecords().get(0).getCabinetName());
+        assertEquals("A区", result.getRecords().get(0).getAreaName());
     }
 
     @Test
