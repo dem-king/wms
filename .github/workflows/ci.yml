@@ -24,21 +24,38 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Code Rule Check
+      - name: Harness Rule Check
         working-directory: ./
-        continue-on-error: true
         run: |
           chmod +x scripts/check-rules.sh
           bash scripts/check-rules.sh
 
+      - name: Harness Rule Check (Strict)
+        working-directory: ./
+        continue-on-error: true
+        run: |
+          chmod +x scripts/check-rules.sh
+          bash scripts/check-rules.sh --strict
+
       - name: Maven Verify
-        run: mvn verify --batch-mode --no-transfer-progress -DskipTests=false
+        id: maven_verify
+        run: mvn verify --batch-mode --no-transfer-progress -DskipTests=false 2>&1 | tee mvn-output.txt
         env:
           MYSQL_PASSWORD: ci_test
           REDIS_PASSWORD: ci_test
           MINIO_ACCESS_KEY: ci_test
           MINIO_SECRET_KEY: ci_test
           JWT_SECRET: ci_test_jwt_secret_key_2024
+
+      - name: Check Test Count
+        run: |
+          TOTAL=$(grep -oP 'Tests run: \K\d+' mvn-output.txt | awk '{s+=$1} END {print s}')
+          echo "Total tests: $TOTAL"
+          if [ -z "$TOTAL" ] || [ "$TOTAL" -eq 0 ]; then
+            echo "FAIL: No tests were executed. At least one test must pass."
+            exit 1
+          fi
+          echo "Test count check passed ✓"
 
       - name: Upload Backend Artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'

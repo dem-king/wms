@@ -74,7 +74,7 @@ esac
 
 echo ""
 echo "============================================================"
-echo "  Harness Rule Checker v1.0"
+echo "  Harness Rule Checker v1.1"
 echo "  AGENTS.md → CI 自动化迁移"
 echo "============================================================"
 echo ""
@@ -148,7 +148,7 @@ check_SEC04() {
   local ok=true
   while IFS= read -r file; do
     [ -z "$file" ] && continue
-    local matches=$(grep -nE '(password|secret|jwt-secret|access-key|secret-key)\s*:' "$file" 2>/dev/null | grep -v '\${' | grep -v '^\s*#' | grep -v 'example\|demo\|test' || true)
+    local matches=$(grep -nE '(password|secret|jwt-secret|access-key|secret-key)\s*:' "$file" 2>/dev/null | grep -v '\${' | grep -v '^\s*#' | grep -v 'example\|demo\|test\|dev_default\|_default' || true)
     if [ -n "$matches" ]; then
       while IFS= read -r match; do
         [ -z "$match" ] && continue
@@ -234,10 +234,24 @@ check_DB04() {
   $ok && pass_ "DB-04: 所有 Entity 主键使用雪花 ID"
 }
 
+# DB-05: SQL 建表不含 AUTO_INCREMENT
+check_DB05() {
+  local ok=true
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    local matches=$(grep -n 'AUTO_INCREMENT' "$file" 2>/dev/null || true)
+    if [ -n "$matches" ]; then
+      local rel="${file#$SERVER_DIR/}"
+      fail_ "DB-05" "$rel: SQL 建表禁止使用 AUTO_INCREMENT，主键由应用层生成"
+      ok=false
+    fi
+  done < <(find . \( -name "*.sql" -o -name "*.ddl" \) -not -path "*/target/*" 2>/dev/null)
+  $ok && pass_ "DB-05: SQL 建表无 AUTO_INCREMENT"
+}
+
 # DB-06: 禁止循环内调用 mapper.insert
 check_DB06() {
   local ok=true
-  local warn_count=0
   while IFS= read -r file; do
     [ -z "$file" ] && continue
     local matches=$(grep -n 'mapper\.insert\|\.insert(' "$file" 2>/dev/null | grep -v '//\|saveBatch\|batchInsert\|test' || true)
@@ -261,6 +275,7 @@ check_DB01
 check_DB02
 check_DB03
 check_DB04
+check_DB05
 check_DB06
 
 # ============================================================================
@@ -308,19 +323,31 @@ check_CONST02() {
   $ok && pass_ "CONST-02: ServiceImpl 无私有常量"
 }
 
-# ARCH-03: ServiceImpl 禁止 private toVo 方法
-check_ARCH03() {
+# ARCH-01: Controller 方法体不超过 5 行（不含 @ 注解行）
+check_ARCH01() {
   local ok=true
-  local matches=$(grep -rn 'private.*toVo\|private.*toVoList\|private.*convertTo' $(find_java -path "*/service/impl/*.java") 2>/dev/null || true)
-  if [ -n "$matches" ]; then
-    while IFS= read -r match; do
-      [ -z "$match" ] && continue
-      local rel=$(echo "$match" | sed "s|$SERVER_DIR/||")
-      fail_ "ARCH-03" "$rel: ServiceImpl 禁止 private toVo 方法，请使用独立 Converter"
-      ok=false
-    done <<< "$matches"
-  fi
-  $ok && pass_ "ARCH-03: ServiceImpl 无 private toVo 转换方法"
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    local methods=$(grep -n 'public.*R<.*(' "$file" 2>/dev/null || true)
+    [ -z "$methods" ] && continue
+    while IFS=: read -r line_num rest; do
+      [ -z "$line_num" ] && continue
+      # 统计方法体行数（从方法声明到下一个 } 或下一个方法声明）
+      local body_start=$((line_num + 1))
+      local brace_line=$(awk "NR>=$body_start" "$file" | grep -n '{' | head -1 | cut -d: -f1)
+      [ -z "$brace_line" ] && continue
+      brace_line=$((line_num + brace_line))
+      local next_method=$(grep -n 'public.*R<\|public.*PageResult\|public.*List\|public.*void' "$file" 2>/dev/null | awk -F: '$1 > '"$line_num"' {print $1; exit}')
+      [ -z "$next_method" ] && next_method=$(wc -l < "$file")
+      local code_lines=$(sed -n "${brace_line},${next_method}p" "$file" 2>/dev/null | grep -v '^\s*@\|^\s*$\|^\s*//' | wc -l)
+      if [ "$code_lines" -gt 5 ]; then
+        local rel="${file#$SERVER_DIR/}"
+        warn_ "ARCH-01" "$rel:$line_num: Controller 方法体疑似超过 5 行（${code_lines}行），请确认仅做参数校验+调用Service"
+        ok=false
+      fi
+    done <<< "$methods"
+  done < <(find_java -path "*/controller/*.java")
+  $ok && pass_ "ARCH-01: Controller 方法体简洁（≤5行业务行）"
 }
 
 # ARCH-02: Service/Controller 返回类型必须是 Vo
@@ -343,12 +370,111 @@ check_ARCH02() {
   $ok && pass_ "ARCH-02: 公共方法返回 Vo 而非 Entity"
 }
 
+# ARCH-03: ServiceImpl 禁止 private toVo 方法
+check_ARCH03() {
+  local ok=true
+  local matches=$(grep -rn 'private.*toVo\|private.*toVoList\|private.*convertTo' $(find_java -path "*/service/impl/*.java") 2>/dev/null || true)
+  if [ -n "$matches" ]; then
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local rel=$(echo "$match" | sed "s|$SERVER_DIR/||")
+      fail_ "ARCH-03" "$rel: ServiceImpl 禁止 private toVo 方法，请使用独立 Converter"
+      ok=false
+    done <<< "$matches"
+  fi
+  $ok && pass_ "ARCH-03: ServiceImpl 无 private toVo 转换方法"
+}
+
+# ARCH-04: Controller 参数必须有校验注解
+check_ARCH04() {
+  local ok=true
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # 查找 @PathVariable 和 @RequestParam 但没有校验注解的方法
+    local path_params=$(grep -n '@PathVariable' "$file" 2>/dev/null || true)
+    if [ -n "$path_params" ]; then
+      while IFS=: read -r line_num rest; do
+        [ -z "$line_num" ] && continue
+        if ! has_around_line "$file" "$line_num" 3 '@NotBlank\|@NotNull\|@Min\|@Max\|@Size\|@Valid'; then
+          local rel="${file#$SERVER_DIR/}"
+          warn_ "ARCH-04" "$rel:$line_num: @PathVariable 参数缺少校验注解"
+          ok=false
+        fi
+      done <<< "$path_params"
+    fi
+    local req_params=$(grep -n '@RequestParam' "$file" 2>/dev/null || true)
+    if [ -n "$req_params" ]; then
+      while IFS=: read -r line_num rest; do
+        [ -z "$line_num" ] && continue
+        # 检查是否有 required=false 或 defaultValue，如果有则不需要校验
+        if echo "$rest" | grep -q 'required\s*=\s*false\|defaultValue'; then
+          continue
+        fi
+        if ! has_around_line "$file" "$line_num" 3 '@NotBlank\|@NotNull\|@Min\|@Max\|@Size\|@Pattern'; then
+          local rel="${file#$SERVER_DIR/}"
+          warn_ "ARCH-04" "$rel:$line_num: @RequestParam 参数缺少校验注解"
+          ok=false
+        fi
+      done <<< "$req_params"
+    fi
+  done < <(find_java -path "*/controller/*.java")
+  $ok && pass_ "ARCH-04: Controller 参数有校验注解"
+}
+
 check_CONST02
-check_ARCH03
+check_ARCH01
 check_ARCH02
+check_ARCH03
+check_ARCH04
 
 # ============================================================================
-# 五、命名规范（阻断级）
+# 五、性能规则
+# ============================================================================
+echo ""
+echo "${BOLD}── 性能规则 ──${NC}"
+
+# PERF-01: N+1 查询模式扫描
+check_PERF01() {
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    local selects=$(grep -n 'mapper\.selectById\|mapper\.selectOne\|mapper\.selectList' "$file" 2>/dev/null || true)
+    if [ -n "$selects" ]; then
+      while IFS=: read -r line_num rest; do
+        [ -z "$line_num" ] && continue
+        local ctx_start=$((line_num - 15))
+        [ $ctx_start -lt 1 ] && ctx_start=1
+        if sed -n "${ctx_start},${line_num}p" "$file" | grep -qE '\bfor\s*\(.*:' ; then
+          local rel="${file#$SERVER_DIR/}"
+          warn_ "PERF-01" "$rel:$line_num: 疑似 N+1 查询（循环内数据库调用）"
+        fi
+      done <<< "$selects"
+    fi
+  done < <(find_java -path "*/service/impl/*.java")
+}
+
+# PERF-02: 禁止全表查询后内存过滤
+check_PERF02() {
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # 检测 selectList() 后紧跟 .stream().filter() 的模式
+    local select_lines=$(grep -n 'selectList\|selectBatchIds' "$file" 2>/dev/null || true)
+    [ -z "$select_lines" ] && continue
+    while IFS=: read -r line_num rest; do
+      [ -z "$line_num" ] && continue
+      local ctx_end=$((line_num + 10))
+      if sed -n "${line_num},${ctx_end}p" "$file" | grep -q '\.stream()\.filter\|\.stream().*filter'; then
+        local rel="${file#$SERVER_DIR/}"
+        warn_ "PERF-02" "$rel:$line_num: 疑似全表查询后内存过滤（selectList + stream().filter()）"
+      fi
+    done <<< "$select_lines"
+  done < <(find_java -path "*/service/impl/*.java")
+}
+
+check_PERF01
+check_PERF02
+
+# ============================================================================
+# 六、命名规范（阻断级）
 # ============================================================================
 echo ""
 echo "${BOLD}── 命名规范 ──${NC}"
@@ -371,7 +497,8 @@ check_NAME03() {
     local basename=$(basename "$file")
     if ! echo "$basename" | grep -q 'Dto\.java$'; then
       local rel="${file#$SERVER_DIR/}"
-      warn_ "NAME-04" "$rel: DTO 类名必须以 Dto 结尾"
+      fail_ "NAME-04" "$rel: DTO 类名必须以 Dto 结尾"
+      ok=false
     fi
   done < <(find_java -path "*/domain/dto/*.java")
   # Converter 检查
@@ -380,7 +507,8 @@ check_NAME03() {
     local basename=$(basename "$file")
     if ! echo "$basename" | grep -q 'Converter\.java$'; then
       local rel="${file#$SERVER_DIR/}"
-      warn_ "NAME-05" "$rel: Converter 类名必须以 Converter 结尾"
+      fail_ "NAME-05" "$rel: Converter 类名必须以 Converter 结尾"
+      ok=false
     fi
   done < <(find_java -path "*/converter/*.java")
   $ok && pass_ "NAME-03/04/05: 命名后缀符合规范"
@@ -389,7 +517,7 @@ check_NAME03() {
 check_NAME03
 
 # ============================================================================
-# 六、JavaDoc 规范（阻断级）
+# 七、JavaDoc 规范（阻断级）
 # ============================================================================
 echo ""
 echo "${BOLD}── JavaDoc 规范 ──${NC}"
@@ -430,11 +558,32 @@ check_JAVADOC02() {
   $ok && pass_ "JAVADOC-02: Service/Controller 有类级 JavaDoc"
 }
 
+# JAVADOC-03: Mapper 接口方法必须有 JavaDoc
+check_JAVADOC03() {
+  local ok=true
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # 跳过继承自 BaseMapper 的方法
+    local methods=$(grep -n '^\s*[A-Z].*\(.*\)\s*;' "$file" 2>/dev/null | grep -v 'BaseMapper' || true)
+    [ -z "$methods" ] && continue
+    while IFS=: read -r line_num rest; do
+      [ -z "$line_num" ] && continue
+      if ! has_before_line "$file" "$line_num" 3 '/\*\*'; then
+        local rel="${file#$SERVER_DIR/}"
+        warn_ "JDOC-03" "$rel:$line_num: Mapper 方法缺少 JavaDoc /** */"
+        ok=false
+      fi
+    done <<< "$methods"
+  done < <(find_java -name "*Mapper.java" -not -path "*/test/*")
+  $ok && pass_ "JAVADOC-03: Mapper 方法有 JavaDoc"
+}
+
 check_JAVADOC01
 check_JAVADOC02
+check_JAVADOC03
 
 # ============================================================================
-# 七、警告级（默认不阻断，--strict 模式下阻断）
+# 八、警告级（默认不阻断，--strict 模式下阻断）
 # ============================================================================
 echo ""
 echo "${BOLD}── 警告级检查 ──${NC}"
@@ -454,27 +603,7 @@ check_CONST01() {
   done < <(find_java -path "*/service/impl/*.java")
 }
 
-# PERF-01: N+1 查询模式扫描
-check_PERF01() {
-  while IFS= read -r file; do
-    [ -z "$file" ] && continue
-    local selects=$(grep -n 'mapper\.selectById\|mapper\.selectOne\|mapper\.selectList' "$file" 2>/dev/null || true)
-    if [ -n "$selects" ]; then
-      while IFS=: read -r line_num rest; do
-        [ -z "$line_num" ] && continue
-        local ctx_start=$((line_num - 15))
-        [ $ctx_start -lt 1 ] && ctx_start=1
-        if sed -n "${ctx_start},${line_num}p" "$file" | grep -qE '\bfor\s*\(.*:' ; then
-          local rel="${file#$SERVER_DIR/}"
-          warn_ "PERF-01" "$rel:$line_num: 疑似 N+1 查询（循环内数据库调用）"
-        fi
-      done <<< "$selects"
-    fi
-  done < <(find_java -path "*/service/impl/*.java")
-}
-
 check_CONST01
-check_PERF01
 
 # ============================================================================
 # 汇总
