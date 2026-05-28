@@ -5,7 +5,7 @@ services:
     image: mysql:8.0
     container_name: wms-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-wms123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev_mysql_root_password}
       MYSQL_DATABASE: wms
       TZ: Asia/Shanghai
     ports:
@@ -26,8 +26,8 @@ services:
     image: minio/minio
     container_name: wms-minio
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-dev_minio_root_user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dev_minio_root_password}
     ports:
       - "9000:9000"
       - "9001:9001"

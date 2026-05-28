@@ -16,7 +16,6 @@ import com.wms.auth.service.TokenService;
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
-import com.wms.common.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -118,8 +117,7 @@ public class AuthController {
     @Operation(summary = "权限校验")
     @GetMapping("/authorize/check")
     public R<Boolean> checkPermission(@RequestParam String permCode) {
-        Long userId = SecurityUtil.getCurrentUserId();
-        return R.ok(authorizeService.hasPermission(userId, permCode));
+        return R.ok(authorizeService.hasCurrentUserPermission(permCode));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -127,8 +125,7 @@ public class AuthController {
     @Operation(summary = "修改密码")
     @PutMapping("/password")
     public R<Void> changePassword(@Valid @RequestBody PasswordReq req) {
-        Long userId = SecurityUtil.getCurrentUserId();
-        passwordService.changePassword(userId, req);
+        passwordService.changeCurrentUserPassword(req);
         return R.ok();
     }
 

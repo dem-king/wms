@@ -1,6 +1,7 @@
 package com.wms.report.controller.dashboard;
 
 import com.wms.common.annotation.DataScope;
+import com.wms.common.annotation.OperLog;
 import com.wms.common.domain.R;
 import com.wms.report.domain.dto.dashboard.DashboardConfigDto;
 import com.wms.report.domain.vo.dashboard.DashboardConfigVo;
@@ -45,6 +46,7 @@ public class DashboardController {
     }
 
     @Operation(summary = "获取首页配置")
+    @DataScope
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/config")
     public R<DashboardConfigVo> getConfig() {
@@ -52,6 +54,7 @@ public class DashboardController {
     }
 
     @Operation(summary = "保存首页配置")
+    @OperLog(module = "report", type = "修改", desc = "保存首页配置")
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/config")
     public R<Void> saveConfig(@RequestBody DashboardConfigDto dto) {

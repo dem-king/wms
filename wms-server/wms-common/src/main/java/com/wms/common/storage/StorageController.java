@@ -72,6 +72,7 @@ public class StorageController {
      * @return 预签名上传结果
      */
     @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "storage", type = "上传", desc = "获取预签名上传URL")
     @Operation(summary = "获取预签名上传URL")
     @PostMapping("/presign/{bucket}")
     public R<PresignedUploadResult> presign(@PathVariable String bucket,

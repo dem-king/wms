@@ -3,6 +3,7 @@ package com.wms.auth.service.impl;
 import com.wms.auth.constant.AuthRedisKey;
 import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.service.AuthorizeService;
+import com.wms.common.util.SecurityUtil;
 import com.wms.system.service.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,12 @@ public class AuthorizeServiceImpl implements AuthorizeService {
     public boolean hasPermission(Long userId, String permCode) {
         List<String> permissions = getUserPermissions(userId);
         return permissions.contains(permCode);
+    }
+
+    @Override
+    public boolean hasCurrentUserPermission(String permCode) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        return hasPermission(userId, permCode);
     }
 
     /**

@@ -45,6 +45,7 @@ public class CostAccountController {
     @Operation(summary = "获取费用核算配置")
     @GetMapping("/config")
     @PreAuthorize("hasRole('ADMIN')")
+    @DataScope
     public R<CostAccountVo> getConfig() {
         return R.ok(costAccountService.getConfig());
     }

@@ -1,6 +1,9 @@
 package com.wms.report.controller.dashboard;
 
 import com.wms.common.domain.R;
+import com.wms.common.annotation.DataScope;
+import com.wms.common.annotation.OperLog;
+import com.wms.report.domain.dto.dashboard.DashboardConfigDto;
 import com.wms.report.domain.vo.dashboard.DashboardLocationWeatherVo;
 import com.wms.report.service.DashboardService;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,5 +48,26 @@ class DashboardControllerTest {
         assertEquals("西安市", result.getData().getCity());
         assertEquals("晴", result.getData().getWeather());
         verify(dashboardService).getLocationWeather(34.2132, 108.8799);
+    }
+
+    @Test
+    @DisplayName("获取首页配置接口应声明数据权限注解")
+    void shouldDeclareDataScopeOnGetConfig() throws NoSuchMethodException {
+        DataScope dataScope = DashboardController.class
+                .getMethod("getConfig")
+                .getAnnotation(DataScope.class);
+
+        assertNotNull(dataScope);
+    }
+
+    @Test
+    @DisplayName("保存首页配置接口应声明操作日志注解")
+    void shouldDeclareOperLogOnSaveConfig() throws NoSuchMethodException {
+        OperLog operLog = DashboardController.class
+                .getMethod("saveConfig", DashboardConfigDto.class)
+                .getAnnotation(OperLog.class);
+
+        assertNotNull(operLog);
+        assertEquals("report", operLog.module());
     }
 }

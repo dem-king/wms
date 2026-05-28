@@ -6,5 +6,7 @@ public interface PasswordService {
 
     void changePassword(Long userId, PasswordReq req);
 
+    void changeCurrentUserPassword(PasswordReq req);
+
     boolean validatePasswordStrength(String password);
 }

@@ -7,6 +7,7 @@ import com.wms.item.domain.vo.ItemVo;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,26 @@ public class ItemConverter {
     }
 
     /**
+     * 单条转换物品实体
+     *
+     * @param item 物品实体
+     * @param categoryName 主类目名称
+     * @param subCategoryName 细分类目名称
+     * @return 物品VO
+     */
+    public ItemVo toVo(WmsItem item, String categoryName, String subCategoryName) {
+        Map<Long, String> categoryNameMap = new HashMap<>();
+        Map<Long, String> subCategoryNameMap = new HashMap<>();
+        if (item.getCategoryId() != null && categoryName != null) {
+            categoryNameMap.put(item.getCategoryId(), categoryName);
+        }
+        if (item.getSubCategoryId() != null && subCategoryName != null) {
+            subCategoryNameMap.put(item.getSubCategoryId(), subCategoryName);
+        }
+        return toVo(item, categoryNameMap, subCategoryNameMap);
+    }
+
+    /**
      * 批量转换物品实体列表
      *
      * @param items 物品实体列表
@@ -84,6 +105,7 @@ public class ItemConverter {
         vo.setId(image.getId());
         vo.setItemId(image.getItemId());
         vo.setImageUrl(image.getImageUrl());
+        vo.setImageName(image.getImageName());
         vo.setSortOrder(image.getSortOrder());
         return vo;
     }

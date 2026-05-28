@@ -225,6 +225,7 @@ export interface CostPeriodItem {
 
 /** 年度费用核算结果 */
 export interface CostAccountVo {
+  enabled: boolean
   year: number
   period: string
   periodList: CostPeriodItem[]

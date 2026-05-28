@@ -6,6 +6,7 @@ import com.wms.auth.service.CryptoService;
 import com.wms.auth.service.PasswordService;
 import com.wms.auth.service.TokenService;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,11 @@ public class PasswordServiceImpl implements PasswordService {
 
         tokenService.revokeAllTokens(userId);
         log.info("用户{}修改密码成功,所有Token已撤销", userId);
+    }
+
+    @Override
+    public void changeCurrentUserPassword(PasswordReq req) {
+        changePassword(SecurityUtil.getCurrentUserId(), req);
     }
 
     /**

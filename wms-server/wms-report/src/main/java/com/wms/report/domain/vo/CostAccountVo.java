@@ -13,6 +13,10 @@ import java.util.List;
 @Schema(description = "年度费用核算结果")
 public class CostAccountVo {
 
+    /** 是否启用费用核算 */
+    @Schema(description = "是否启用费用核算")
+    private Boolean enabled;
+
     /** 核算年度 */
     @Schema(description = "核算年度")
     private Integer year;

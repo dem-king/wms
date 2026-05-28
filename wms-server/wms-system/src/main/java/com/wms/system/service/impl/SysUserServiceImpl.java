@@ -38,7 +38,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserRoleMapper sysUserRoleMapper;
 
     /** 默认重置密码，从配置文件读取 */
-    @Value("${wms.default-password:Wms@2024}")
+    @Value("${wms.default-password}")
     private String defaultPassword;
 
     /**

@@ -116,6 +116,7 @@ public class CostAccountServiceImpl implements CostAccountService {
         String yearStr = getConfigValue(ReportConstants.COST_CONFIG_YEAR_KEY);
         String period = getConfigValue(ReportConstants.COST_CONFIG_PERIOD_KEY);
 
+        vo.setEnabled(enabled);
         vo.setYear(yearStr != null ? Integer.parseInt(yearStr) : null);
         vo.setPeriod(period);
         return vo;
@@ -143,6 +144,7 @@ public class CostAccountServiceImpl implements CostAccountService {
         }
 
         CostAccountVo vo = new CostAccountVo();
+        vo.setEnabled(dto.getEnabled());
         vo.setYear(dto.getYear());
         vo.setPeriod(dto.getPeriod());
         return vo;

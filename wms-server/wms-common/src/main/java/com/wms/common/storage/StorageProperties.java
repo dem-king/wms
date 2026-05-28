@@ -26,10 +26,10 @@ public class StorageProperties {
     private String minioEndpoint = "http://localhost:9000";
 
     /** MinIO Access Key */
-    private String minioAccessKey = "minioadmin";
+    private String minioAccessKey = "dev_minio_access_key";
 
     /** MinIO Secret Key */
-    private String minioSecretKey = "minioadmin";
+    private String minioSecretKey = "dev_minio_secret_key";
 
     /** MinIO默认桶名 */
     private String minioBucketName = "wms";

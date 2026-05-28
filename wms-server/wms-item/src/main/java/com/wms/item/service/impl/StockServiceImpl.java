@@ -18,7 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +71,9 @@ public class StockServiceImpl implements StockService {
             }
             wrapper.in(WmsStock::getItemId, itemIds);
         }
+        if (Boolean.TRUE.equals(alertOnly)) {
+            wrapper.apply("quantity < (SELECT stock_lower_limit FROM wms_item WHERE wms_item.id = wms_stock.item_id)");
+        }
         wrapper.orderByDesc(WmsStock::getUpdateTime);
 
         Page<WmsStock> page = wmsStockMapper.selectPage(
@@ -75,19 +81,10 @@ public class StockServiceImpl implements StockService {
 
         // 批量查询所有涉及的物品信息，避免N+1查询
         List<WmsStock> stocks = page.getRecords();
-        Map<Long, WmsItem> itemMap = stocks.stream()
-                .map(WmsStock::getItemId)
-                .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, id -> wmsItemMapper.selectById(id),
-                        (existing, replacement) -> existing));
+        Map<Long, WmsItem> itemMap = loadItemMap(stocks);
 
         PageResult<StockVo> result = new PageResult<>();
-        List<StockVo> voList = stocks.stream().map(stock -> stockConverter.toVo(stock, itemMap)).collect(Collectors.toList());
-        // 如果仅显示预警库存，过滤quantity < stockLowerLimit的记录
-        if (alertOnly != null && alertOnly) {
-            voList = voList.stream().filter(vo -> Boolean.TRUE.equals(vo.getAlert())).collect(Collectors.toList());
-        }
+        List<StockVo> voList = stockConverter.toVoList(stocks, itemMap);
         result.setRecords(voList);
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
@@ -108,7 +105,7 @@ public class StockServiceImpl implements StockService {
                         .eq(WmsStock::getItemId, itemId)
                         .orderByDesc(WmsStock::getUpdateTime)
         );
-        return stocks.stream().map(this::toStockVoSingle).collect(Collectors.toList());
+        return stockConverter.toVoList(stocks, loadItemMap(stocks));
     }
 
     /**
@@ -122,18 +119,9 @@ public class StockServiceImpl implements StockService {
         // 在SQL层面直接筛选存在对应物品且库存数量低于安全库存的记录，避免全表查询
         List<WmsStock> stocks = wmsStockMapper.selectList(
                 new LambdaQueryWrapper<WmsStock>()
-                        .apply("quantity < (SELECT stock_lower_limit FROM wms_item WHERE wms_item.id = wms_stock.item_id AND wms_item.del_flag = 0)")
+                        .apply("quantity < (SELECT stock_lower_limit FROM wms_item WHERE wms_item.id = wms_stock.item_id)")
         );
-        // 批量查询涉及的物品信息
-        Map<Long, WmsItem> itemMap = stocks.stream()
-                .map(WmsStock::getItemId)
-                .filter(id -> id != null)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, id -> wmsItemMapper.selectById(id),
-                        (existing, replacement) -> existing));
-        return stocks.stream()
-                .map(stock -> stockConverter.toVo(stock, itemMap))
-                .collect(Collectors.toList());
+        return stockConverter.toVoList(stocks, loadItemMap(stocks));
     }
 
     /**
@@ -183,19 +171,21 @@ public class StockServiceImpl implements StockService {
             vo.setStockUpperLimit(item.getStockUpperLimit());
             return vo;
         }
-        return toStockVoSingle(stock);
+        return stockConverter.toVo(stock, loadItemMap(List.of(stock)));
     }
 
     /**
-     * WmsStock实体转StockVo(单条查询时使用，内部查DB填充物品信息)
-     *
-     * @param stock 库存实体
-     * @return 库存VO
+     * 批量加载库存关联的物品信息，统一复用以避免逐条查库。
      */
-    private StockVo toStockVoSingle(WmsStock stock) {
-        Map<Long, WmsItem> itemMap = stock.getItemId() != null
-                ? Map.of(stock.getItemId(), wmsItemMapper.selectById(stock.getItemId()))
-                : Map.of();
-        return stockConverter.toVo(stock, itemMap);
+    private Map<Long, WmsItem> loadItemMap(List<WmsStock> stocks) {
+        Set<Long> itemIds = stocks.stream()
+                .map(WmsStock::getItemId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (itemIds.isEmpty()) {
+            return Map.of();
+        }
+        return wmsItemMapper.selectBatchIds(itemIds).stream()
+                .collect(Collectors.toMap(WmsItem::getId, Function.identity()));
     }
 }

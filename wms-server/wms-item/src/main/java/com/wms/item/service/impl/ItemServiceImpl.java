@@ -156,7 +156,7 @@ public class ItemServiceImpl implements ItemService {
         if (item.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品已删除");
         }
-        ItemVo vo = toItemVo(item);
+        ItemVo vo = itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId()));
         // 填充标签列表
         vo.setTags(getItemTags(id));
         // 填充图片列表
@@ -221,7 +221,7 @@ public class ItemServiceImpl implements ItemService {
         if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
             saveItemTags(item.getId(), dto.getTagIds());
         }
-        return toItemVo(item);
+        return itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId()));
     }
 
     /**
@@ -270,7 +270,7 @@ public class ItemServiceImpl implements ItemService {
         if (dto.getTagIds() != null) {
             assignTags(id, dto.getTagIds());
         }
-        return toItemVo(existing);
+        return itemConverter.toVo(existing, getCategoryName(existing.getCategoryId()), getSubCategoryName(existing.getSubCategoryId()));
     }
 
     /**
@@ -579,23 +579,21 @@ public class ItemServiceImpl implements ItemService {
         entity.setRemark(dto.getRemark());
     }
 
-    /**
-     * WmsItem实体转ItemVo(单条查询时使用，内部查DB填充类目名称)
-     *
-     * @param item 物品实体
-     * @return 物品VO
-     */
-    private ItemVo toItemVo(WmsItem item) {
-        Map<Long, String> categoryNameMap = item.getCategoryId() != null
-                ? Map.of(item.getCategoryId(),
-                Optional.ofNullable(wmsCategoryMapper.selectById(item.getCategoryId()))
-                        .map(WmsCategory::getCategoryName).orElse(null))
-                : Map.of();
-        Map<Long, String> subCategoryNameMap = item.getSubCategoryId() != null
-                ? Map.of(item.getSubCategoryId(),
-                Optional.ofNullable(wmsSubCategoryMapper.selectById(item.getSubCategoryId()))
-                        .map(WmsSubCategory::getSubCategoryName).orElse(null))
-                : Map.of();
-        return itemConverter.toVo(item, categoryNameMap, subCategoryNameMap);
+    private String getCategoryName(Long categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return Optional.ofNullable(wmsCategoryMapper.selectById(categoryId))
+                .map(WmsCategory::getCategoryName)
+                .orElse(null);
+    }
+
+    private String getSubCategoryName(Long subCategoryId) {
+        if (subCategoryId == null) {
+            return null;
+        }
+        return Optional.ofNullable(wmsSubCategoryMapper.selectById(subCategoryId))
+                .map(WmsSubCategory::getSubCategoryName)
+                .orElse(null);
     }
 }
