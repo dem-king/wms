@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
       <el-form-item label="供应商名称">
         <el-input v-model="queryParams.supplierName" placeholder="请输入供应商名称" clearable @keyup.enter="handleQuery" />
@@ -19,39 +19,43 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="supplierName" label="供应商名称" min-width="150" />
-      <el-table-column prop="supplierCode" label="供应商编码" min-width="120" />
-      <el-table-column prop="contactPerson" label="联系人" min-width="100" />
-      <el-table-column prop="contactPhone" label="联系电话" min-width="120" />
-      <el-table-column prop="address" label="地址" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="status" label="状态" min-width="80">
-        <template #default="{ row }">
-          <el-switch :model-value="row.status === 1" @change="val => handleStatusChange(row, Boolean(val))" />
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该供应商吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="supplierName" label="供应商名称" min-width="150" />
+        <el-table-column prop="supplierCode" label="供应商编码" min-width="120" />
+        <el-table-column prop="contactPerson" label="联系人" min-width="100" />
+        <el-table-column prop="contactPhone" label="联系电话" min-width="120" />
+        <el-table-column prop="address" label="地址" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" min-width="80">
+          <template #default="{ row }">
+            <el-switch :model-value="row.status === 1" @change="val => handleStatusChange(row, Boolean(val))" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该供应商吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-pagination
-      v-model:current-page="queryParams.page"
-      v-model:page-size="queryParams.size"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      class="pagination"
-      @size-change="handleQuery"
-      @current-change="handleQuery"
-    />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleQuery"
+          @current-change="handleQuery"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑供应商' : '新增供应商'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -93,6 +97,7 @@ import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getSupplierList, addSupplier, updateSupplier, deleteSupplier } from '@/api/system/supplier'
 import type { EntityId, SysSupplierVo } from '@/types/system'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<SysSupplierVo[]>([])
@@ -131,7 +136,7 @@ async function handleQuery() {
   try {
     const res = await getSupplierList(queryParams)
     tableData.value = res.data.records
-    total.value = res.data.total
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -199,8 +204,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -212,7 +232,6 @@ onMounted(() => {
 }
 
 .pagination {
-  margin-top: 16px;
   justify-content: flex-end;
 }
 </style>
