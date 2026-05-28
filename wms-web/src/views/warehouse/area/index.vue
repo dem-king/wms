@@ -1,60 +1,54 @@
 <template>
   <div class="app-container list-page">
-    <el-row :gutter="16">
-      <el-col :span="6">
-        <el-card>
-          <template #header><span>选择库房</span></template>
-          <el-select v-model="selectedWarehouseId" placeholder="请选择库房" style="width: 100%" @change="handleWarehouseChange">
-            <el-option v-for="w in warehouseList" :key="w.id" :label="w.warehouseName" :value="w.id" />
-          </el-select>
-        </el-card>
-      </el-col>
-      <el-col :span="18">
-        <el-card>
-          <template #header>
-            <div class="card-header">
-              <span>区域列表</span>
-              <el-button v-if="selectedWarehouseId" type="primary" text :icon="Plus" @click="handleAdd">新增</el-button>
-            </div>
-          </template>
-          <div class="table-section">
-            <el-table v-loading="loading" :data="tableData" border height="100%">
-              <el-table-column prop="areaCode" label="区域编码" min-width="120" />
-              <el-table-column prop="areaName" label="区域名称" min-width="150" />
-              <el-table-column prop="sortOrder" label="排序" min-width="80" />
-              <el-table-column prop="status" label="状态" min-width="80">
-                <template #default="{ row }">
-                  <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" class-name="table-action-column" fixed="right">
-                <template #default="{ row }">
-                  <TableActionGroup
-                    :actions="[
-                      { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                      { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该区域吗？', onClick: () => handleDelete(row.id) },
-                    ]"
-                  />
-                </template>
-              </el-table-column>
-            </el-table>
+    <el-form :inline="true" class="search-form">
+      <el-form-item label="库房">
+        <el-select v-model="selectedWarehouseId" placeholder="请选择库房" clearable style="width: 240px" @change="handleWarehouseChange">
+          <el-option v-for="w in warehouseList" :key="w.id" :label="w.warehouseName" :value="w.id" />
+        </el-select>
+      </el-form-item>
+    </el-form>
 
-            <div class="pagination-container">
-              <el-pagination
-                v-model:current-page="queryParams.page"
-                v-model:page-size="queryParams.size"
-                :total="total"
-                :page-sizes="[10, 20, 50, 100]"
-                layout="total, sizes, prev, pager, next, jumper"
-                class="pagination"
-                @size-change="handleSizeChange"
-                @current-change="handleCurrentChange"
-              />
-            </div>
-          </div>
-        </el-card>
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="primary" plain :icon="Plus" :disabled="!selectedWarehouseId" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
+
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="areaCode" label="区域编码" min-width="120" />
+        <el-table-column prop="areaName" label="区域名称" min-width="150" />
+        <el-table-column prop="sortOrder" label="排序" min-width="80" />
+        <el-table-column prop="status" label="状态" min-width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该区域吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑区域' : '新增区域'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -205,13 +199,34 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.card-header {
+.table-section {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.mb8 {
+  margin-bottom: 8px;
+}
+
+.pagination {
+  justify-content: flex-end;
 }
 </style>

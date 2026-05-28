@@ -232,8 +232,23 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -242,5 +257,9 @@ onMounted(async () => {
 
 .mb8 {
   margin-bottom: 8px;
+}
+
+.pagination {
+  justify-content: flex-end;
 }
 </style>
