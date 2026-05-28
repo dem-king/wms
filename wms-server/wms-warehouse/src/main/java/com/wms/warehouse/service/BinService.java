@@ -1,5 +1,7 @@
 package com.wms.warehouse.service;
 
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.warehouse.domain.dto.BinDto;
 import com.wms.warehouse.domain.vo.BinVo;
 
@@ -10,6 +12,15 @@ import java.util.List;
  * 提供库位CRUD、按存放柜查询、批量生成库位等功能
  */
 public interface BinService {
+
+    /**
+     * 按存放柜ID分页查询库位列表
+     *
+     * @param pageParam  分页参数
+     * @param cabinetId 存放柜ID
+     * @return 库位分页结果
+     */
+    PageResult<BinVo> page(PageParam pageParam, Long cabinetId);
 
     /**
      * 按存放柜ID查询库位列表

@@ -1,8 +1,11 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.converter.CabinetConverter;
@@ -43,6 +46,43 @@ public class CabinetServiceImpl implements CabinetService {
     private final WmsBinMapper wmsBinMapper;
     private final SequenceGenerator sequenceGenerator;
     private final CabinetConverter cabinetConverter;
+
+    /**
+     * 按区域ID分页查询存放柜列表
+     *
+     * @param pageParam 分页参数
+     * @param areaId 区域ID
+     * @return 存放柜分页结果
+     */
+    @Override
+    public PageResult<CabinetVo> page(PageParam pageParam, Long areaId) {
+        LambdaQueryWrapper<WmsCabinet> wrapper = new LambdaQueryWrapper<WmsCabinet>()
+                .eq(WmsCabinet::getAreaId, areaId)
+                .orderByAsc(WmsCabinet::getSortOrder)
+                .orderByAsc(WmsCabinet::getId);
+        Page<WmsCabinet> page = wmsCabinetMapper.selectPage(new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
+
+        Set<Long> areaIds = page.getRecords().stream()
+                .map(WmsCabinet::getAreaId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsArea> areaMap = areaIds.isEmpty()
+                ? Map.of()
+                : wmsAreaMapper.selectBatchIds(areaIds).stream()
+                        .collect(Collectors.toMap(WmsArea::getId, Function.identity()));
+
+        PageResult<CabinetVo> result = new PageResult<>();
+        result.setRecords(page.getRecords().stream()
+                .sorted(Comparator
+                        .comparing((WmsCabinet cabinet) -> cabinet.getSortOrder() == null ? BizConstants.DEFAULT_SORT_ORDER : cabinet.getSortOrder())
+                        .thenComparing(WmsCabinet::getId))
+                .map(cabinet -> cabinetConverter.toVo(cabinet, getAreaName(cabinet.getAreaId(), areaMap), null))
+                .collect(Collectors.toList()));
+        result.setTotal(page.getTotal());
+        result.setPage(pageParam.getPage());
+        result.setSize(pageParam.getSize());
+        return result;
+    }
 
     /**
      * 按区域ID查询存放柜列表

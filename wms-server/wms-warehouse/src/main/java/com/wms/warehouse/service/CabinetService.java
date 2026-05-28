@@ -1,5 +1,7 @@
 package com.wms.warehouse.service;
 
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.warehouse.domain.dto.CabinetDto;
 import com.wms.warehouse.domain.dto.CabinetLayoutBatchSaveDto;
 import com.wms.warehouse.domain.vo.CabinetLayoutSaveVo;
@@ -12,6 +14,15 @@ import java.util.List;
  * 提供存放柜CRUD、按区域查询、详情查询、位置更新等功能
  */
 public interface CabinetService {
+
+    /**
+     * 按区域ID分页查询存放柜列表
+     *
+     * @param pageParam 分页参数
+     * @param areaId    区域ID
+     * @return 存放柜分页结果
+     */
+    PageResult<CabinetVo> page(PageParam pageParam, Long areaId);
 
     /**
      * 按区域ID查询存放柜列表

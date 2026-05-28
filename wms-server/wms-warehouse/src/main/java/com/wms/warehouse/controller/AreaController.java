@@ -2,6 +2,8 @@ package com.wms.warehouse.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.warehouse.domain.dto.AreaDto;
 import com.wms.warehouse.domain.vo.AreaVo;
@@ -28,6 +30,17 @@ import java.util.List;
 public class AreaController {
 
     private final AreaService areaService;
+
+    /**
+     * 按库房ID分页查询区域列表
+     */
+    @Operation(summary = "按库房分页查询区域列表")
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<AreaVo>> page(PageParam pageParam, @RequestParam Long warehouseId) {
+        return R.ok(areaService.page(pageParam, warehouseId));
+    }
 
     /**
      * 按库房ID查询区域列表

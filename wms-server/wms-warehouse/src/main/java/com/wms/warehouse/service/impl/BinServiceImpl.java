@@ -1,9 +1,12 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.BinDto;
@@ -36,6 +39,38 @@ public class BinServiceImpl implements BinService {
     private final WmsBinMapper wmsBinMapper;
     private final WmsCabinetMapper wmsCabinetMapper;
     private final BinConverter binConverter;
+
+    /**
+     * 按存放柜ID分页查询库位列表
+     *
+     * @param pageParam  分页参数
+     * @param cabinetId 存放柜ID
+     * @return 库位分页结果
+     */
+    @Override
+    public PageResult<BinVo> page(PageParam pageParam, Long cabinetId) {
+        LambdaQueryWrapper<WmsBin> wrapper = new LambdaQueryWrapper<WmsBin>()
+                .eq(WmsBin::getCabinetId, cabinetId)
+                .orderByAsc(WmsBin::getRowNum)
+                .orderByAsc(WmsBin::getColNum);
+        Page<WmsBin> page = wmsBinMapper.selectPage(new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
+
+        Set<Long> cabinetIds = page.getRecords().stream()
+                .map(WmsBin::getCabinetId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsCabinet> cabinetMap = cabinetIds.isEmpty()
+                ? Map.of()
+                : wmsCabinetMapper.selectBatchIds(cabinetIds).stream()
+                        .collect(Collectors.toMap(WmsCabinet::getId, Function.identity()));
+
+        PageResult<BinVo> result = new PageResult<>();
+        result.setRecords(page.getRecords().stream().map(bin -> binConverter.toVo(bin, cabinetMap)).collect(Collectors.toList()));
+        result.setTotal(page.getTotal());
+        result.setPage(pageParam.getPage());
+        result.setSize(pageParam.getSize());
+        return result;
+    }
 
     /**
      * 按存放柜ID查询库位列表

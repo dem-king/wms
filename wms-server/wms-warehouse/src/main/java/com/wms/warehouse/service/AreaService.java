@@ -1,5 +1,7 @@
 package com.wms.warehouse.service;
 
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.warehouse.domain.dto.AreaDto;
 import com.wms.warehouse.domain.vo.AreaVo;
 
@@ -10,6 +12,15 @@ import java.util.List;
  * 提供区域CRUD、按库房查询等功能
  */
 public interface AreaService {
+
+    /**
+     * 按库房ID分页查询区域列表
+     *
+     * @param pageParam    分页参数
+     * @param warehouseId 库房ID
+     * @return 区域分页结果
+     */
+    PageResult<AreaVo> page(PageParam pageParam, Long warehouseId);
 
     /**
      * 按库房ID查询区域列表

@@ -2,6 +2,8 @@ package com.wms.warehouse.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.warehouse.domain.dto.BinDto;
 import com.wms.warehouse.domain.vo.BinVo;
@@ -29,6 +31,17 @@ import java.util.List;
 public class BinController {
 
     private final BinService binService;
+
+    /**
+     * 按存放柜ID分页查询库位列表
+     */
+    @Operation(summary = "按存放柜分页查询库位列表")
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<BinVo>> page(PageParam pageParam, @RequestParam Long cabinetId) {
+        return R.ok(binService.page(pageParam, cabinetId));
+    }
 
     /**
      * 按存放柜ID查询库位列表

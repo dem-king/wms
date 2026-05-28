@@ -2,6 +2,8 @@ package com.wms.warehouse.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.warehouse.domain.dto.CabinetDto;
 import com.wms.warehouse.domain.dto.CabinetLayoutBatchSaveDto;
@@ -30,6 +32,17 @@ import java.util.List;
 public class CabinetController {
 
     private final CabinetService cabinetService;
+
+    /**
+     * 按区域ID分页查询存放柜列表
+     */
+    @Operation(summary = "按区域分页查询存放柜列表")
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @DataScope
+    public R<PageResult<CabinetVo>> page(PageParam pageParam, @RequestParam Long areaId) {
+        return R.ok(cabinetService.page(pageParam, areaId));
+    }
 
     /**
      * 按区域ID查询存放柜列表

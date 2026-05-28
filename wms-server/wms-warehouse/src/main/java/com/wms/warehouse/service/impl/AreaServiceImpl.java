@@ -1,8 +1,11 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
@@ -38,6 +41,38 @@ public class AreaServiceImpl implements AreaService {
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final SequenceGenerator sequenceGenerator;
     private final AreaConverter areaConverter;
+
+    /**
+     * 按库房ID分页查询区域列表
+     *
+     * @param pageParam    分页参数
+     * @param warehouseId 库房ID
+     * @return 区域分页结果
+     */
+    @Override
+    public PageResult<AreaVo> page(PageParam pageParam, Long warehouseId) {
+        LambdaQueryWrapper<WmsArea> wrapper = new LambdaQueryWrapper<WmsArea>()
+                .eq(WmsArea::getWarehouseId, warehouseId)
+                .orderByAsc(WmsArea::getSortOrder)
+                .orderByDesc(WmsArea::getCreateTime);
+        Page<WmsArea> page = wmsAreaMapper.selectPage(new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
+
+        Set<Long> warehouseIds = page.getRecords().stream()
+                .map(WmsArea::getWarehouseId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsWarehouse> warehouseMap = warehouseIds.isEmpty()
+                ? Map.of()
+                : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
+                        .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
+
+        PageResult<AreaVo> result = new PageResult<>();
+        result.setRecords(page.getRecords().stream().map(area -> areaConverter.toVo(area, warehouseMap)).collect(Collectors.toList()));
+        result.setTotal(page.getTotal());
+        result.setPage(pageParam.getPage());
+        result.setSize(pageParam.getSize());
+        return result;
+    }
 
     /**
      * 按库房ID查询区域列表
