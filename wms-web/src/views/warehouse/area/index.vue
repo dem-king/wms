@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-row :gutter="16">
       <el-col :span="6">
         <el-card>
@@ -17,26 +17,41 @@
               <el-button v-if="selectedWarehouseId" type="primary" text :icon="Plus" @click="handleAdd">新增</el-button>
             </div>
           </template>
-          <el-table v-loading="loading" :data="tableData" border>
-            <el-table-column prop="areaCode" label="区域编码" min-width="120" />
-            <el-table-column prop="areaName" label="区域名称" min-width="150" />
-            <el-table-column prop="sortOrder" label="排序" min-width="80" />
-            <el-table-column prop="status" label="状态" min-width="80">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" class-name="table-action-column" fixed="right">
-              <template #default="{ row }">
-                <TableActionGroup
-                  :actions="[
-                    { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                    { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该区域吗？', onClick: () => handleDelete(row.id) },
-                  ]"
-                />
-              </template>
-            </el-table-column>
-          </el-table>
+          <div class="table-section">
+            <el-table v-loading="loading" :data="tableData" border height="100%">
+              <el-table-column prop="areaCode" label="区域编码" min-width="120" />
+              <el-table-column prop="areaName" label="区域名称" min-width="150" />
+              <el-table-column prop="sortOrder" label="排序" min-width="80" />
+              <el-table-column prop="status" label="状态" min-width="80">
+                <template #default="{ row }">
+                  <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" class-name="table-action-column" fixed="right">
+                <template #default="{ row }">
+                  <TableActionGroup
+                    :actions="[
+                      { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                      { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该区域吗？', onClick: () => handleDelete(row.id) },
+                    ]"
+                  />
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="queryParams.page"
+                v-model:page-size="queryParams.size"
+                :total="total"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next, jumper"
+                class="pagination"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+              />
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -74,17 +89,24 @@ import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
-import { getAreaList, addArea, updateArea, deleteArea } from '@/api/warehouse/area'
+import { getAreaPage, addArea, updateArea, deleteArea } from '@/api/warehouse/area'
 import type { EntityId, WmsWarehouseVo, WmsAreaVo, WmsAreaDto } from '@/types/warehouse'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
 const selectedWarehouseId = ref<EntityId>()
 const loading = ref(false)
 const tableData = ref<WmsAreaVo[]>([])
+const total = ref(0)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+})
 
 const form = reactive<WmsAreaDto & { id?: EntityId }>({
   warehouseId: '',
@@ -100,10 +122,21 @@ const rules: FormRules = {
 }
 
 async function handleWarehouseChange(warehouseId: EntityId) {
+  queryParams.page = 1
+  await handleQuery(warehouseId)
+}
+
+async function handleQuery(warehouseId = selectedWarehouseId.value) {
+  if (!warehouseId) {
+    tableData.value = []
+    total.value = 0
+    return
+  }
   loading.value = true
   try {
-    const res = await getAreaList(warehouseId)
-    tableData.value = res.data
+    const res = await getAreaPage({ warehouseId, ...queryParams })
+    tableData.value = res.data.records
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -134,7 +167,7 @@ async function handleSubmit() {
       ElMessage.success('新增成功')
     }
     handleClose()
-    if (selectedWarehouseId.value) handleWarehouseChange(selectedWarehouseId.value)
+    await handleQuery()
   } finally {
     submitLoading.value = false
   }
@@ -143,7 +176,21 @@ async function handleSubmit() {
 async function handleDelete(id: EntityId) {
   await deleteArea(id)
   ElMessage.success('删除成功')
-  if (selectedWarehouseId.value) handleWarehouseChange(selectedWarehouseId.value)
+  if (tableData.value.length === 1 && queryParams.page > 1) {
+    queryParams.page -= 1
+  }
+  await handleQuery()
+}
+
+function handleSizeChange(size: number) {
+  queryParams.size = size
+  queryParams.page = 1
+  void handleQuery()
+}
+
+function handleCurrentChange(page: number) {
+  queryParams.page = page
+  void handleQuery()
 }
 
 function handleClose() {

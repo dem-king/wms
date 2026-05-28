@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :inline="true" class="search-form">
       <el-form-item label="库房">
         <el-select v-model="selectedWarehouseId" placeholder="请选择库房" @change="handleWarehouseChange">
@@ -19,28 +19,43 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="cabinetCode" label="存放柜编码" min-width="120" />
-      <el-table-column prop="cabinetName" label="存放柜名称" min-width="150" />
-      <el-table-column prop="rows" label="行数" min-width="80" />
-      <el-table-column prop="cols" label="列数" min-width="80" />
-      <el-table-column prop="sortOrder" label="排序" min-width="80" />
-      <el-table-column prop="status" label="状态" min-width="80">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该存放柜吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="cabinetCode" label="存放柜编码" min-width="120" />
+        <el-table-column prop="cabinetName" label="存放柜名称" min-width="150" />
+        <el-table-column prop="rows" label="行数" min-width="80" />
+        <el-table-column prop="cols" label="列数" min-width="80" />
+        <el-table-column prop="sortOrder" label="排序" min-width="80" />
+        <el-table-column prop="status" label="状态" min-width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该存放柜吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑存放柜' : '新增存放柜'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -88,8 +103,9 @@ import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
-import { getCabinetList, addCabinet, updateCabinet, deleteCabinet } from '@/api/warehouse/cabinet'
+import { getCabinetPage, addCabinet, updateCabinet, deleteCabinet } from '@/api/warehouse/cabinet'
 import type { EntityId, WmsWarehouseVo, WmsAreaVo, WmsCabinetVo, WmsCabinetDto } from '@/types/warehouse'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
 const areaList = ref<WmsAreaVo[]>([])
@@ -97,10 +113,16 @@ const selectedWarehouseId = ref<EntityId>()
 const selectedAreaId = ref<EntityId>()
 const loading = ref(false)
 const tableData = ref<WmsCabinetVo[]>([])
+const total = ref(0)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+})
 
 const form = reactive<WmsCabinetDto & { id?: EntityId }>({
   areaId: '',
@@ -121,15 +143,27 @@ async function handleWarehouseChange(warehouseId: EntityId) {
   selectedAreaId.value = undefined
   areaList.value = []
   tableData.value = []
+  total.value = 0
   const res = await getAreaList(warehouseId)
   areaList.value = res.data
 }
 
 async function handleAreaChange(areaId: EntityId) {
+  queryParams.page = 1
+  await handleQuery(areaId)
+}
+
+async function handleQuery(areaId = selectedAreaId.value) {
+  if (!areaId) {
+    tableData.value = []
+    total.value = 0
+    return
+  }
   loading.value = true
   try {
-    const res = await getCabinetList(areaId)
-    tableData.value = res.data
+    const res = await getCabinetPage({ areaId, ...queryParams })
+    tableData.value = res.data.records
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -160,7 +194,7 @@ async function handleSubmit() {
       ElMessage.success('新增成功')
     }
     handleClose()
-    if (selectedAreaId.value) handleAreaChange(selectedAreaId.value)
+    await handleQuery()
   } finally {
     submitLoading.value = false
   }
@@ -169,7 +203,21 @@ async function handleSubmit() {
 async function handleDelete(id: EntityId) {
   await deleteCabinet(id)
   ElMessage.success('删除成功')
-  if (selectedAreaId.value) handleAreaChange(selectedAreaId.value)
+  if (tableData.value.length === 1 && queryParams.page > 1) {
+    queryParams.page -= 1
+  }
+  await handleQuery()
+}
+
+function handleSizeChange(size: number) {
+  queryParams.size = size
+  queryParams.page = 1
+  void handleQuery()
+}
+
+function handleCurrentChange(page: number) {
+  queryParams.page = page
+  void handleQuery()
 }
 
 function handleClose() {

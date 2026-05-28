@@ -9,12 +9,18 @@ const requestMocks = vi.hoisted(() => ({
 
 vi.mock('../request', () => requestMocks)
 
-import { getWarehouseList } from './warehouse'
+import { getWarehouseList, getWarehousePage } from './warehouse'
 
 describe('warehouse api', () => {
   it('requests the warehouse list endpoint', () => {
     getWarehouseList()
 
     expect(requestMocks.get).toHaveBeenCalledWith('/warehouse/warehouses/list')
+  })
+
+  it('requests the warehouse page endpoint with page params', () => {
+    getWarehousePage({ page: 1, size: 20 })
+
+    expect(requestMocks.get).toHaveBeenCalledWith('/warehouse/warehouses', { page: 1, size: 20 })
   })
 })

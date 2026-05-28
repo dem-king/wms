@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :inline="true" class="search-form">
       <el-form-item label="存放柜">
         <el-select v-model="selectedCabinetId" placeholder="请选择存放柜" @change="handleCabinetChange">
@@ -19,26 +19,41 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="binCode" label="库位编码" min-width="150" />
-      <el-table-column prop="row" label="行号" min-width="80" />
-      <el-table-column prop="col" label="列号" min-width="80" />
-      <el-table-column prop="status" label="状态" min-width="80">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该库位吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="binCode" label="库位编码" min-width="150" />
+        <el-table-column prop="row" label="行号" min-width="80" />
+        <el-table-column prop="col" label="列号" min-width="80" />
+        <el-table-column prop="status" label="状态" min-width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该库位吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑库位' : '新增库位'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -114,8 +129,9 @@ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList } from '@/api/warehouse/cabinet'
-import { getBinList, addBin, updateBin, deleteBin, batchCreateBin } from '@/api/warehouse/bin'
+import { getBinPage, addBin, updateBin, deleteBin, batchCreateBin } from '@/api/warehouse/bin'
 import type { EntityId, WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
+import { normalizePageTotal } from '@/utils/pagination'
 
 interface CabinetOption {
   id: EntityId
@@ -128,14 +144,26 @@ interface WarehouseOption {
   cabinets: CabinetOption[]
 }
 
+interface BinPageRow extends WmsBinVo {
+  row: number
+  col: number
+  status: number
+}
+
 const warehouseList = ref<WarehouseOption[]>([])
 const selectedCabinetId = ref<EntityId>()
 const loading = ref(false)
-const tableData = ref<WmsBinVo[]>([])
+const tableData = ref<BinPageRow[]>([])
+const total = ref(0)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+})
 
 const form = reactive<WmsBinDto & { id?: EntityId }>({
   cabinetId: '',
@@ -168,10 +196,30 @@ const batchRules: FormRules = {
 }
 
 async function handleCabinetChange(cabinetId: EntityId) {
+  queryParams.page = 1
+  await handleQuery(cabinetId)
+}
+
+function normalizeBinRow(row: WmsBinVo & Record<string, unknown>): BinPageRow {
+  return {
+    ...row,
+    row: typeof row.row === 'number' ? row.row : Number(row.rowNum ?? 0),
+    col: typeof row.col === 'number' ? row.col : Number(row.colNum ?? 0),
+    status: typeof row.status === 'number' ? row.status : Number(row.binStatus ?? 0),
+  }
+}
+
+async function handleQuery(cabinetId = selectedCabinetId.value) {
+  if (!cabinetId) {
+    tableData.value = []
+    total.value = 0
+    return
+  }
   loading.value = true
   try {
-    const res = await getBinList(cabinetId)
-    tableData.value = res.data
+    const res = await getBinPage({ cabinetId, ...queryParams })
+    tableData.value = res.data.records.map(item => normalizeBinRow(item as WmsBinVo & Record<string, unknown>))
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -183,7 +231,7 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(row: WmsBinVo) {
+function handleEdit(row: BinPageRow) {
   isEdit.value = true
   Object.assign(form, { id: row.id, cabinetId: row.cabinetId, binCode: row.binCode, row: row.row, col: row.col, status: row.status })
   dialogVisible.value = true
@@ -202,7 +250,7 @@ async function handleSubmit() {
       ElMessage.success('新增成功')
     }
     handleClose()
-    if (selectedCabinetId.value) handleCabinetChange(selectedCabinetId.value)
+    await handleQuery()
   } finally {
     submitLoading.value = false
   }
@@ -211,7 +259,21 @@ async function handleSubmit() {
 async function handleDelete(id: EntityId) {
   await deleteBin(id)
   ElMessage.success('删除成功')
-  if (selectedCabinetId.value) handleCabinetChange(selectedCabinetId.value)
+  if (tableData.value.length === 1 && queryParams.page > 1) {
+    queryParams.page -= 1
+  }
+  await handleQuery()
+}
+
+function handleSizeChange(size: number) {
+  queryParams.size = size
+  queryParams.page = 1
+  void handleQuery()
+}
+
+function handleCurrentChange(page: number) {
+  queryParams.page = page
+  void handleQuery()
 }
 
 function handleClose() {
@@ -230,7 +292,7 @@ async function handleBatchSubmit() {
     await batchCreateBin({ ...batchForm, cabinetId: selectedCabinetId.value! })
     ElMessage.success('批量生成成功')
     batchDialogVisible.value = false
-    if (selectedCabinetId.value) handleCabinetChange(selectedCabinetId.value)
+    await handleQuery()
   } finally {
     batchLoading.value = false
   }

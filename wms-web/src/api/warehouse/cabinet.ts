@@ -6,9 +6,14 @@ import type {
   WmsCabinetLayoutBatchSaveDto,
   WmsCabinetLayoutSaveVo,
 } from '@/types/warehouse'
+import type { PageParams, PageResult } from '@/types/system'
 
 export function getCabinetList(areaId: EntityId) {
   return get<WmsCabinetVo[]>(`/warehouse/cabinets/area/${areaId}`)
+}
+
+export function getCabinetPage(params: PageParams & { areaId: EntityId }) {
+  return get<PageResult<WmsCabinetVo>>('/warehouse/cabinets', params as unknown as Record<string, unknown>)
 }
 
 export function getCabinet(id: EntityId) {
