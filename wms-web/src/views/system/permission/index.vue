@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
       <el-form-item label="权限名称">
         <el-input v-model="queryParams.permName" placeholder="请输入权限名称" clearable @keyup.enter="handleQuery" />
@@ -19,44 +19,48 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="permName" label="权限名称" min-width="120" />
-      <el-table-column prop="permCode" label="权限编码" min-width="150" />
-      <el-table-column prop="permType" label="权限类型" min-width="100">
-        <template #default="{ row }">
-          <el-tag v-if="row.permType === 1" type="warning">菜单</el-tag>
-          <el-tag v-else-if="row.permType === 2" type="success">按钮</el-tag>
-          <el-tag v-else type="info">数据</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="menuName" label="关联菜单" min-width="120" />
-      <el-table-column prop="status" label="状态" min-width="80">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该权限吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="permName" label="权限名称" min-width="120" />
+        <el-table-column prop="permCode" label="权限编码" min-width="150" />
+        <el-table-column prop="permType" label="权限类型" min-width="100">
+          <template #default="{ row }">
+            <el-tag v-if="row.permType === 1" type="warning">菜单</el-tag>
+            <el-tag v-else-if="row.permType === 2" type="success">按钮</el-tag>
+            <el-tag v-else type="info">数据</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="menuName" label="关联菜单" min-width="120" />
+        <el-table-column prop="status" label="状态" min-width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该权限吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-pagination
-      v-model:current-page="queryParams.page"
-      v-model:page-size="queryParams.size"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      class="pagination"
-      @size-change="handleQuery"
-      @current-change="handleQuery"
-    />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleQuery"
+          @current-change="handleQuery"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑权限' : '新增权限'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -109,6 +113,7 @@ import { getPermissionList, addPermission, updatePermission, deletePermission } 
 import { getMenuTree } from '@/api/system/menu'
 import type { EntityId, SysPermissionVo } from '@/types/system'
 import type { MenuTreeNode } from '@/types/auth'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<SysPermissionVo[]>([])
@@ -149,7 +154,7 @@ async function handleQuery() {
     const res = await getPermissionList(queryParams)
     const permissions = Array.isArray(res.data) ? res.data : res.data.records
     tableData.value = permissions
-    total.value = Array.isArray(res.data) ? permissions.length : res.data.total
+    total.value = Array.isArray(res.data) ? permissions.length : normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -215,8 +220,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -228,7 +248,6 @@ onMounted(() => {
 }
 
 .pagination {
-  margin-top: 16px;
   justify-content: flex-end;
 }
 </style>

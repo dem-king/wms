@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
       <el-form-item label="配置键">
         <el-input v-model="queryParams.configKey" placeholder="请输入配置键" clearable @keyup.enter="handleQuery" />
@@ -19,34 +19,38 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="configName" label="配置名称" min-width="120" />
-      <el-table-column prop="configKey" label="配置键" min-width="150" />
-      <el-table-column prop="configValue" label="配置值" min-width="150" show-overflow-tooltip />
-      <el-table-column prop="configGroup" label="配置组" min-width="100" />
-      <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该配置吗？', onClick: () => handleDelete(row.id) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="configName" label="配置名称" min-width="120" />
+        <el-table-column prop="configKey" label="配置键" min-width="150" />
+        <el-table-column prop="configValue" label="配置值" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="configGroup" label="配置组" min-width="100" />
+        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该配置吗？', onClick: () => handleDelete(row.id) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-pagination
-      v-model:current-page="queryParams.page"
-      v-model:page-size="queryParams.size"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      class="pagination"
-      @size-change="handleQuery"
-      @current-change="handleQuery"
-    />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="handleQuery"
+          @current-change="handleQuery"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑配置' : '新增配置'" width="500px" @close="handleClose">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -82,6 +86,7 @@ import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getConfigList, addConfig, updateConfig, deleteConfig } from '@/api/system/config'
 import type { EntityId, SysConfigVo } from '@/types/system'
+import { normalizePageTotal } from '@/utils/pagination'
 
 const loading = ref(false)
 const tableData = ref<SysConfigVo[]>([])
@@ -120,7 +125,7 @@ async function handleQuery() {
     const res = await getConfigList(queryParams)
     const configs = Array.isArray(res.data) ? res.data : res.data.records
     tableData.value = configs
-    total.value = Array.isArray(res.data) ? configs.length : res.data.total
+    total.value = Array.isArray(res.data) ? configs.length : normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -180,8 +185,23 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.app-container {
+.app-container.list-page {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 
 .search-form {
@@ -193,7 +213,6 @@ onMounted(() => {
 }
 
 .pagination {
-  margin-top: 16px;
   justify-content: flex-end;
 }
 </style>
