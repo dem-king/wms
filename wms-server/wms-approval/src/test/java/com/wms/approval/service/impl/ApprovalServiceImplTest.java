@@ -16,6 +16,7 @@ import com.wms.approval.mapper.WmsApprovalRecordMapper;
 import com.wms.approval.strategy.ApprovalStrategy;
 import com.wms.approval.strategy.ApprovalStrategyFactory;
 import com.wms.business.domain.entity.WmsInboundOrder;
+import com.wms.business.domain.entity.WmsOutboundOrder;
 import com.wms.business.domain.entity.WmsReturnOrder;
 import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
@@ -325,6 +326,42 @@ class ApprovalServiceImplTest {
         assertEquals("GH202605270001", records.get(1).getBizNo());
         assertEquals("李四", records.get(1).getApplicantName());
         assertEquals("归还审批", records.get(1).getCurrentNodeName());
+    }
+
+    @Test
+    @DisplayName("审批分页仅含出库单时不应对空业务类型执行批量查询")
+    void shouldSkipEmptyBizTypeBatchQueryWhenPageContainsOnlyOutboundApproval() {
+        WmsApprovalOrder outboundApproval = buildApprovingOrder(8103L, 9103L, 2, 1001L, 1, 1);
+        outboundApproval.setCreateBy("zhangsan");
+        Page<WmsApprovalOrder> page = new Page<>(1, 20);
+        page.setRecords(List.of(outboundApproval));
+        page.setTotal(1);
+        WmsApprovalConfig outboundConfig = buildConfig(603L, 2);
+        WmsApprovalNode outboundNode = buildUserNode(603L, 1, 2001L);
+        outboundNode.setNodeName("出库审批");
+        SysUser applicant = buildUser(1001L, "zhangsan", "张三");
+        WmsOutboundOrder outboundOrder = new WmsOutboundOrder();
+        outboundOrder.setId(9103L);
+        outboundOrder.setOrderNo("CK202605280001");
+        when(wmsApprovalOrderMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        when(wmsApprovalConfigMapper.selectList(any())).thenReturn(List.of(outboundConfig));
+        when(wmsApprovalNodeMapper.selectList(any())).thenReturn(List.of(outboundNode));
+        when(sysUserMapper.selectBatchIds(anyCollection())).thenReturn(List.of(applicant));
+        when(wmsOutboundOrderMapper.selectBatchIds(Set.of(9103L))).thenReturn(List.of(outboundOrder));
+
+        PageParam pageParam = new PageParam();
+        pageParam.setPage(1);
+        pageParam.setSize(20);
+        List<ApprovalOrderVo> records = approvalService.pageApprovals(pageParam, null, null).getRecords();
+
+        assertEquals(1, records.size());
+        assertEquals("CK202605280001", records.get(0).getBizNo());
+        assertEquals("张三", records.get(0).getApplicantName());
+        assertEquals("出库审批", records.get(0).getCurrentNodeName());
+        verify(wmsInboundOrderMapper, never()).selectBatchIds(anyCollection());
+        verify(wmsReturnOrderMapper, never()).selectBatchIds(anyCollection());
+        verify(wmsScrapOrderMapper, never()).selectBatchIds(anyCollection());
+        verify(wmsTransferOrderMapper, never()).selectBatchIds(anyCollection());
     }
 
     @Test

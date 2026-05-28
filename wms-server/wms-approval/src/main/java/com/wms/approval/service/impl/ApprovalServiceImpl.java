@@ -512,25 +512,35 @@ public class ApprovalServiceImpl implements ApprovalService {
                         Collectors.mapping(WmsApprovalOrder::getBizId, Collectors.toSet())));
         Map<String, String> bizNoMap = new HashMap<>();
         appendOrderNoMap(bizNoMap, BizTypeEnum.INBOUND.getCode(), bizIdsByType.get(BizTypeEnum.INBOUND.getCode()),
-                wmsInboundOrderMapper.selectBatchIds(defaultIds(bizIdsByType.get(BizTypeEnum.INBOUND.getCode()))).stream()
-                        .map(WmsInboundOrder.class::cast)
-                        .collect(Collectors.toMap(WmsInboundOrder::getId, WmsInboundOrder::getOrderNo, (left, right) -> left)));
+                loadOrderNoMap(
+                        bizIdsByType.get(BizTypeEnum.INBOUND.getCode()),
+                        wmsInboundOrderMapper::selectBatchIds,
+                        WmsInboundOrder::getId,
+                        WmsInboundOrder::getOrderNo));
         appendOrderNoMap(bizNoMap, BizTypeEnum.OUTBOUND.getCode(), bizIdsByType.get(BizTypeEnum.OUTBOUND.getCode()),
-                wmsOutboundOrderMapper.selectBatchIds(defaultIds(bizIdsByType.get(BizTypeEnum.OUTBOUND.getCode()))).stream()
-                        .map(WmsOutboundOrder.class::cast)
-                        .collect(Collectors.toMap(WmsOutboundOrder::getId, WmsOutboundOrder::getOrderNo, (left, right) -> left)));
+                loadOrderNoMap(
+                        bizIdsByType.get(BizTypeEnum.OUTBOUND.getCode()),
+                        wmsOutboundOrderMapper::selectBatchIds,
+                        WmsOutboundOrder::getId,
+                        WmsOutboundOrder::getOrderNo));
         appendOrderNoMap(bizNoMap, BizTypeEnum.SCRAP.getCode(), bizIdsByType.get(BizTypeEnum.SCRAP.getCode()),
-                wmsScrapOrderMapper.selectBatchIds(defaultIds(bizIdsByType.get(BizTypeEnum.SCRAP.getCode()))).stream()
-                        .map(WmsScrapOrder.class::cast)
-                        .collect(Collectors.toMap(WmsScrapOrder::getId, WmsScrapOrder::getOrderNo, (left, right) -> left)));
+                loadOrderNoMap(
+                        bizIdsByType.get(BizTypeEnum.SCRAP.getCode()),
+                        wmsScrapOrderMapper::selectBatchIds,
+                        WmsScrapOrder::getId,
+                        WmsScrapOrder::getOrderNo));
         appendOrderNoMap(bizNoMap, BizTypeEnum.TRANSFER.getCode(), bizIdsByType.get(BizTypeEnum.TRANSFER.getCode()),
-                wmsTransferOrderMapper.selectBatchIds(defaultIds(bizIdsByType.get(BizTypeEnum.TRANSFER.getCode()))).stream()
-                        .map(WmsTransferOrder.class::cast)
-                        .collect(Collectors.toMap(WmsTransferOrder::getId, WmsTransferOrder::getOrderNo, (left, right) -> left)));
+                loadOrderNoMap(
+                        bizIdsByType.get(BizTypeEnum.TRANSFER.getCode()),
+                        wmsTransferOrderMapper::selectBatchIds,
+                        WmsTransferOrder::getId,
+                        WmsTransferOrder::getOrderNo));
         appendOrderNoMap(bizNoMap, BizTypeEnum.RETURN.getCode(), bizIdsByType.get(BizTypeEnum.RETURN.getCode()),
-                wmsReturnOrderMapper.selectBatchIds(defaultIds(bizIdsByType.get(BizTypeEnum.RETURN.getCode()))).stream()
-                        .map(WmsReturnOrder.class::cast)
-                        .collect(Collectors.toMap(WmsReturnOrder::getId, WmsReturnOrder::getOrderNo, (left, right) -> left)));
+                loadOrderNoMap(
+                        bizIdsByType.get(BizTypeEnum.RETURN.getCode()),
+                        wmsReturnOrderMapper::selectBatchIds,
+                        WmsReturnOrder::getId,
+                        WmsReturnOrder::getOrderNo));
         return bizNoMap;
     }
 
@@ -631,13 +641,24 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     /**
-     * 防御式处理空业务ID集合
+     * 按业务ID批量加载业务单号，空集合时直接跳过查询，避免拼出非法 IN ()
      *
-     * @param bizIds 业务ID集合
-     * @return 非空集合
+     * @param bizIds        业务ID集合
+     * @param queryFunction 批量查询函数
+     * @param idGetter      主键提取函数
+     * @param orderNoGetter 单号提取函数
+     * @param <T>           业务单实体类型
+     * @return 业务ID到业务单号映射
      */
-    private Collection<Long> defaultIds(Set<Long> bizIds) {
-        return bizIds == null ? Collections.emptyList() : bizIds;
+    private <T> Map<Long, String> loadOrderNoMap(Set<Long> bizIds,
+                                                 Function<Collection<Long>, List<T>> queryFunction,
+                                                 Function<T, Long> idGetter,
+                                                 Function<T, String> orderNoGetter) {
+        if (bizIds == null || bizIds.isEmpty()) {
+            return Map.of();
+        }
+        return queryFunction.apply(bizIds).stream()
+                .collect(Collectors.toMap(idGetter, orderNoGetter, (left, right) -> left));
     }
 
     /**
