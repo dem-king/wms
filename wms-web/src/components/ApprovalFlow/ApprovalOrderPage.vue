@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Search, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import ApprovalBizOrderDetail from '@/components/ApprovalFlow/ApprovalBizOrderDetail.vue'
 import { useUserStore } from '@/store/modules/user'
 import { approveOrder, getApprovalOrder, getApprovalOrders, rejectOrder, revokeOrder } from '@/api/approval'
 import {
@@ -227,7 +228,7 @@ onMounted(() => {
       @current-change="loadTable"
     />
 
-    <el-dialog v-model="detailVisible" title="审批详情" width="760px" @close="handleDetailClose">
+    <el-dialog v-model="detailVisible" title="审批详情" width="960px" @close="handleDetailClose">
       <div v-loading="detailLoading">
         <el-descriptions v-if="viewRow" :column="2" border>
           <el-descriptions-item label="审批单号">{{ viewRow.approvalNo }}</el-descriptions-item>
@@ -242,6 +243,7 @@ onMounted(() => {
           <el-descriptions-item label="创建时间">{{ viewRow.createTime || '-' }}</el-descriptions-item>
           <el-descriptions-item label="备注" :span="2">{{ viewRow.remark || '-' }}</el-descriptions-item>
         </el-descriptions>
+        <ApprovalBizOrderDetail v-if="viewRow" :biz-type="viewRow.bizType" :biz-id="viewRow.bizId" />
         <el-divider content-position="left">审批记录</el-divider>
         <el-timeline v-if="viewRow?.records?.length">
           <el-timeline-item

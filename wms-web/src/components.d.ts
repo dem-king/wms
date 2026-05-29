@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ApprovalBizOrderDetail: typeof import('./components/ApprovalFlow/ApprovalBizOrderDetail.vue')['default']
     ApprovalOrderPage: typeof import('./components/ApprovalFlow/ApprovalOrderPage.vue')['default']
     ApprovalProgressDialog: typeof import('./components/ApprovalFlow/ApprovalProgressDialog.vue')['default']
     Chart: typeof import('./components/Chart/index.vue')['default']
