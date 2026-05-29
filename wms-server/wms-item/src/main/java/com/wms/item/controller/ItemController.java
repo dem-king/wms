@@ -6,6 +6,7 @@ import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.item.domain.dto.ItemDto;
+import com.wms.item.domain.dto.ItemImageDto;
 import com.wms.item.domain.vo.ItemImageVo;
 import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.service.ItemService;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -98,12 +100,24 @@ public class ItemController {
      * 上传物品图片
      */
     @Operation(summary = "上传物品图片")
-    @PostMapping("/{itemId}/images")
+    @PostMapping(value = "/{itemId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     @OperLog(module = "item", type = "新增", desc = "上传物品图片")
     public R<ItemImageVo> uploadImage(@PathVariable Long itemId,
                                       @RequestParam("file") MultipartFile file) {
         return R.ok(itemService.uploadImage(itemId, file));
+    }
+
+    /**
+     * 关联已上传的物品图片
+     */
+    @Operation(summary = "关联已上传的物品图片")
+    @PostMapping(value = "/{itemId}/images", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    @OperLog(module = "item", type = "新增", desc = "关联已上传的物品图片")
+    public R<ItemImageVo> attachImage(@PathVariable Long itemId,
+                                      @Valid @RequestBody ItemImageDto dto) {
+        return R.ok(itemService.attachImage(itemId, dto));
     }
 
     /**

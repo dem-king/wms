@@ -23,4 +23,13 @@ public final class WarehouseConstants {
 
     /** 库位占用状态：占用 */
     public static final int IS_OCCUPIED_YES = 1;
+
+    /** 库位状态：禁用 */
+    public static final int BIN_STATUS_DISABLED = 0;
+
+    /** 库位状态：正常 */
+    public static final int BIN_STATUS_NORMAL = 1;
+
+    /** 库位状态：已满 */
+    public static final int BIN_STATUS_FULL = 2;
 }

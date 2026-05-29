@@ -38,7 +38,7 @@
           <el-tag :type="row.visible === 1 ? 'success' : 'danger'">{{ row.visible === 1 ? '显示' : '隐藏' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[

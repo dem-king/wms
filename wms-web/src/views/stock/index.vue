@@ -33,7 +33,7 @@
           <el-tag :type="row.alert ? 'danger' : 'success'">{{ row.alert ? '预警' : '正常' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="140">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[

@@ -23,6 +23,14 @@ public class WmsItemImage extends BaseEntity {
     @Schema(description = "图片URL")
     private String imageUrl;
 
+    /** 存储桶 */
+    @Schema(description = "存储桶")
+    private String bucket;
+
+    /** 对象存储路径 */
+    @Schema(description = "对象存储路径")
+    private String objectName;
+
     /** 图片名称 */
     @Schema(description = "图片名称")
     private String imageName;

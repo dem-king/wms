@@ -125,6 +125,8 @@ export interface WmsItemVo {
   /** 标签名称列表 */
   tagNames: string[]
   /** 供应商ID */
+  binIds?: EntityId[]
+  locations?: ItemLocationVo[]
   supplierId: EntityId
   /** 供应商名称 */
   supplierName: string
@@ -154,10 +156,26 @@ export interface ItemImageVo {
   itemId: EntityId
   /** 图片URL */
   imageUrl: string
+  /** 存储桶 */
+  bucket?: string
+  /** 对象存储路径 */
+  objectName?: string
   /** 图片名称 */
   imageName: string
   /** 排序号 */
   sortOrder: number
+}
+
+/** 物品图片关联DTO */
+export interface ItemImageDto {
+  /** 图片URL */
+  imageUrl: string
+  /** 对象存储路径 */
+  objectName: string
+  /** 图片名称 */
+  imageName?: string
+  /** 排序号 */
+  sortOrder?: number
 }
 
 /** 物品新增/编辑DTO */
@@ -177,6 +195,7 @@ export interface WmsItemDto {
   /** 标签ID列表 */
   tagIds: EntityId[]
   /** 供应商ID */
+  binIds?: EntityId[]
   supplierId: EntityId
   /** 安全库存(下限) */
   stockLowerLimit: number
@@ -189,6 +208,27 @@ export interface WmsItemDto {
 }
 
 /** 库存视图对象 */
+export interface ItemLocationVo {
+  /** 库房ID */
+  warehouseId: EntityId
+  /** 库房名称 */
+  warehouseName?: string
+  /** 区域ID */
+  areaId: EntityId
+  /** 区域名称 */
+  areaName?: string
+  /** 存放柜ID */
+  cabinetId: EntityId
+  /** 存放柜名称 */
+  cabinetName?: string
+  /** 库位ID */
+  binId: EntityId
+  /** 库位编码 */
+  binCode?: string
+  /** 完整库位路径 */
+  locationText?: string
+}
+
 export interface WmsStockVo {
   /** 库存ID */
   id: EntityId

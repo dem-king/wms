@@ -111,7 +111,7 @@ onMounted(() => { handleQuery() })
         </template>
       </el-table-column>
       <el-table-column prop="triggerTime" label="触发时间" min-width="160" />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="100">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[

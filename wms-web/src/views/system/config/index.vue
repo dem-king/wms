@@ -26,7 +26,7 @@
         <el-table-column prop="configValue" label="配置值" min-width="150" show-overflow-tooltip />
         <el-table-column prop="configGroup" label="配置组" min-width="100" />
         <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

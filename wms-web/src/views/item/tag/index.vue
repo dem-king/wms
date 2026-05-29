@@ -25,7 +25,7 @@
         </el-table-column>
         <el-table-column prop="scopeId" label="范围对象ID" min-width="140" />
         <el-table-column prop="createTime" label="创建时间" min-width="180" />
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

@@ -13,7 +13,7 @@
         <el-table-column prop="itemName" label="备件物品名称" min-width="160" />
         <el-table-column prop="quantity" label="数量" min-width="100" />
         <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

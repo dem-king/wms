@@ -51,6 +51,11 @@ target/
 !**/src/**/target/
 .worktrees/
 
+# Local workspace artifacts
+/.trae/
+/dump.rdb
+/query
+
 # Documentation
 docs/
 wms-web/docs/

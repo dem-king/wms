@@ -109,7 +109,7 @@ onActivated(() => { handleQuery() })
         </template>
       </el-table-column>
       <el-table-column prop="operTime" label="操作时间" min-width="160" />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="80">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[

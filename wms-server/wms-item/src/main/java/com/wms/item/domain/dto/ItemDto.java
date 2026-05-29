@@ -92,4 +92,8 @@ public class ItemDto {
     /** 标签ID列表 */
     @Schema(description = "标签ID列表")
     private List<Long> tagIds;
+
+    /** 默认库位ID列表 */
+    @Schema(description = "默认库位ID列表")
+    private List<Long> binIds;
 }

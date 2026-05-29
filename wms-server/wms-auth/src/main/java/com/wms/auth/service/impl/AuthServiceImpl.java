@@ -16,6 +16,8 @@ import com.wms.auth.enums.AuthOperTypeEnum;
 import com.wms.auth.service.*;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.storage.StorageConstants;
+import com.wms.common.storage.StorageStrategy;
 import com.wms.common.util.SecurityUtil;
 import com.wms.common.util.UserAgentParser;
 import com.wms.system.domain.entity.SysUser;
@@ -28,17 +30,13 @@ import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -58,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysUserService sysUserService;
     private final SysMenuService sysMenuService;
     private final AuthProperties authProperties;
+    private final StorageStrategy storageStrategy;
 
     @Override
     public LoginResp login(LoginReq req, String clientIp, String userAgent) {
@@ -233,33 +232,30 @@ public class AuthServiceImpl implements AuthService {
         validateAvatarFile(file);
         String extension = resolveFileExtension(file.getOriginalFilename(), file.getContentType());
         String storedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
-        Path userAvatarDir = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId));
-        Path targetPath = userAvatarDir.resolve(storedFileName);
+        String objectName = userId + "/" + storedFileName;
+        String avatarUrl;
 
         try {
-            Files.createDirectories(userAvatarDir);
-            file.transferTo(targetPath);
+            avatarUrl = storageStrategy.upload(
+                    StorageConstants.BUCKET_AVATARS,
+                    objectName,
+                    file.getInputStream(),
+                    file.getContentType(),
+                    file.getSize()
+            );
         } catch (IOException e) {
             throw new BizException("头像上传失败");
         }
 
         UploadAvatarVo uploadAvatarVo = new UploadAvatarVo();
-        uploadAvatarVo.setAvatarUrl(authProperties.getAvatarUrlPrefix() + "/" + userId + "/" + storedFileName);
+        uploadAvatarVo.setAvatarUrl(avatarUrl);
         return uploadAvatarVo;
     }
 
     @Override
     public Resource loadAvatarResource(Long userId, String fileName) {
-        Path avatarPath = Paths.get(authProperties.getAvatarUploadDir(), String.valueOf(userId), fileName).normalize();
-        try {
-            Resource resource = new UrlResource(avatarPath.toUri());
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new BizException("头像不存在");
-            }
-            return resource;
-        } catch (MalformedURLException e) {
-            throw new BizException("头像不存在");
-        }
+        String objectName = userId + "/" + fileName;
+        return new InputStreamResource(storageStrategy.download(StorageConstants.BUCKET_AVATARS, objectName));
     }
 
     private void recordLoginSuccess(String username, Long userId, String ip, String ua) {

@@ -3,6 +3,7 @@ package com.wms.item.service;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.item.domain.dto.ItemDto;
+import com.wms.item.domain.dto.ItemImageDto;
 import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.domain.vo.ItemImageVo;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,6 +75,15 @@ public interface ItemService {
      * @return 图片VO
      */
     ItemImageVo uploadImage(Long itemId, MultipartFile file);
+
+    /**
+     * 关联已通过统一存储接口上传的物品图片。
+     *
+     * @param itemId 物品ID
+     * @param dto    物品图片关联参数
+     * @return 图片VO
+     */
+    ItemImageVo attachImage(Long itemId, ItemImageDto dto);
 
     /**
      * 删除物品图片(逻辑删除)

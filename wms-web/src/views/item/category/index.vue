@@ -59,7 +59,7 @@
               <el-table-column prop="subCategoryName" label="名称" min-width="180" />
               <el-table-column prop="sortOrder" label="排序" min-width="100" />
               <el-table-column prop="createTime" label="创建时间" min-width="180" />
-              <el-table-column label="操作" class-name="table-action-column" fixed="right">
+              <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
                 <template #default="{ row }">
                   <TableActionGroup
                     :actions="[

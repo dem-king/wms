@@ -218,7 +218,7 @@
         </el-table-column>
         <el-table-column prop="itemName" label="物品名称" min-width="140" />
         <el-table-column prop="createTime" label="创建时间" min-width="160" />
-        <el-table-column label="操作" class-name="table-action-column" min-width="100">
+        <el-table-column label="操作" class-name="table-action-column" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

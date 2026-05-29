@@ -31,7 +31,7 @@
             <el-switch :model-value="row.status === 1" @change="val => handleStatusChange(row, Boolean(val))" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" class-name="table-action-column" fixed="right">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

@@ -445,6 +445,8 @@ CREATE TABLE `wms_item_image` (
     `id`              BIGINT       NOT NULL COMMENT '主键',
     `item_id`         BIGINT       NOT NULL                COMMENT '物品ID',
     `image_url`       VARCHAR(500) NOT NULL                COMMENT '图片URL',
+    `bucket`          VARCHAR(50)  DEFAULT 'items'         COMMENT '存储桶',
+    `object_name`     VARCHAR(500) DEFAULT NULL            COMMENT '对象存储路径',
     `image_name`      VARCHAR(100) DEFAULT NULL            COMMENT '图片名称',
     `sort_order`      INT          DEFAULT 0               COMMENT '排序号',
     `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',

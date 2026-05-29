@@ -13,13 +13,24 @@ import com.wms.common.storage.StorageStrategy;
 import com.wms.common.util.PinyinUtil;
 import com.wms.item.domain.constant.ItemConstants;
 import com.wms.item.domain.dto.ItemDto;
+import com.wms.item.domain.dto.ItemImageDto;
 import com.wms.item.domain.entity.*;
 import com.wms.item.domain.vo.ItemImageVo;
+import com.wms.item.domain.vo.ItemLocationVo;
 import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.domain.vo.TagVo;
 import com.wms.item.converter.ItemConverter;
 import com.wms.item.mapper.*;
 import com.wms.item.service.ItemService;
+import com.wms.warehouse.domain.constant.WarehouseConstants;
+import com.wms.warehouse.domain.entity.WmsArea;
+import com.wms.warehouse.domain.entity.WmsBin;
+import com.wms.warehouse.domain.entity.WmsCabinet;
+import com.wms.warehouse.domain.entity.WmsWarehouse;
+import com.wms.warehouse.mapper.WmsAreaMapper;
+import com.wms.warehouse.mapper.WmsBinMapper;
+import com.wms.warehouse.mapper.WmsCabinetMapper;
+import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +40,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +68,11 @@ public class ItemServiceImpl implements ItemService {
     private final WmsTagMapper wmsTagMapper;
     private final StorageStrategy storageStrategy;
     private final ItemConverter itemConverter;
+    private final WmsItemBinMapper wmsItemBinMapper;
+    private final WmsBinMapper wmsBinMapper;
+    private final WmsCabinetMapper wmsCabinetMapper;
+    private final WmsAreaMapper wmsAreaMapper;
+    private final WmsWarehouseMapper wmsWarehouseMapper;
 
     /**
      * 分页查询物品
@@ -132,9 +152,14 @@ public class ItemServiceImpl implements ItemService {
                 ? Map.of()
                 : wmsSubCategoryMapper.selectBatchIds(subCategoryIds).stream()
                         .collect(java.util.stream.Collectors.toMap(WmsSubCategory::getId, WmsSubCategory::getSubCategoryName));
+        Map<Long, List<ItemLocationVo>> locationMap = loadItemLocationsMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
 
         PageResult<ItemVo> result = new PageResult<>();
-        result.setRecords(items.stream().map(item -> itemConverter.toVo(item, categoryNameMap, subCategoryNameMap)).collect(Collectors.toList()));
+        result.setRecords(items.stream()
+                .map(item -> withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
+                        locationMap.get(item.getId())))
+                .collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -157,6 +182,7 @@ public class ItemServiceImpl implements ItemService {
             throw new BizException("物品已删除");
         }
         ItemVo vo = itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId()));
+        withLocations(vo, loadItemLocationsMap(List.of(id)).get(id));
         // 填充标签列表
         vo.setTags(getItemTags(id));
         // 填充图片列表
@@ -192,6 +218,9 @@ public class ItemServiceImpl implements ItemService {
                 throw new BizException("细分类目已删除");
             }
         }
+        List<Long> binIds = normalizeBinIds(dto.getBinIds());
+        validateBins(binIds);
+
         WmsItem item = new WmsItem();
         copyDtoToEntity(dto, item);
         // 自动生成物品编号: WP + 年月日 + 4位流水号
@@ -221,7 +250,9 @@ public class ItemServiceImpl implements ItemService {
         if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
             saveItemTags(item.getId(), dto.getTagIds());
         }
-        return itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId()));
+        syncItemBins(item.getId(), binIds);
+        return withLocations(itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId())),
+                loadItemLocationsMap(List.of(item.getId())).get(item.getId()));
     }
 
     /**
@@ -260,6 +291,11 @@ public class ItemServiceImpl implements ItemService {
                 throw new BizException("细分类目已删除");
             }
         }
+        List<Long> binIds = dto.getBinIds() == null ? null : normalizeBinIds(dto.getBinIds());
+        if (binIds != null) {
+            validateBins(binIds);
+        }
+
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         // 编辑时不修改编号和拼音
@@ -270,7 +306,11 @@ public class ItemServiceImpl implements ItemService {
         if (dto.getTagIds() != null) {
             assignTags(id, dto.getTagIds());
         }
-        return itemConverter.toVo(existing, getCategoryName(existing.getCategoryId()), getSubCategoryName(existing.getSubCategoryId()));
+        if (binIds != null) {
+            syncItemBins(id, binIds);
+        }
+        return withLocations(itemConverter.toVo(existing, getCategoryName(existing.getCategoryId()), getSubCategoryName(existing.getSubCategoryId())),
+                loadItemLocationsMap(List.of(id)).get(id));
     }
 
     /**
@@ -327,6 +367,7 @@ public class ItemServiceImpl implements ItemService {
         if (!updateImageList.isEmpty()) {
             Db.updateBatchById(updateImageList);
         }
+        logicalDeleteItemBins(id);
     }
 
     /**
@@ -369,6 +410,8 @@ public class ItemServiceImpl implements ItemService {
         WmsItemImage image = new WmsItemImage();
         image.setItemId(itemId);
         image.setImageUrl(imageUrl);
+        image.setBucket(StorageConstants.BUCKET_ITEMS);
+        image.setObjectName(objectName);
         image.setImageName(file.getOriginalFilename());
         // 排序号: 当前数量+1
         Long maxSort = wmsItemImageMapper.selectCount(
@@ -376,6 +419,43 @@ public class ItemServiceImpl implements ItemService {
                         .eq(WmsItemImage::getItemId, itemId)
         );
         image.setSortOrder(maxSort.intValue() + 1);
+        wmsItemImageMapper.insert(image);
+        return itemConverter.toImageVo(image);
+    }
+
+    /**
+     * 关联已通过统一存储接口上传的物品图片
+     *
+     * @param itemId 物品ID
+     * @param dto    物品图片关联参数
+     * @return 图片VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ItemImageVo attachImage(Long itemId, ItemImageDto dto) {
+        WmsItem item = wmsItemMapper.selectById(itemId);
+        if (item == null) {
+            throw new BizException("物品不存在");
+        }
+        if (item.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("物品已删除");
+        }
+
+        WmsItemImage image = new WmsItemImage();
+        image.setItemId(itemId);
+        image.setImageUrl(dto.getImageUrl());
+        image.setBucket(StorageConstants.BUCKET_ITEMS);
+        image.setObjectName(dto.getObjectName());
+        image.setImageName(dto.getImageName());
+        if (dto.getSortOrder() != null) {
+            image.setSortOrder(dto.getSortOrder());
+        } else {
+            Long maxSort = wmsItemImageMapper.selectCount(
+                    new LambdaQueryWrapper<WmsItemImage>()
+                            .eq(WmsItemImage::getItemId, itemId)
+            );
+            image.setSortOrder(maxSort.intValue() + 1);
+        }
         wmsItemImageMapper.insert(image);
         return itemConverter.toImageVo(image);
     }
@@ -447,7 +527,12 @@ public class ItemServiceImpl implements ItemService {
                 ? Map.of()
                 : wmsSubCategoryMapper.selectBatchIds(subCategoryIds).stream()
                         .collect(java.util.stream.Collectors.toMap(WmsSubCategory::getId, WmsSubCategory::getSubCategoryName));
-        return items.stream().map(item -> itemConverter.toVo(item, categoryNameMap, subCategoryNameMap)).collect(Collectors.toList());
+        Map<Long, List<ItemLocationVo>> locationMap = loadItemLocationsMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        return items.stream()
+                .map(item -> withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
+                        locationMap.get(item.getId())))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -558,6 +643,263 @@ public class ItemServiceImpl implements ItemService {
     /**
      * DTO属性拷贝到Entity
      */
+    /**
+     * 规范化默认库位ID，去重并保留前端选择顺序。
+     *
+     * @param binIds 默认库位ID列表
+     * @return 去重后的默认库位ID列表
+     */
+    private List<Long> normalizeBinIds(List<Long> binIds) {
+        if (binIds == null || binIds.isEmpty()) {
+            return List.of();
+        }
+        return binIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 校验默认库位存在且父级库房结构完整。
+     *
+     * @param binIds 默认库位ID列表
+     */
+    private void validateBins(List<Long> binIds) {
+        if (binIds.isEmpty()) {
+            return;
+        }
+        Map<Long, WmsBin> binMap = wmsBinMapper.selectBatchIds(binIds).stream()
+                .collect(Collectors.toMap(WmsBin::getId, Function.identity()));
+        for (Long binId : binIds) {
+            if (!binMap.containsKey(binId)) {
+                throw new BizException("库位不存在: binId=" + binId);
+            }
+        }
+        for (WmsBin bin : binMap.values()) {
+            if (Objects.equals(bin.getBinStatus(), WarehouseConstants.BIN_STATUS_DISABLED)) {
+                throw new BizException("库位已禁用: binId=" + bin.getId());
+            }
+        }
+        Set<Long> cabinetIds = binMap.values().stream()
+                .map(WmsBin::getCabinetId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, WmsCabinet> cabinetMap = cabinetIds.isEmpty()
+                ? Map.of()
+                : wmsCabinetMapper.selectBatchIds(cabinetIds).stream()
+                        .collect(Collectors.toMap(WmsCabinet::getId, Function.identity()));
+        for (WmsBin bin : binMap.values()) {
+            if (bin.getCabinetId() != null && !cabinetMap.containsKey(bin.getCabinetId())) {
+                throw new BizException("库位所属存放柜不存在: binId=" + bin.getId());
+            }
+        }
+        for (WmsCabinet cabinet : cabinetMap.values()) {
+            if (!Objects.equals(cabinet.getStatus(), BizConstants.STATUS_ENABLED)) {
+                throw new BizException("存放柜已禁用: cabinetId=" + cabinet.getId());
+            }
+        }
+        Set<Long> areaIds = cabinetMap.values().stream()
+                .map(WmsCabinet::getAreaId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, WmsArea> areaMap = areaIds.isEmpty()
+                ? Map.of()
+                : wmsAreaMapper.selectBatchIds(areaIds).stream()
+                        .collect(Collectors.toMap(WmsArea::getId, Function.identity()));
+        if (areaMap.size() != areaIds.size()) {
+            throw new BizException("库位所属区域不存在");
+        }
+        for (WmsArea area : areaMap.values()) {
+            if (!Objects.equals(area.getStatus(), BizConstants.STATUS_ENABLED)) {
+                throw new BizException("区域已禁用: areaId=" + area.getId());
+            }
+        }
+        Set<Long> warehouseIds = binMap.values().stream()
+                .map(WmsBin::getWarehouseId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        warehouseIds.addAll(cabinetMap.values().stream()
+                .map(WmsCabinet::getWarehouseId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        warehouseIds.addAll(areaMap.values().stream()
+                .map(WmsArea::getWarehouseId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+        Map<Long, WmsWarehouse> warehouseMap = warehouseIds.isEmpty()
+                ? Map.of()
+                : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
+                        .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
+        if (warehouseMap.size() != warehouseIds.size()) {
+            throw new BizException("库位所属库房不存在");
+        }
+        for (WmsWarehouse warehouse : warehouseMap.values()) {
+            if (!Objects.equals(warehouse.getStatus(), BizConstants.STATUS_ENABLED)) {
+                throw new BizException("库房已禁用: warehouseId=" + warehouse.getId());
+            }
+        }
+    }
+
+    /**
+     * 同步物品默认库位，使用逻辑删除/恢复避免破坏历史记录。
+     *
+     * @param itemId 物品ID
+     * @param binIds 默认库位ID列表
+     */
+    private void syncItemBins(Long itemId, List<Long> binIds) {
+        List<WmsItemBin> existingList = wmsItemBinMapper.selectAllByItemId(itemId);
+        Map<Long, WmsItemBin> existingMap = existingList.stream()
+                .collect(Collectors.toMap(WmsItemBin::getBinId, Function.identity(), (left, right) -> left));
+        Set<Long> selected = Set.copyOf(binIds);
+        List<WmsItemBin> deleteList = new ArrayList<>();
+        for (WmsItemBin existing : existingList) {
+            if (!selected.contains(existing.getBinId())
+                    && !Objects.equals(existing.getDelFlag(), DelFlagConstants.DELETED)) {
+                WmsItemBin update = new WmsItemBin();
+                update.setId(existing.getId());
+                update.setDelFlag(DelFlagConstants.DELETED);
+                deleteList.add(update);
+            }
+        }
+        if (!deleteList.isEmpty()) {
+            Db.updateBatchById(deleteList);
+        }
+        for (int index = 0; index < binIds.size(); index++) {
+            Long binId = binIds.get(index);
+            WmsItemBin existing = existingMap.get(binId);
+            if (existing == null) {
+                WmsItemBin itemBin = new WmsItemBin();
+                itemBin.setItemId(itemId);
+                itemBin.setBinId(binId);
+                itemBin.setSortOrder(index + 1);
+                wmsItemBinMapper.insert(itemBin);
+            } else if (Objects.equals(existing.getDelFlag(), DelFlagConstants.DELETED)) {
+                wmsItemBinMapper.restoreById(existing.getId(), index + 1, DelFlagConstants.NORMAL);
+            } else if (!Objects.equals(existing.getSortOrder(), index + 1)) {
+                WmsItemBin update = new WmsItemBin();
+                update.setId(existing.getId());
+                update.setSortOrder(index + 1);
+                wmsItemBinMapper.updateById(update);
+            }
+        }
+    }
+
+    /**
+     * 逻辑删除物品默认库位关联。
+     *
+     * @param itemId 物品ID
+     */
+    private void logicalDeleteItemBins(Long itemId) {
+        List<WmsItemBin> itemBins = wmsItemBinMapper.selectList(
+                new LambdaQueryWrapper<WmsItemBin>().eq(WmsItemBin::getItemId, itemId));
+        List<WmsItemBin> updateList = new ArrayList<>();
+        for (WmsItemBin itemBin : itemBins) {
+            WmsItemBin update = new WmsItemBin();
+            update.setId(itemBin.getId());
+            update.setDelFlag(DelFlagConstants.DELETED);
+            updateList.add(update);
+        }
+        if (!updateList.isEmpty()) {
+            Db.updateBatchById(updateList);
+        }
+    }
+
+    /**
+     * 批量加载物品默认库位并组装库位路径。
+     *
+     * @param itemIds 物品ID集合
+     * @return 物品ID到默认库位列表的映射
+     */
+    private Map<Long, List<ItemLocationVo>> loadItemLocationsMap(Collection<Long> itemIds) {
+        List<Long> ids = itemIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        List<WmsItemBin> itemBins = wmsItemBinMapper.selectList(
+                new LambdaQueryWrapper<WmsItemBin>()
+                        .in(WmsItemBin::getItemId, ids)
+                        .orderByAsc(WmsItemBin::getSortOrder));
+        if (itemBins.isEmpty()) {
+            return Map.of();
+        }
+        Set<Long> binIds = itemBins.stream().map(WmsItemBin::getBinId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, WmsBin> binMap = binIds.isEmpty()
+                ? Map.of()
+                : wmsBinMapper.selectBatchIds(binIds).stream()
+                        .collect(Collectors.toMap(WmsBin::getId, Function.identity()));
+        Set<Long> cabinetIds = binMap.values().stream().map(WmsBin::getCabinetId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, WmsCabinet> cabinetMap = cabinetIds.isEmpty()
+                ? Map.of()
+                : wmsCabinetMapper.selectBatchIds(cabinetIds).stream()
+                        .collect(Collectors.toMap(WmsCabinet::getId, Function.identity()));
+        Set<Long> areaIds = cabinetMap.values().stream().map(WmsCabinet::getAreaId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, WmsArea> areaMap = areaIds.isEmpty()
+                ? Map.of()
+                : wmsAreaMapper.selectBatchIds(areaIds).stream()
+                        .collect(Collectors.toMap(WmsArea::getId, Function.identity()));
+        Set<Long> warehouseIds = binMap.values().stream().map(WmsBin::getWarehouseId).filter(Objects::nonNull).collect(Collectors.toSet());
+        warehouseIds.addAll(cabinetMap.values().stream().map(WmsCabinet::getWarehouseId).filter(Objects::nonNull).collect(Collectors.toSet()));
+        warehouseIds.addAll(areaMap.values().stream().map(WmsArea::getWarehouseId).filter(Objects::nonNull).collect(Collectors.toSet()));
+        Map<Long, WmsWarehouse> warehouseMap = warehouseIds.isEmpty()
+                ? Map.of()
+                : wmsWarehouseMapper.selectBatchIds(warehouseIds).stream()
+                        .collect(Collectors.toMap(WmsWarehouse::getId, Function.identity()));
+
+        Map<Long, List<ItemLocationVo>> result = new LinkedHashMap<>();
+        for (WmsItemBin itemBin : itemBins) {
+            WmsBin bin = binMap.get(itemBin.getBinId());
+            if (bin == null) {
+                continue;
+            }
+            WmsCabinet cabinet = cabinetMap.get(bin.getCabinetId());
+            WmsArea area = cabinet == null ? null : areaMap.get(cabinet.getAreaId());
+            Long warehouseId = resolveWarehouseId(bin, cabinet, area);
+            WmsWarehouse warehouse = warehouseId == null ? null : warehouseMap.get(warehouseId);
+            result.computeIfAbsent(itemBin.getItemId(), key -> new ArrayList<>())
+                    .add(toLocationVo(bin, cabinet, area, warehouse));
+        }
+        return result;
+    }
+
+    private ItemVo withLocations(ItemVo vo, List<ItemLocationVo> locations) {
+        List<ItemLocationVo> safeLocations = locations == null ? List.of() : locations;
+        vo.setLocations(safeLocations);
+        vo.setBinIds(safeLocations.stream().map(ItemLocationVo::getBinId).collect(Collectors.toList()));
+        return vo;
+    }
+
+    private ItemLocationVo toLocationVo(WmsBin bin, WmsCabinet cabinet, WmsArea area, WmsWarehouse warehouse) {
+        ItemLocationVo vo = new ItemLocationVo();
+        vo.setBinId(bin.getId());
+        vo.setBinCode(bin.getBinCode());
+        vo.setCabinetId(bin.getCabinetId());
+        vo.setCabinetName(cabinet == null ? null : cabinet.getCabinetName());
+        vo.setAreaId(cabinet == null ? null : cabinet.getAreaId());
+        vo.setAreaName(area == null ? null : area.getAreaName());
+        Long warehouseId = resolveWarehouseId(bin, cabinet, area);
+        vo.setWarehouseId(warehouseId);
+        vo.setWarehouseName(warehouse == null ? null : warehouse.getWarehouseName());
+        vo.setLocationText(buildLocationText(vo));
+        return vo;
+    }
+
+    private Long resolveWarehouseId(WmsBin bin, WmsCabinet cabinet, WmsArea area) {
+        if (bin.getWarehouseId() != null) {
+            return bin.getWarehouseId();
+        }
+        if (cabinet != null && cabinet.getWarehouseId() != null) {
+            return cabinet.getWarehouseId();
+        }
+        return area == null ? null : area.getWarehouseId();
+    }
+
+    private String buildLocationText(ItemLocationVo location) {
+        return java.util.stream.Stream.of(location.getWarehouseName(), location.getAreaName(),
+                        location.getCabinetName(), location.getBinCode())
+                .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.joining("/"));
+    }
+
     private void copyDtoToEntity(ItemDto dto, WmsItem entity) {
         entity.setItemName(dto.getItemName());
         entity.setModel(dto.getModel());

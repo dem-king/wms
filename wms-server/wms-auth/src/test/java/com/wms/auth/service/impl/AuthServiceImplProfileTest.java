@@ -12,6 +12,8 @@ import com.wms.auth.service.CryptoService;
 import com.wms.auth.service.LoginLockService;
 import com.wms.auth.service.RateLimiterService;
 import com.wms.auth.service.TokenService;
+import com.wms.common.storage.StorageConstants;
+import com.wms.common.storage.StorageStrategy;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysOperLogService;
@@ -26,9 +28,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +43,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 
 @DisplayName("AuthServiceImpl 个人中心测试")
 @ExtendWith(MockitoExtension.class)
@@ -75,6 +83,9 @@ class AuthServiceImplProfileTest {
 
     @Mock
     private AuthProperties authProperties;
+
+    @Mock
+    private StorageStrategy storageStrategy;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -189,15 +200,30 @@ class AuthServiceImplProfileTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(1004L, null)
         );
-        when(authProperties.getAvatarUploadDir()).thenReturn(tempDir.toString());
-        when(authProperties.getAvatarUrlPrefix()).thenReturn("/api/auth/profile/avatar/content");
         when(authProperties.getAvatarMaxSizeBytes()).thenReturn(1024 * 1024L);
+        when(storageStrategy.upload(eq(StorageConstants.BUCKET_AVATARS), any(), any(), eq("image/png"), eq(6L)))
+                .thenReturn("/api/storage/avatars/1004/avatar.png");
         MultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "avatar".getBytes());
 
         UploadAvatarVo result = authService.uploadCurrentUserAvatar(file);
 
         assertNotNull(result);
-        assertEquals(true, result.getAvatarUrl().startsWith("/api/auth/profile/avatar/content/1004/"));
+        assertEquals("/api/storage/avatars/1004/avatar.png", result.getAvatarUrl());
+        verify(storageStrategy).upload(eq(StorageConstants.BUCKET_AVATARS), any(), any(), eq("image/png"), eq(6L));
+    }
+
+    @Test
+    @DisplayName("读取头像内容时应通过统一存储策略下载")
+    void shouldLoadAvatarResourceFromStorageStrategy() throws IOException {
+        byte[] content = "avatar".getBytes();
+        when(storageStrategy.download(StorageConstants.BUCKET_AVATARS, "1004/avatar.png"))
+                .thenReturn(new ByteArrayInputStream(content));
+
+        Resource result = authService.loadAvatarResource(1004L, "avatar.png");
+
+        assertNotNull(result);
+        assertEquals("avatar", new String(result.getInputStream().readAllBytes()));
+        verify(storageStrategy).download(StorageConstants.BUCKET_AVATARS, "1004/avatar.png");
     }
 
     @Test

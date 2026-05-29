@@ -31,7 +31,7 @@
           <el-input-number v-model="row.quantity" :min="1" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ $index }">
           <TableActionGroup
             :actions="[

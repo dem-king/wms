@@ -105,6 +105,8 @@ public class ItemConverter {
         vo.setId(image.getId());
         vo.setItemId(image.getItemId());
         vo.setImageUrl(image.getImageUrl());
+        vo.setBucket(image.getBucket());
+        vo.setObjectName(image.getObjectName());
         vo.setImageName(image.getImageName());
         vo.setSortOrder(image.getSortOrder());
         return vo;

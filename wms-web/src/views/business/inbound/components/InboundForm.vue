@@ -84,7 +84,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="amount" label="金额" min-width="100" />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ $index }">
           <TableActionGroup
             :actions="[

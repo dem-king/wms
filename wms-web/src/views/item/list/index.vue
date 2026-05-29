@@ -59,13 +59,23 @@
       <el-table-column prop="specModel" label="规格型号" min-width="120" />
       <el-table-column prop="unit" label="单位" min-width="80" />
       <el-table-column prop="categoryName" label="类目" min-width="100" />
+      <el-table-column label="默认库位" min-width="220">
+        <template #default="{ row }">
+          <div v-if="getLocationLabels(row).length" class="location-tags">
+            <el-tag v-for="label in getLocationLabels(row)" :key="label" size="small" type="info">
+              {{ label }}
+            </el-tag>
+          </div>
+          <span v-else class="empty-location">未配置</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="currentStock" label="数量" min-width="80" />
       <el-table-column prop="status" label="状态" min-width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" class-name="table-action-column" fixed="right">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
@@ -149,6 +159,17 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-form-item label="默认库位" prop="binIds">
+          <el-cascader
+            v-model="locationCascaderValue"
+            :props="locationCascaderProps"
+            placeholder="请选择默认库位"
+            clearable
+            collapse-tags
+            collapse-tags-tooltip
+            style="width: 100%"
+          />
+        </el-form-item>
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="安全库存" prop="stockLowerLimit">
@@ -209,19 +230,29 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import type { FormInstance, FormRules, UploadFile } from 'element-plus'
+import type { CascaderProps, FormInstance, FormRules, UploadFile } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getItemList, addItem, updateItem, deleteItem, searchItem, deleteItemImage } from '@/api/item/item'
+import { getItemList, addItem, updateItem, deleteItem, searchItem, attachItemImage, deleteItemImage } from '@/api/item/item'
 import { getCategoryList } from '@/api/item/category'
 import { getSubCategories } from '@/api/item/category'
 import { getTagList } from '@/api/item/tag'
 import { getSupplierList } from '@/api/system/supplier'
+import { getWarehouseList } from '@/api/warehouse/warehouse'
+import { getAreaList } from '@/api/warehouse/area'
+import { getCabinetList } from '@/api/warehouse/cabinet'
+import { getBinList } from '@/api/warehouse/bin'
 import type { EntityId, WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
 import type { SysSupplierVo } from '@/types/system'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { normalizePageTotal } from '@/utils/pagination'
+import {
+  extractBinIds,
+  formatLocations,
+  locationsToCascaderValue,
+  type LocationCascaderValue,
+} from './item-location-utils'
 
 const loading = ref(false)
 const tableData = ref<WmsItemVo[]>([])
@@ -231,6 +262,14 @@ const subCategoryOptions = ref<WmsSubCategoryVo[]>([])
 const tagList = ref<WmsTagVo[]>([])
 const supplierList = ref<SysSupplierVo[]>([])
 const quickSearchKeyword = ref('')
+const locationCascaderValue = ref<LocationCascaderValue>([])
+
+const locationCascaderProps: CascaderProps = {
+  multiple: true,
+  lazy: true,
+  emitPath: true,
+  lazyLoad: loadLocationNode,
+}
 
 const queryParams = reactive({
   page: 1,
@@ -254,6 +293,7 @@ const form = reactive<WmsItemDto & { id?: EntityId; imageList: ItemImageVo[] }>(
   categoryId: undefined as unknown as EntityId,
   subCategoryId: undefined as unknown as EntityId,
   tagIds: [],
+  binIds: [],
   supplierId: undefined as unknown as EntityId,
   stockLowerLimit: 0,
   stockUpperLimit: 0,
@@ -306,9 +346,10 @@ function handleAdd() {
   isEdit.value = false
   Object.assign(form, {
     id: undefined, itemCode: '', itemName: '', specModel: '', unit: '',
-    categoryId: undefined, subCategoryId: undefined, tagIds: [], supplierId: undefined,
+    categoryId: undefined, subCategoryId: undefined, tagIds: [], binIds: [], supplierId: undefined,
     stockLowerLimit: 0, stockUpperLimit: 0, replenishThreshold: 0, status: 1, imageList: []
   })
+  locationCascaderValue.value = []
   dialogVisible.value = true
 }
 
@@ -316,11 +357,12 @@ function handleEdit(row: WmsItemVo) {
   isEdit.value = true
   Object.assign(form, {
     id: row.id, itemCode: row.itemCode, itemName: row.itemName, specModel: row.specModel, unit: row.unit,
-    categoryId: row.categoryId, subCategoryId: row.subCategoryId, tagIds: row.tagIds || [],
+    categoryId: row.categoryId, subCategoryId: row.subCategoryId, tagIds: row.tagIds || [], binIds: row.binIds || [],
     supplierId: row.supplierId, stockLowerLimit: row.stockLowerLimit ?? 0,
     stockUpperLimit: row.stockUpperLimit ?? 0, replenishThreshold: row.replenishThreshold ?? 0,
     status: row.status, imageList: row.images || []
   })
+  locationCascaderValue.value = locationsToCascaderValue(row.locations || [])
   if (row.categoryId) handleCategoryChange(row.categoryId)
   dialogVisible.value = true
 }
@@ -340,12 +382,14 @@ async function handleImageChange(uploadFile: UploadFile) {
   }
   try {
     // 通过useFileUpload统一上传，自动适配本地/MinIO存储
-    const result = await uploadItemImageFile(uploadFile.raw)
-    form.imageList.push({
-      imageUrl: result.url,
+    const uploadResult = await uploadItemImageFile(uploadFile.raw)
+    const attachResult = await attachItemImage(form.id, {
+      imageUrl: uploadResult.url,
+      objectName: uploadResult.objectName,
       imageName: uploadFile.raw.name,
       sortOrder: form.imageList.length + 1
-    } as ItemImageVo)
+    })
+    form.imageList.push(attachResult.data)
     ElMessage.success('图片上传成功')
   } catch {
     ElMessage.error('图片上传失败')
@@ -367,6 +411,7 @@ async function handleSubmit() {
     const dto: WmsItemDto = {
       itemCode: form.itemCode, itemName: form.itemName, specModel: form.specModel, unit: form.unit,
       categoryId: form.categoryId, subCategoryId: form.subCategoryId, tagIds: form.tagIds,
+      binIds: extractBinIds(locationCascaderValue.value),
       supplierId: form.supplierId, stockLowerLimit: form.stockLowerLimit,
       stockUpperLimit: form.stockUpperLimit, replenishThreshold: form.replenishThreshold, status: form.status
     }
@@ -393,7 +438,36 @@ async function handleDelete(id: EntityId) {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
+  locationCascaderValue.value = []
   subCategoryOptions.value = []
+}
+
+function getLocationLabels(row: WmsItemVo) {
+  return formatLocations(row.locations || [])
+}
+
+async function loadLocationNode(node: any, resolve: (data: any[]) => void) {
+  if (node.level === 0) {
+    const res = await getWarehouseList()
+    resolve(res.data.map(item => ({ value: String(item.id), label: item.warehouseName, leaf: false })))
+    return
+  }
+  if (node.level === 1) {
+    const res = await getAreaList(String(node.value) as any)
+    resolve(res.data.map(item => ({ value: String(item.id), label: item.areaName, leaf: false })))
+    return
+  }
+  if (node.level === 2) {
+    const res = await getCabinetList(String(node.value) as any)
+    resolve(res.data.map(item => ({ value: String(item.id), label: item.cabinetName, leaf: false })))
+    return
+  }
+  if (node.level === 3) {
+    const res = await getBinList(String(node.value) as any)
+    resolve(res.data.map(item => ({ value: String(item.id), label: item.binCode, leaf: true })))
+    return
+  }
+  resolve([])
 }
 
 async function loadOptions() {
@@ -439,6 +513,17 @@ onMounted(() => {
 
 .pagination {
   justify-content: flex-end;
+}
+
+.location-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.empty-location {
+  color: #909399;
+  font-size: 12px;
 }
 
 .image-upload-area {

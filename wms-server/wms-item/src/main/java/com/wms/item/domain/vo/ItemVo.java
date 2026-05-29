@@ -118,4 +118,12 @@ public class ItemVo {
     /** 图片列表 */
     @Schema(description = "图片列表")
     private List<ItemImageVo> images;
+
+    /** 默认库位ID列表 */
+    @Schema(description = "默认库位ID列表")
+    private List<Long> binIds;
+
+    /** 默认库位列表 */
+    @Schema(description = "默认库位列表")
+    private List<ItemLocationVo> locations;
 }

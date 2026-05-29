@@ -1,32 +1,24 @@
-package com.wms.item.domain.vo;
+package com.wms.item.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 物品图片视图对象
+ * 物品图片关联DTO
+ * 用于把统一文件上传结果关联到物品图片记录。
  */
 @Data
-@Schema(description = "物品图片信息")
-public class ItemImageVo {
-
-    /** 主键 */
-    @Schema(description = "主键")
-    private Long id;
-
-    /** 物品ID */
-    @Schema(description = "物品ID")
-    private Long itemId;
+@Schema(description = "物品图片关联请求")
+public class ItemImageDto {
 
     /** 图片URL */
+    @NotBlank(message = "图片URL不能为空")
     @Schema(description = "图片URL")
     private String imageUrl;
 
-    /** 存储桶 */
-    @Schema(description = "存储桶")
-    private String bucket;
-
     /** 对象存储路径 */
+    @NotBlank(message = "对象存储路径不能为空")
     @Schema(description = "对象存储路径")
     private String objectName;
 

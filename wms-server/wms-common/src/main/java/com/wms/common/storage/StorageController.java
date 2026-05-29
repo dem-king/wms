@@ -123,14 +123,15 @@ public class StorageController {
     /**
      * 删除文件
      *
-     * @param bucket     逻辑桶名
-     * @param objectName 对象路径
+     * @param bucket  逻辑桶名
+     * @param request HTTP请求（用于提取完整对象路径）
      */
     @PreAuthorize("isAuthenticated()")
     @OperLog(module = "storage", type = "删除", desc = "删除文件")
     @Operation(summary = "删除文件")
-    @DeleteMapping("/{bucket}/{objectName:.+}")
-    public R<Void> delete(@PathVariable String bucket, @PathVariable String objectName) {
+    @DeleteMapping("/{bucket}/**")
+    public R<Void> delete(@PathVariable String bucket, HttpServletRequest request) {
+        String objectName = extractObjectName(request, bucket);
         storageStrategy.delete(bucket, objectName);
         return R.ok();
     }

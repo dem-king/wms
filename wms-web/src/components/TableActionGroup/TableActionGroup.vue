@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   actions: TableActionItem[]
   maxInlineActions?: number
 }>(), {
-  maxInlineActions: 3,
+  maxInlineActions: 2,
 })
 
 const visibleActions = computed(() => props.actions.filter((action) => action.visible !== false))

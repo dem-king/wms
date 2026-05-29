@@ -12,6 +12,8 @@ const tableActionGroupFile = path.resolve(viewsRoot, '..', 'components', 'TableA
 const actionColumnTagPattern = /<el-table-column\b[^>]*label="操作"[^>]*>/g
 const sharedClassPattern = /class-name="[^"]*\btable-action-column\b[^"]*"/
 const tableActionGroupPattern = /<TableActionGroup\b/
+const minActionColumnWidth = 180
+const minWidthPattern = /min-width="(\d+)"/
 
 function collectVueFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry: string) => {
@@ -63,6 +65,23 @@ describe('table action columns', () => {
       .filter((filePath): filePath is string => Boolean(filePath))
 
     expect(filesWithFixedWidth).toEqual([])
+  })
+
+  it('sets explicit enough min-width on every action column', () => {
+    const filesWithNarrowActionColumns = collectVueFiles(viewsRoot)
+      .flatMap((filePath) => {
+        const source = readFileSync(filePath, 'utf-8')
+        const actionColumnTags = source.match(actionColumnTagPattern) ?? []
+
+        return actionColumnTags
+          .filter((tag: string) => {
+            const minWidthMatch = tag.match(minWidthPattern)
+            return !minWidthMatch || Number(minWidthMatch[1]) < minActionColumnWidth
+          })
+          .map(() => path.relative(viewsRoot, filePath))
+      })
+
+    expect(filesWithNarrowActionColumns).toEqual([])
   })
 
   it('uses TableActionGroup in every action column', () => {

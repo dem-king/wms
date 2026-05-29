@@ -293,7 +293,7 @@ onMounted(() => {
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="180" />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="160">
+      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
@@ -413,7 +413,7 @@ onMounted(() => {
               <span v-else>{{ getApproverTypeLabel(row.approverType) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="110">
+          <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
             <template #default="{ $index }">
               <TableActionGroup
                 :actions="[
