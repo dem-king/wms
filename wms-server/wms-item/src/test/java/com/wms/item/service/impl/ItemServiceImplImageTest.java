@@ -40,6 +40,9 @@ class ItemServiceImplImageTest {
     private WmsItemImageMapper wmsItemImageMapper;
 
     @Mock
+    private WmsStockMapper wmsStockMapper;
+
+    @Mock
     private WmsCategoryMapper wmsCategoryMapper;
 
     @Mock

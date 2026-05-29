@@ -52,6 +52,20 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
+     * 查询启用的角色列表
+     *
+     * @return 启用的角色VO列表
+     */
+    @Override
+    public List<SysRoleVo> listEnabled() {
+        List<SysRole> roles = sysRoleMapper.selectList(
+                new LambdaQueryWrapper<SysRole>()
+                        .eq(SysRole::getStatus, BizConstants.STATUS_ENABLED)
+        );
+        return roles.stream().map(this::toVo).collect(Collectors.toList());
+    }
+
+    /**
      * 根据ID查询角色详情
      * 
      * @param id 角色ID

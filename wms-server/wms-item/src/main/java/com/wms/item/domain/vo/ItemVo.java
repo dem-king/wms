@@ -39,6 +39,10 @@ public class ItemVo {
     @Schema(description = "规格")
     private String spec;
 
+    /** 规格型号 */
+    @Schema(description = "规格型号")
+    private String specModel;
+
     /** 计量单位 */
     @Schema(description = "计量单位")
     private String unit;
@@ -87,6 +91,10 @@ public class ItemVo {
     @Schema(description = "库存数量")
     private Integer stockQty;
 
+    /** 实时库存数量 */
+    @Schema(description = "实时库存数量")
+    private Integer currentStock;
+
     /** 库存下限(安全库存) */
     @Schema(description = "库存下限(安全库存)")
     private Integer stockLowerLimit;
@@ -114,6 +122,14 @@ public class ItemVo {
     /** 标签列表 */
     @Schema(description = "标签列表")
     private List<TagVo> tags;
+
+    /** 标签ID列表 */
+    @Schema(description = "标签ID列表")
+    private List<Long> tagIds;
+
+    /** 标签名称列表 */
+    @Schema(description = "标签名称列表")
+    private List<String> tagNames;
 
     /** 图片列表 */
     @Schema(description = "图片列表")

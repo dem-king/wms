@@ -1,5 +1,5 @@
 import { get, post, put, del } from '../request'
-import type { EntityId, WmsItemVo, WmsItemDto, ItemImageDto, ItemImageVo } from '@/types/item'
+import type { EntityId, WmsItemVo, WmsItemSubmitDto, ItemImageDto, ItemImageVo } from '@/types/item'
 import type { PageResult, PageParams } from '@/types/system'
 
 type ItemEntityId = EntityId | number
@@ -12,11 +12,11 @@ export function getItem(id: ItemEntityId) {
   return get<WmsItemVo>(`/item/items/${id}`)
 }
 
-export function addItem(data: WmsItemDto) {
+export function addItem(data: WmsItemSubmitDto) {
   return post<WmsItemVo>('/item/items', data)
 }
 
-export function updateItem(id: ItemEntityId, data: WmsItemDto) {
+export function updateItem(id: ItemEntityId, data: WmsItemSubmitDto) {
   return put<WmsItemVo>(`/item/items/${id}`, data)
 }
 

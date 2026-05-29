@@ -101,22 +101,22 @@ describe('table action columns', () => {
     expect(filesWithMissingActionGroup).toEqual([])
   })
 
-  it('defines shared nowrap styles for action columns', () => {
+  it('defines shared wrapping styles for action columns', () => {
     const source = readFileSync(stylesFile, 'utf-8')
 
     expect(source).toContain('.table-action-column')
-    expect(source).toContain('flex-wrap: nowrap')
+    expect(source).toContain('flex-wrap: wrap')
+    expect(source).toContain('white-space: normal')
     expect(source).toContain('.table-action-group')
-    expect(source).toContain('.table-action-group__more')
+    expect(source).not.toContain('.table-action-group__more')
   })
 
-  it('moves actions after the first two into the more dropdown by default', () => {
+  it('renders all visible actions inline by default', () => {
     const source = readFileSync(tableActionGroupFile, 'utf-8')
 
-    expect(source).toContain('maxInlineActions: 2')
-    expect(source).toContain('visibleActions.value.slice(0, props.maxInlineActions)')
-    expect(source).toContain('visibleActions.value.slice(props.maxInlineActions)')
-    expect(source).toContain('v-if="overflowActions.length > 0"')
+    expect(source).not.toContain('maxInlineActions')
+    expect(source).not.toContain('el-dropdown')
+    expect(source).not.toContain('overflowActions')
   })
 
   it('sets explicit min-width on role and user action columns with three inline actions', () => {

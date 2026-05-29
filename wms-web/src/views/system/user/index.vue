@@ -30,6 +30,7 @@
         <el-table-column prop="username" label="用户名" min-width="100" />
         <el-table-column prop="realName" label="真实姓名" min-width="100" />
         <el-table-column prop="deptName" label="部门" min-width="100" />
+        <el-table-column prop="roleNamesText" label="角色" min-width="140" />
         <el-table-column prop="phone" label="手机号" min-width="120" />
         <el-table-column prop="email" label="邮箱" min-width="150" />
         <el-table-column prop="status" label="状态" min-width="80">
@@ -75,7 +76,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, Key } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getUserList, deleteUser, resetUserPwd, changeUserStatus } from '@/api/system/user'
-import type { EntityId, SysUserVo } from '@/types/system'
+import { getDeptTree } from '@/api/system/dept'
+import type { EntityId, SysDeptVo, SysUserVo } from '@/types/system'
 import { normalizePageTotal } from '@/utils/pagination'
 import UserForm from './components/UserForm.vue'
 
@@ -98,12 +100,36 @@ const currentRow = ref<SysUserVo | null>(null)
 async function handleQuery() {
   loading.value = true
   try {
-    const res = await getUserList(queryParams)
-    tableData.value = res.data.records
+    const [res, deptRes] = await Promise.all([getUserList(queryParams), getDeptTree()])
+    const deptNameMap = buildDeptNameMap(deptRes.data || [])
+    tableData.value = res.data.records.map(user => ({
+      ...user,
+      deptName: deptNameMap.get(user.deptId) ?? user.deptName ?? '',
+      roleNamesText: user.roleNames?.join('、') ?? '',
+    }))
     total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
+}
+
+function buildDeptNameMap(deptTree: SysDeptVo[]) {
+  const deptNameMap = new Map<EntityId, string>()
+  const stack = [...deptTree]
+
+  while (stack.length > 0) {
+    const current = stack.pop()
+    if (!current) {
+      continue
+    }
+
+    deptNameMap.set(current.id, current.deptName)
+    if (current.children?.length) {
+      stack.push(...current.children)
+    }
+  }
+
+  return deptNameMap
 }
 
 function handleReset() {

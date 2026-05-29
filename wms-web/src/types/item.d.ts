@@ -124,6 +124,8 @@ export interface WmsItemVo {
   tagIds: EntityId[]
   /** 标签名称列表 */
   tagNames: string[]
+  /** 标签列表 */
+  tags?: WmsTagVo[]
   /** 供应商ID */
   binIds?: EntityId[]
   locations?: ItemLocationVo[]
@@ -136,8 +138,10 @@ export interface WmsItemVo {
   stockUpperLimit: number
   /** 补货阈值 */
   replenishThreshold: number
-  /** 当前库存 */
+  /** 实时库存 */
   currentStock: number
+  /** 库存数量 */
+  stockQty?: number
   /** 物品图片列表 */
   images: ItemImageVo[]
   /** 拼音首字母 */
@@ -196,6 +200,36 @@ export interface WmsItemDto {
   tagIds: EntityId[]
   /** 供应商ID */
   binIds?: EntityId[]
+  supplierId: EntityId
+  /** 安全库存(下限) */
+  stockLowerLimit: number
+  /** 最大库存(上限) */
+  stockUpperLimit: number
+  /** 补货阈值 */
+  replenishThreshold: number
+  /** 状态(0-禁用 1-启用) */
+  status: number
+}
+
+/** 物品提交DTO */
+export interface WmsItemSubmitDto {
+  /** 物品名称 */
+  itemName: string
+  /** 型号 */
+  model: string
+  /** 规格 */
+  spec: string
+  /** 计量单位 */
+  unit: string
+  /** 主类目ID */
+  categoryId: EntityId
+  /** 细分类目ID */
+  subCategoryId: EntityId
+  /** 标签ID列表 */
+  tagIds: EntityId[]
+  /** 默认库位ID列表 */
+  binIds?: EntityId[]
+  /** 供应商ID */
   supplierId: EntityId
   /** 安全库存(下限) */
   stockLowerLimit: number

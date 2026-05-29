@@ -63,6 +63,7 @@ public class ItemServiceImpl implements ItemService {
     private final WmsItemMapper wmsItemMapper;
     private final WmsItemTagMapper wmsItemTagMapper;
     private final WmsItemImageMapper wmsItemImageMapper;
+    private final WmsStockMapper wmsStockMapper;
     private final WmsCategoryMapper wmsCategoryMapper;
     private final WmsSubCategoryMapper wmsSubCategoryMapper;
     private final WmsTagMapper wmsTagMapper;
@@ -154,11 +155,23 @@ public class ItemServiceImpl implements ItemService {
                         .collect(java.util.stream.Collectors.toMap(WmsSubCategory::getId, WmsSubCategory::getSubCategoryName));
         Map<Long, List<ItemLocationVo>> locationMap = loadItemLocationsMap(
                 items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, List<ItemImageVo>> imageMap = loadItemImagesMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, List<TagVo>> tagMap = loadItemTagsMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, Integer> currentStockMap = loadCurrentStockMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
 
         PageResult<ItemVo> result = new PageResult<>();
         result.setRecords(items.stream()
-                .map(item -> withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
-                        locationMap.get(item.getId())))
+                .map(item -> withCurrentStock(
+                        withTags(
+                                withImages(
+                                        withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
+                                                locationMap.get(item.getId())),
+                                        imageMap.get(item.getId())),
+                                tagMap.get(item.getId())),
+                        currentStockMap.get(item.getId())))
                 .collect(Collectors.toList()));
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
@@ -183,8 +196,8 @@ public class ItemServiceImpl implements ItemService {
         }
         ItemVo vo = itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId()));
         withLocations(vo, loadItemLocationsMap(List.of(id)).get(id));
-        // 填充标签列表
-        vo.setTags(getItemTags(id));
+        withCurrentStock(vo, loadCurrentStockMap(List.of(id)).get(id));
+        withTags(vo, getItemTags(id));
         // 填充图片列表
         vo.setImages(getItemImages(id));
         return vo;
@@ -529,9 +542,21 @@ public class ItemServiceImpl implements ItemService {
                         .collect(java.util.stream.Collectors.toMap(WmsSubCategory::getId, WmsSubCategory::getSubCategoryName));
         Map<Long, List<ItemLocationVo>> locationMap = loadItemLocationsMap(
                 items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, List<ItemImageVo>> imageMap = loadItemImagesMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, List<TagVo>> tagMap = loadItemTagsMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
+        Map<Long, Integer> currentStockMap = loadCurrentStockMap(
+                items.stream().map(WmsItem::getId).collect(Collectors.toList()));
         return items.stream()
-                .map(item -> withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
-                        locationMap.get(item.getId())))
+                .map(item -> withCurrentStock(
+                        withTags(
+                                withImages(
+                                        withLocations(itemConverter.toVo(item, categoryNameMap, subCategoryNameMap),
+                                                locationMap.get(item.getId())),
+                                        imageMap.get(item.getId())),
+                                tagMap.get(item.getId())),
+                        currentStockMap.get(item.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -612,17 +637,55 @@ public class ItemServiceImpl implements ItemService {
                 new LambdaQueryWrapper<WmsTag>()
                         .in(WmsTag::getId, tagIds)
         );
-        return tags.stream().map(tag -> {
-            TagVo vo = new TagVo();
-            vo.setId(tag.getId());
-            vo.setTagName(tag.getTagName());
-            vo.setTagColor(tag.getTagColor());
-            vo.setTagDesc(tag.getTagDesc());
-            vo.setScopeType(tag.getScopeType());
-            vo.setScopeId(tag.getScopeId());
-            vo.setCreateTime(tag.getCreateTime());
-            return vo;
-        }).collect(Collectors.toList());
+        return tags.stream().map(this::toTagVo).collect(Collectors.toList());
+    }
+
+    /**
+     * 批量加载物品标签，供列表展示和编辑回填使用，避免逐条查询。
+     *
+     * @param itemIds 物品ID集合
+     * @return 物品ID到标签列表的映射
+     */
+    private Map<Long, List<TagVo>> loadItemTagsMap(Collection<Long> itemIds) {
+        List<Long> ids = itemIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        List<WmsItemTag> itemTags = wmsItemTagMapper.selectList(
+                new LambdaQueryWrapper<WmsItemTag>()
+                        .in(WmsItemTag::getItemId, ids));
+        if (itemTags == null || itemTags.isEmpty()) {
+            return Map.of();
+        }
+        Set<Long> tagIds = itemTags.stream()
+                .map(WmsItemTag::getTagId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, WmsTag> tagMap = tagIds.isEmpty()
+                ? Map.of()
+                : wmsTagMapper.selectBatchIds(tagIds).stream()
+                        .collect(Collectors.toMap(WmsTag::getId, Function.identity()));
+        Map<Long, List<TagVo>> result = new LinkedHashMap<>();
+        for (WmsItemTag itemTag : itemTags) {
+            WmsTag tag = tagMap.get(itemTag.getTagId());
+            if (tag == null) {
+                continue;
+            }
+            result.computeIfAbsent(itemTag.getItemId(), key -> new ArrayList<>()).add(toTagVo(tag));
+        }
+        return result;
+    }
+
+    private TagVo toTagVo(WmsTag tag) {
+        TagVo vo = new TagVo();
+        vo.setId(tag.getId());
+        vo.setTagName(tag.getTagName());
+        vo.setTagColor(tag.getTagColor());
+        vo.setTagDesc(tag.getTagDesc());
+        vo.setScopeType(tag.getScopeType());
+        vo.setScopeId(tag.getScopeId());
+        vo.setCreateTime(tag.getCreateTime());
+        return vo;
     }
 
     /**
@@ -638,6 +701,51 @@ public class ItemServiceImpl implements ItemService {
                         .orderByAsc(WmsItemImage::getSortOrder)
         );
         return images.stream().map(itemConverter::toImageVo).collect(Collectors.toList());
+    }
+
+    /**
+     * 批量加载物品图片，供列表和快速搜索展示首图使用，避免逐条查询。
+     *
+     * @param itemIds 物品ID集合
+     * @return 物品ID到图片列表的映射
+     */
+    private Map<Long, List<ItemImageVo>> loadItemImagesMap(Collection<Long> itemIds) {
+        List<Long> ids = itemIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        List<WmsItemImage> images = wmsItemImageMapper.selectList(
+                new LambdaQueryWrapper<WmsItemImage>()
+                        .in(WmsItemImage::getItemId, ids)
+                        .orderByAsc(WmsItemImage::getSortOrder));
+        if (images == null || images.isEmpty()) {
+            return Map.of();
+        }
+        return images.stream()
+                .map(itemConverter::toImageVo)
+                .collect(Collectors.groupingBy(ItemImageVo::getItemId, LinkedHashMap::new, Collectors.toList()));
+    }
+
+    /**
+     * 批量汇总物品实时库存，以wms_stock.quantity为准。
+     *
+     * @param itemIds 物品ID集合
+     * @return 物品ID到实时库存数量的映射
+     */
+    private Map<Long, Integer> loadCurrentStockMap(Collection<Long> itemIds) {
+        List<Long> ids = itemIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        List<WmsStock> stocks = wmsStockMapper.selectList(
+                new LambdaQueryWrapper<WmsStock>()
+                        .in(WmsStock::getItemId, ids));
+        if (stocks == null || stocks.isEmpty()) {
+            return Map.of();
+        }
+        return stocks.stream()
+                .collect(Collectors.groupingBy(WmsStock::getItemId,
+                        Collectors.summingInt(stock -> stock.getQuantity() == null ? 0 : stock.getQuantity())));
     }
 
     /**
@@ -865,6 +973,24 @@ public class ItemServiceImpl implements ItemService {
         List<ItemLocationVo> safeLocations = locations == null ? List.of() : locations;
         vo.setLocations(safeLocations);
         vo.setBinIds(safeLocations.stream().map(ItemLocationVo::getBinId).collect(Collectors.toList()));
+        return vo;
+    }
+
+    private ItemVo withImages(ItemVo vo, List<ItemImageVo> images) {
+        vo.setImages(images == null ? List.of() : images);
+        return vo;
+    }
+
+    private ItemVo withTags(ItemVo vo, List<TagVo> tags) {
+        List<TagVo> safeTags = tags == null ? List.of() : tags;
+        vo.setTags(safeTags);
+        vo.setTagIds(safeTags.stream().map(TagVo::getId).collect(Collectors.toList()));
+        vo.setTagNames(safeTags.stream().map(TagVo::getTagName).collect(Collectors.toList()));
+        return vo;
+    }
+
+    private ItemVo withCurrentStock(ItemVo vo, Integer currentStock) {
+        vo.setCurrentStock(currentStock == null ? 0 : currentStock);
         return vo;
     }
 

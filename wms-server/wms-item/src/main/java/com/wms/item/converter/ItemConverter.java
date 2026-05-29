@@ -34,6 +34,7 @@ public class ItemConverter {
         vo.setPinyin(item.getPinyin());
         vo.setModel(item.getModel());
         vo.setSpec(item.getSpec());
+        vo.setSpecModel(resolveSpecModel(item));
         vo.setUnit(item.getUnit());
         vo.setBrand(item.getBrand());
         vo.setCategoryId(item.getCategoryId());
@@ -110,5 +111,12 @@ public class ItemConverter {
         vo.setImageName(image.getImageName());
         vo.setSortOrder(image.getSortOrder());
         return vo;
+    }
+
+    private String resolveSpecModel(WmsItem item) {
+        if (item.getModel() != null && !item.getModel().isBlank()) {
+            return item.getModel();
+        }
+        return item.getSpec();
     }
 }

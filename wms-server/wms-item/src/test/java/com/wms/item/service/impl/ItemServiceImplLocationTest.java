@@ -11,6 +11,10 @@ import com.wms.item.domain.dto.ItemDto;
 import com.wms.item.domain.entity.WmsCategory;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsItemBin;
+import com.wms.item.domain.entity.WmsItemImage;
+import com.wms.item.domain.entity.WmsItemTag;
+import com.wms.item.domain.entity.WmsStock;
+import com.wms.item.domain.entity.WmsTag;
 import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.mapper.WmsCategoryMapper;
 import com.wms.item.mapper.WmsElectronicLabelMapper;
@@ -62,6 +66,8 @@ class ItemServiceImplLocationTest {
     @Mock
     private WmsItemImageMapper wmsItemImageMapper;
     @Mock
+    private WmsStockMapper wmsStockMapper;
+    @Mock
     private WmsCategoryMapper wmsCategoryMapper;
     @Mock
     private WmsSubCategoryMapper wmsSubCategoryMapper;
@@ -83,7 +89,7 @@ class ItemServiceImplLocationTest {
     @BeforeEach
     void setUp() {
         itemService = new ItemServiceImpl(wmsItemMapper, wmsItemTagMapper, wmsItemImageMapper,
-                wmsCategoryMapper, wmsSubCategoryMapper, wmsTagMapper, null,
+                wmsStockMapper, wmsCategoryMapper, wmsSubCategoryMapper, wmsTagMapper, null,
                 new ItemConverter(), wmsItemBinMapper, wmsBinMapper, wmsCabinetMapper,
                 wmsAreaMapper, wmsWarehouseMapper);
     }
@@ -131,6 +137,7 @@ class ItemServiceImplLocationTest {
         when(wmsCabinetMapper.selectBatchIds(any())).thenReturn(List.of(createCabinet()));
         when(wmsAreaMapper.selectBatchIds(any())).thenReturn(List.of(createArea()));
         when(wmsWarehouseMapper.selectBatchIds(any())).thenReturn(List.of(createWarehouse()));
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
 
         PageResult<ItemVo> result = itemService.page(pageParam, null, null, null, null, null);
 
@@ -138,6 +145,75 @@ class ItemServiceImplLocationTest {
         assertEquals("一号仓/一区/A柜/BIN-101", result.getRecords().get(0).getLocations().get(0).getLocationText());
         verify(wmsItemBinMapper).selectList(any(LambdaQueryWrapper.class));
         verify(wmsBinMapper).selectBatchIds(any());
+    }
+
+    @Test
+    @DisplayName("page should include item images for list display")
+    void shouldBatchLoadImagesWhenPageItems() {
+        PageParam pageParam = new PageParam();
+        pageParam.setPage(1);
+        pageParam.setSize(10);
+        WmsItem item = createItem(10L);
+        when(wmsItemMapper.selectPage(any(), any())).thenReturn(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<WmsItem>(1, 10, 1)
+                .setRecords(List.of(item)));
+        when(wmsCategoryMapper.selectBatchIds(any())).thenReturn(List.of(createCategory()));
+        when(wmsItemBinMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemImageMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(createImage(10L, "/api/storage/items/10/demo.png")));
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+        PageResult<ItemVo> result = itemService.page(pageParam, null, null, null, null, null);
+
+        assertEquals(1, result.getRecords().get(0).getImages().size());
+        assertEquals("/api/storage/items/10/demo.png", result.getRecords().get(0).getImages().get(0).getImageUrl());
+    }
+
+    @Test
+    @DisplayName("page should include item tags for list display and editing")
+    void shouldBatchLoadTagsWhenPageItems() {
+        PageParam pageParam = new PageParam();
+        pageParam.setPage(1);
+        pageParam.setSize(10);
+        WmsItem item = createItem(10L);
+        when(wmsItemMapper.selectPage(any(), any())).thenReturn(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<WmsItem>(1, 10, 1)
+                .setRecords(List.of(item)));
+        when(wmsCategoryMapper.selectBatchIds(any())).thenReturn(List.of(createCategory()));
+        when(wmsItemBinMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemImageMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemTagMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(createItemTag(10L, 701L), createItemTag(10L, 702L)));
+        when(wmsTagMapper.selectBatchIds(any()))
+                .thenReturn(List.of(createTag(701L, "进口"), createTag(702L, "紧急")));
+
+        PageResult<ItemVo> result = itemService.page(pageParam, null, null, null, null, null);
+
+        ItemVo vo = result.getRecords().get(0);
+        assertEquals(List.of(701L, 702L), vo.getTagIds());
+        assertEquals(List.of("进口", "紧急"), vo.getTagNames());
+        assertEquals(2, vo.getTags().size());
+    }
+
+    @Test
+    @DisplayName("page should sum realtime stock quantity from stock records")
+    void shouldSumRealtimeStockWhenPageItems() {
+        PageParam pageParam = new PageParam();
+        pageParam.setPage(1);
+        pageParam.setSize(10);
+        WmsItem item = createItem(10L);
+        item.setStockQty(999);
+        when(wmsItemMapper.selectPage(any(), any())).thenReturn(new com.baomidou.mybatisplus.extension.plugins.pagination.Page<WmsItem>(1, 10, 1)
+                .setRecords(List.of(item)));
+        when(wmsCategoryMapper.selectBatchIds(any())).thenReturn(List.of(createCategory()));
+        when(wmsItemBinMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemImageMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemTagMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(createStock(10L, 3), createStock(10L, 4)));
+
+        PageResult<ItemVo> result = itemService.page(pageParam, null, null, null, null, null);
+
+        assertEquals(7, result.getRecords().get(0).getCurrentStock());
     }
 
     @Test
@@ -206,9 +282,41 @@ class ItemServiceImplLocationTest {
         item.setId(id);
         item.setItemName("轴承");
         item.setItemCode("WP001");
+        item.setModel("6205-ZZ");
         item.setCategoryId(1L);
         item.setDelFlag(DelFlagConstants.NORMAL);
         return item;
+    }
+
+    private WmsItemImage createImage(Long itemId, String imageUrl) {
+        WmsItemImage image = new WmsItemImage();
+        image.setId(501L);
+        image.setItemId(itemId);
+        image.setImageUrl(imageUrl);
+        image.setImageName("demo.png");
+        image.setSortOrder(1);
+        return image;
+    }
+
+    private WmsStock createStock(Long itemId, Integer quantity) {
+        WmsStock stock = new WmsStock();
+        stock.setItemId(itemId);
+        stock.setQuantity(quantity);
+        return stock;
+    }
+
+    private WmsItemTag createItemTag(Long itemId, Long tagId) {
+        WmsItemTag itemTag = new WmsItemTag();
+        itemTag.setItemId(itemId);
+        itemTag.setTagId(tagId);
+        return itemTag;
+    }
+
+    private WmsTag createTag(Long id, String tagName) {
+        WmsTag tag = new WmsTag();
+        tag.setId(id);
+        tag.setTagName(tagName);
+        return tag;
     }
 
     private WmsCategory createCategory() {

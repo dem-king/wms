@@ -2,16 +2,17 @@ package com.wms.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysUserDto;
+import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.domain.vo.SysUserVo;
+import com.wms.system.mapper.SysRoleMapper;
 import com.wms.system.mapper.SysUserMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.service.SysUserService;
@@ -21,9 +22,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysUserServiceImpl implements SysUserService {
 
+    private final SysRoleMapper sysRoleMapper;
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
 
@@ -99,8 +103,13 @@ public class SysUserServiceImpl implements SysUserService {
         Page<SysUser> page = sysUserMapper.selectPage(
                 new Page<>(pageParam.getPage(), pageParam.getSize()), wrapper);
 
+        List<SysUserVo> records = page.getRecords().stream()
+                .map(this::toBasicVo)
+                .collect(Collectors.toList());
+        fillUserRoles(records);
+
         PageResult<SysUserVo> result = new PageResult<>();
-        result.setRecords(page.getRecords().stream().map(this::toVo).collect(Collectors.toList()));
+        result.setRecords(records);
         result.setTotal(page.getTotal());
         result.setPage(pageParam.getPage());
         result.setSize(pageParam.getSize());
@@ -317,25 +326,33 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRoles(Long id, List<Long> roleIds) {
-        // 先逻辑删除旧的用户角色关联
         List<SysUserRole> oldUserRoles = sysUserRoleMapper.selectList(
                 new LambdaQueryWrapper<SysUserRole>()
                         .eq(SysUserRole::getUserId, id)
         );
-        List<SysUserRole> updateRoleList = new ArrayList<>();
+
+        Set<Long> targetRoleIds = normalizeRoleIds(roleIds);
+        Set<Long> currentRoleIds = oldUserRoles.stream()
+                .map(SysUserRole::getRoleId)
+                .collect(Collectors.toSet());
+
+        // 仅逻辑删除被移除的角色，避免“删后重插同一角色”触发唯一索引冲突。
         for (SysUserRole oldRole : oldUserRoles) {
-            SysUserRole updateRole = new SysUserRole();
-            updateRole.setId(oldRole.getId());
-            updateRole.setDelFlag(DelFlagConstants.DELETED);
- 
-            updateRoleList.add(updateRole);
+            if (!targetRoleIds.contains(oldRole.getRoleId())) {
+                SysUserRole updateRole = new SysUserRole();
+                updateRole.setId(oldRole.getId());
+                updateRole.setDelFlag(DelFlagConstants.DELETED);
+                sysUserRoleMapper.updateById(updateRole);
+            }
         }
-        if (!updateRoleList.isEmpty()) {
-            Db.updateBatchById(updateRoleList);
-        }
-        // 批量插入新的用户角色关联
-        if (roleIds != null && !roleIds.isEmpty()) {
-            saveUserRoles(id, roleIds);
+
+        for (Long roleId : targetRoleIds) {
+            if (!currentRoleIds.contains(roleId)) {
+                SysUserRole userRole = new SysUserRole();
+                userRole.setUserId(id);
+                userRole.setRoleId(roleId);
+                sysUserRoleMapper.insert(userRole);
+            }
         }
     }
 
@@ -346,16 +363,24 @@ public class SysUserServiceImpl implements SysUserService {
      * @param roleIds 角色ID列表
      */
     private void saveUserRoles(Long userId, List<Long> roleIds) {
-        List<SysUserRole> userRoleList = new ArrayList<>();
-        for (Long roleId : roleIds) {
+        for (Long roleId : normalizeRoleIds(roleIds)) {
             SysUserRole userRole = new SysUserRole();
             userRole.setUserId(userId);
             userRole.setRoleId(roleId);
-            userRoleList.add(userRole);
+            sysUserRoleMapper.insert(userRole);
         }
-        if (!userRoleList.isEmpty()) {
-            Db.saveBatch(userRoleList);
+    }
+
+    /**
+     * 角色ID去重并过滤空值
+     */
+    private Set<Long> normalizeRoleIds(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Set.of();
         }
+        return roleIds.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -393,6 +418,17 @@ public class SysUserServiceImpl implements SysUserService {
      * SysUser实体转SysUserVo
      */
     private SysUserVo toVo(SysUser user) {
+        SysUserVo vo = toBasicVo(user);
+        List<Long> roleIds = getUserRoles(user.getId());
+        vo.setRoleIds(roleIds);
+        vo.setRoleNames(buildRoleNames(roleIds));
+        return vo;
+    }
+
+    /**
+     * SysUser实体转基础SysUserVo，不含角色信息
+     */
+    private SysUserVo toBasicVo(SysUser user) {
         SysUserVo vo = new SysUserVo();
         vo.setId(user.getId());
         vo.setUsername(user.getUsername());
@@ -404,5 +440,72 @@ public class SysUserServiceImpl implements SysUserService {
         vo.setStatus(user.getStatus());
         vo.setCreateTime(user.getCreateTime());
         return vo;
+    }
+
+    /**
+     * 批量回填用户角色信息，避免分页查询产生N+1
+     */
+    private void fillUserRoles(List<SysUserVo> userVos) {
+        if (userVos == null || userVos.isEmpty()) {
+            return;
+        }
+
+        List<Long> userIds = userVos.stream()
+                .map(SysUserVo::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (userIds.isEmpty()) {
+            return;
+        }
+
+        List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
+                new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, userIds)
+        );
+        if (userRoles.isEmpty()) {
+            userVos.forEach(vo -> {
+                vo.setRoleIds(List.of());
+                vo.setRoleNames(List.of());
+            });
+            return;
+        }
+
+        Map<Long, List<Long>> roleIdsByUserId = userRoles.stream()
+                .collect(Collectors.groupingBy(
+                        SysUserRole::getUserId,
+                        Collectors.mapping(SysUserRole::getRoleId, Collectors.toList())
+                ));
+        Set<Long> allRoleIds = userRoles.stream()
+                .map(SysUserRole::getRoleId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Map<Long, String> roleNameMap = allRoleIds.isEmpty()
+                ? Map.of()
+                : sysRoleMapper.selectBatchIds(allRoleIds).stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toMap(SysRole::getId, SysRole::getRoleName));
+
+        userVos.forEach(vo -> {
+            List<Long> roleIds = roleIdsByUserId.getOrDefault(vo.getId(), List.of());
+            vo.setRoleIds(roleIds);
+            vo.setRoleNames(roleIds.stream()
+                    .map(roleNameMap::get)
+                    .filter(Objects::nonNull)
+                    .toList());
+        });
+    }
+
+    /**
+     * 根据角色ID列表查询角色名称列表
+     */
+    private List<String> buildRoleNames(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        return sysRoleMapper.selectBatchIds(roleIds).stream()
+                .filter(Objects::nonNull)
+                .map(SysRole::getRoleName)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

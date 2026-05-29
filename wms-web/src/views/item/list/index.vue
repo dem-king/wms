@@ -59,6 +59,22 @@
       <el-table-column prop="specModel" label="规格型号" min-width="120" />
       <el-table-column prop="unit" label="单位" min-width="80" />
       <el-table-column prop="categoryName" label="类目" min-width="100" />
+      <el-table-column label="标签" min-width="160">
+        <template #default="{ row }">
+          <div v-if="getTagLabels(row).length" class="item-tags">
+            <el-tag
+              v-for="tag in getTagLabels(row)"
+              :key="tag.name"
+              size="small"
+              :color="tag.color"
+              :style="tag.color ? { color: '#fff', borderColor: tag.color } : undefined"
+            >
+              {{ tag.name }}
+            </el-tag>
+          </div>
+          <span v-else class="empty-tag">未设置</span>
+        </template>
+      </el-table-column>
       <el-table-column label="默认库位" min-width="220">
         <template #default="{ row }">
           <div v-if="getLocationLabels(row).length" class="location-tags">
@@ -69,7 +85,11 @@
           <span v-else class="empty-location">未配置</span>
         </template>
       </el-table-column>
-      <el-table-column prop="currentStock" label="数量" min-width="80" />
+      <el-table-column label="实时库存" min-width="80">
+        <template #default="{ row }">
+          {{ getCurrentStock(row) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" min-width="80">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
@@ -105,8 +125,12 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="物品编码" prop="itemCode">
-              <el-input v-model="form.itemCode" placeholder="请输入物品编码" :disabled="isEdit" />
+            <el-form-item label="物品编码">
+              <el-input
+                v-model="form.itemCode"
+                :placeholder="isEdit ? '物品编码' : '保存后自动生成'"
+                disabled
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -247,6 +271,7 @@ import type { EntityId, WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, 
 import type { SysSupplierVo } from '@/types/system'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { normalizePageTotal } from '@/utils/pagination'
+import { buildItemSubmitPayload } from './submit-payload'
 import {
   extractBinIds,
   formatLocations,
@@ -303,7 +328,6 @@ const form = reactive<WmsItemDto & { id?: EntityId; imageList: ItemImageVo[] }>(
 })
 
 const rules: FormRules = {
-  itemCode: [{ required: true, message: '请输入物品编码', trigger: 'blur' }],
   itemName: [{ required: true, message: '请输入物品名称', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择主类目', trigger: 'change' }],
   supplierId: [{ required: true, message: '请选择供应商', trigger: 'change' }]
@@ -408,13 +432,10 @@ async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
-    const dto: WmsItemDto = {
-      itemCode: form.itemCode, itemName: form.itemName, specModel: form.specModel, unit: form.unit,
-      categoryId: form.categoryId, subCategoryId: form.subCategoryId, tagIds: form.tagIds,
+    const dto = buildItemSubmitPayload({
+      ...form,
       binIds: extractBinIds(locationCascaderValue.value),
-      supplierId: form.supplierId, stockLowerLimit: form.stockLowerLimit,
-      stockUpperLimit: form.stockUpperLimit, replenishThreshold: form.replenishThreshold, status: form.status
-    }
+    })
     if (isEdit.value && form.id) {
       await updateItem(form.id, dto)
       ElMessage.success('编辑成功')
@@ -444,6 +465,17 @@ function handleClose() {
 
 function getLocationLabels(row: WmsItemVo) {
   return formatLocations(row.locations || [])
+}
+
+function getTagLabels(row: WmsItemVo) {
+  if (row.tags && row.tags.length > 0) {
+    return row.tags.map(tag => ({ name: tag.tagName, color: tag.tagColor }))
+  }
+  return (row.tagNames || []).map(name => ({ name, color: undefined }))
+}
+
+function getCurrentStock(row: WmsItemVo) {
+  return row.currentStock ?? 0
 }
 
 async function loadLocationNode(node: any, resolve: (data: any[]) => void) {
@@ -515,13 +547,15 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-.location-tags {
+.location-tags,
+.item-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.empty-location {
+.empty-location,
+.empty-tag {
   color: #909399;
   font-size: 12px;
 }

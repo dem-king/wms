@@ -41,10 +41,21 @@ public class SysRoleController {
     }
 
     /**
+     * 查询全部角色
+     */
+    @Operation(summary = "查询全部角色")
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('system:role:list')")
+    @DataScope
+    public R<List<SysRoleVo>> getAll() {
+        return R.ok(sysRoleService.listEnabled());
+    }
+
+    /**
      * 角色详情
      */
     @Operation(summary = "角色详情")
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     @PreAuthorize("hasAuthority('system:role:list')")
     @DataScope
     public R<SysRoleVo> getById(@PathVariable Long id) {
@@ -66,7 +77,7 @@ public class SysRoleController {
      * 更新角色
      */
     @Operation(summary = "更新角色")
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     @PreAuthorize("hasAuthority('system:role:edit')")
     @OperLog(module = "system", type = "UPDATE", desc = "更新角色")
     public R<SysRoleVo> update(@PathVariable Long id, @Valid @RequestBody SysRoleDto dto) {
@@ -77,7 +88,7 @@ public class SysRoleController {
      * 删除角色
      */
     @Operation(summary = "删除角色")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasAuthority('system:role:delete')")
     @OperLog(module = "system", type = "DELETE", desc = "删除角色")
     public R<Void> delete(@PathVariable Long id) {
@@ -89,7 +100,7 @@ public class SysRoleController {
      * 查询角色菜单
      */
     @Operation(summary = "查询角色菜单")
-    @GetMapping("/{id}/menus")
+    @GetMapping("/{id:\\d+}/menus")
     @PreAuthorize("hasAuthority('system:role:list')")
     @DataScope
     public R<List<Long>> getRoleMenus(@PathVariable Long id) {
@@ -100,7 +111,7 @@ public class SysRoleController {
      * 分配角色菜单
      */
     @Operation(summary = "分配角色菜单")
-    @PutMapping("/{id}/menus")
+    @PutMapping("/{id:\\d+}/menus")
     @PreAuthorize("hasAuthority('system:role:edit')")
     @OperLog(module = "system", type = "UPDATE", desc = "分配角色菜单")
     public R<Void> assignRoleMenus(@PathVariable Long id, @RequestBody List<Long> menuIds) {
@@ -112,7 +123,7 @@ public class SysRoleController {
      * 查询角色权限
      */
     @Operation(summary = "查询角色权限")
-    @GetMapping("/{id}/permissions")
+    @GetMapping("/{id:\\d+}/permissions")
     @PreAuthorize("hasAuthority('system:role:list')")
     @DataScope
     public R<List<Long>> getRolePermissions(@PathVariable Long id) {
@@ -123,7 +134,7 @@ public class SysRoleController {
      * 分配角色权限
      */
     @Operation(summary = "分配角色权限")
-    @PutMapping("/{id}/permissions")
+    @PutMapping("/{id:\\d+}/permissions")
     @PreAuthorize("hasAuthority('system:role:edit')")
     @OperLog(module = "system", type = "UPDATE", desc = "分配角色权限")
     public R<Void> assignRolePermissions(@PathVariable Long id, @RequestBody List<Long> permIds) {

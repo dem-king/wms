@@ -33,8 +33,8 @@
           <el-radio :value="0">禁用</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="角色" prop="roleIds">
-        <el-select v-model="form.roleIds" multiple placeholder="请选择角色">
+      <el-form-item label="角色" prop="roleId">
+        <el-select v-model="form.roleId" placeholder="请选择角色">
           <el-option v-for="role in roleList" :key="role.id" :label="role.roleName" :value="role.id" />
         </el-select>
       </el-form-item>
@@ -79,7 +79,7 @@ const form = reactive({
   phone: '',
   email: '',
   status: 1,
-  roleIds: [] as EntityId[],
+  roleId: undefined as EntityId | undefined,
 })
 
 const rules: FormRules = {
@@ -87,6 +87,7 @@ const rules: FormRules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   deptId: [{ required: true, message: '请选择部门', trigger: 'change' }],
+  roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
   phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
   email: [{ type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }],
 }
@@ -105,7 +106,7 @@ watch(() => props.visible, (val) => {
         phone: props.formData.phone,
         email: props.formData.email,
         status: props.formData.status,
-        roleIds: props.formData.roleIds || [],
+        roleId: props.formData.roleIds?.[0],
       })
     }
   }
@@ -134,7 +135,7 @@ async function handleSubmit() {
       phone: form.phone,
       email: form.email,
       status: form.status,
-      roleIds: form.roleIds,
+      roleIds: form.roleId !== undefined ? [form.roleId] : [],
     }
     if (props.isEdit && props.formData) {
       await updateUser(props.formData.id, dto)
@@ -153,6 +154,6 @@ async function handleSubmit() {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
-  Object.assign(form, { username: '', password: '', realName: '', deptId: undefined, phone: '', email: '', status: 1, roleIds: [] })
+  Object.assign(form, { username: '', password: '', realName: '', deptId: undefined, phone: '', email: '', status: 1, roleId: undefined })
 }
 </script>

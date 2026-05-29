@@ -19,6 +19,13 @@ public interface SysRoleService {
     List<SysRoleVo> listAll();
 
     /**
+     * 获取启用的角色列表
+     *
+     * @return 启用的角色VO列表
+     */
+    List<SysRoleVo> listEnabled();
+
+    /**
      * 根据ID获取角色详情
      *
      * @param id 角色ID

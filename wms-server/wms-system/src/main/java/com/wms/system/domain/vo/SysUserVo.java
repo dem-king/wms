@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 用户视图对象
@@ -27,6 +28,14 @@ public class SysUserVo {
     /** 部门ID */
     @Schema(description = "部门ID")
     private Long deptId;
+
+    /** 角色ID列表 */
+    @Schema(description = "角色ID列表")
+    private List<Long> roleIds;
+
+    /** 角色名称列表 */
+    @Schema(description = "角色名称列表")
+    private List<String> roleNames;
 
     /** 手机号 */
     @Schema(description = "手机号")

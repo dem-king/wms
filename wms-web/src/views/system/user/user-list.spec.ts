@@ -17,4 +17,18 @@ describe('user list page', () => {
     expect(source).toContain('flex-direction: column')
     expect(source).toContain('min-height: 0')
   })
+
+  it('fills department names from the department tree when the user API only returns deptId', () => {
+    const source = readFileSync(userPageFile, 'utf-8')
+
+    expect(source).toContain('Promise.all([getUserList(queryParams), getDeptTree()])')
+    expect(source).toContain("deptName: deptNameMap.get(user.deptId) ?? user.deptName ?? ''")
+  })
+
+  it('renders a role column and joins role names for display', () => {
+    const source = readFileSync(userPageFile, 'utf-8')
+
+    expect(source).toContain('label="角色"')
+    expect(source).toContain("roleNamesText: user.roleNames?.join('、') ?? ''")
+  })
 })
