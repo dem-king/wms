@@ -61,6 +61,10 @@ public class MenuTreeVo {
     @Schema(description = "是否可见(0-隐藏 1-显示)")
     private Integer visible;
 
+    /** 状态(0-禁用 1-启用) */
+    @Schema(description = "状态(0-禁用 1-启用)")
+    private Integer status;
+
     /** 排序号 */
     @Schema(description = "排序号")
     private Integer sortOrder;

@@ -34,6 +34,7 @@ public class SysMenuConverter {
         vo.setIsExternal(menu.getIsExternal());
         vo.setIsCache(menu.getIsCache());
         vo.setVisible(menu.getVisible());
+        vo.setStatus(menu.getStatus());
         vo.setSortOrder(menu.getSortOrder());
         vo.setPermCode(menu.getPermCode());
         return vo;

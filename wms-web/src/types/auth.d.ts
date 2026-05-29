@@ -121,6 +121,8 @@ export interface MenuTreeNode {
   isCache: number
   /** 是否可见(0-隐藏 1-显示) */
   visible: number
+  /** 状态(0-禁用 1-启用) */
+  status?: number
   /** 排序号 */
   sortOrder: number
   /** 关联权限编码 */

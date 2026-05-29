@@ -58,7 +58,8 @@ select {
 
   .cell {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
     white-space: normal;
@@ -75,7 +76,8 @@ select {
 
 .table-action-group {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;

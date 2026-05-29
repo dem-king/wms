@@ -14,7 +14,7 @@
       :data="menuTree"
       row-key="id"
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-      :default-expand-all="isExpandAll"
+      :expand-row-keys="expandedRowKeys"
       border
     >
       <el-table-column prop="menuName" label="菜单名称" min-width="180" />
@@ -74,6 +74,9 @@
         <el-form-item label="菜单名称" prop="menuName">
           <el-input v-model="form.menuName" placeholder="请输入菜单名称" />
         </el-form-item>
+        <el-form-item label="菜单编码" prop="menuCode">
+          <el-input v-model="form.menuCode" placeholder="请输入菜单编码" />
+        </el-form-item>
         <el-form-item v-if="form.menuType !== 3" label="图标" prop="icon">
           <el-input v-model="form.icon" placeholder="请输入图标名称" />
         </el-form-item>
@@ -110,13 +113,16 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Sort } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getMenuList, addMenu, updateMenu, deleteMenu, getMenuTree } from '@/api/system/menu'
+import { getMenu, getMenuList, addMenu, updateMenu, deleteMenu, getMenuTree } from '@/api/system/menu'
 import type { EntityId, MenuTreeNode } from '@/types/auth'
+import { buildMenuSubmitPayload } from './submit-payload'
+import { getExpandedRowKeysByMode, toggleExpandMode } from './tree-expand'
 
 const loading = ref(false)
 const menuTree = ref<MenuTreeNode[]>([])
 const menuTreeForSelect = ref<MenuTreeNode[]>([])
-const isExpandAll = ref(true)
+const expandMode = ref<'first' | 'all' | 'none'>('first')
+const expandedRowKeys = ref<EntityId[]>([])
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -128,16 +134,22 @@ const form = reactive({
   parentId: '0',
   menuType: 1,
   menuName: '',
+  menuCode: '',
   icon: '',
   path: '',
   component: '',
+  redirect: '',
+  isExternal: 0,
+  isCache: 0,
   permCode: '',
   sortOrder: 0,
   visible: 1,
+  status: 1,
 })
 
 const rules: FormRules = {
   menuName: [{ required: true, message: '请输入菜单名称', trigger: 'blur' }],
+  menuCode: [{ required: true, message: '请输入菜单编码', trigger: 'blur' }],
   menuType: [{ required: true, message: '请选择菜单类型', trigger: 'change' }],
 }
 
@@ -146,38 +158,44 @@ async function loadMenuTree() {
   try {
     const res = await getMenuList()
     menuTree.value = res.data
+    expandedRowKeys.value = getExpandedRowKeysByMode(menuTree.value, expandMode.value)
     const treeRes = await getMenuTree()
-    menuTreeForSelect.value = [{ id: '0', menuName: '根目录', menuCode: '', parentId: '0', menuType: 1, path: '', component: '', redirect: '', icon: '', isExternal: 0, isCache: 0, visible: 1, sortOrder: 0, permCode: '', children: treeRes.data || [] } as MenuTreeNode]
+    menuTreeForSelect.value = [{ id: '0', menuName: '根目录', menuCode: '', parentId: '0', menuType: 1, path: '', component: '', redirect: '', icon: '', isExternal: 0, isCache: 0, visible: 1, status: 1, sortOrder: 0, permCode: '', children: treeRes.data || [] } as MenuTreeNode]
   } finally {
     loading.value = false
   }
 }
 
 function toggleExpand() {
-  isExpandAll.value = !isExpandAll.value
-  loadMenuTree()
+  expandMode.value = toggleExpandMode(expandMode.value)
+  expandedRowKeys.value = getExpandedRowKeysByMode(menuTree.value, expandMode.value)
 }
 
 function handleAdd(parentId?: EntityId) {
   isEdit.value = false
-  form.parentId = parentId ?? '0'
-  form.menuType = parentId ? 2 : 1
+  resetForm(parentId ?? '0', parentId ? 2 : 1)
   dialogVisible.value = true
 }
 
-function handleEdit(row: MenuTreeNode) {
+async function handleEdit(row: MenuTreeNode) {
   isEdit.value = true
+  const { data } = await getMenu(row.id)
   Object.assign(form, {
-    id: row.id,
-    parentId: row.parentId,
-    menuType: row.menuType,
-    menuName: row.menuName,
-    icon: row.icon,
-    path: row.path,
-    component: row.component,
-    permCode: row.permCode,
-    sortOrder: row.sortOrder,
-    visible: row.visible,
+    id: data.id,
+    parentId: data.parentId,
+    menuType: data.menuType,
+    menuName: data.menuName,
+    menuCode: data.menuCode,
+    icon: data.icon ?? '',
+    path: data.path ?? '',
+    component: data.component ?? '',
+    redirect: data.redirect ?? '',
+    isExternal: data.isExternal ?? 0,
+    isCache: data.isCache ?? 0,
+    permCode: data.permCode ?? '',
+    sortOrder: data.sortOrder ?? 0,
+    visible: data.visible ?? 1,
+    status: data.status ?? 1,
   })
   dialogVisible.value = true
 }
@@ -186,11 +204,12 @@ async function handleSubmit() {
   await formRef.value?.validate()
   submitLoading.value = true
   try {
+    const payload = buildMenuSubmitPayload(form)
     if (isEdit.value && form.id) {
-      await updateMenu(form.id, { ...form })
+      await updateMenu(form.id, payload)
       ElMessage.success('编辑成功')
     } else {
-      await addMenu({ ...form })
+      await addMenu(payload)
       ElMessage.success('新增成功')
     }
     handleClose()
@@ -209,7 +228,27 @@ async function handleDelete(id: EntityId) {
 function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
-  Object.assign(form, { id: undefined, parentId: '0', menuType: 1, menuName: '', icon: '', path: '', component: '', permCode: '', sortOrder: 0, visible: 1 })
+  resetForm()
+}
+
+function resetForm(parentId: EntityId = '0', menuType = 1) {
+  Object.assign(form, {
+    id: undefined,
+    parentId,
+    menuType,
+    menuName: '',
+    menuCode: '',
+    icon: '',
+    path: '',
+    component: '',
+    redirect: '',
+    isExternal: 0,
+    isCache: 0,
+    permCode: '',
+    sortOrder: 0,
+    visible: 1,
+    status: 1,
+  })
 }
 
 onMounted(() => {

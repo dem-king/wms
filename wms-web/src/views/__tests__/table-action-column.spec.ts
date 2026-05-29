@@ -106,6 +106,7 @@ describe('table action columns', () => {
 
     expect(source).toContain('.table-action-column')
     expect(source).toContain('flex-wrap: wrap')
+    expect(source).toContain('justify-content: center')
     expect(source).toContain('white-space: normal')
     expect(source).toContain('.table-action-group')
     expect(source).not.toContain('.table-action-group__more')
