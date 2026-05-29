@@ -1,9 +1,13 @@
 /** 物品管理 */
 
 /** 主类目视图对象 */
+import type { EntityId } from './common'
+
+export type { EntityId }
+
 export interface WmsCategoryVo {
   /** 类目ID */
-  id: number
+  id: EntityId
   /** 类目名称 */
   categoryName: string
   /** 类目编码 */
@@ -41,9 +45,9 @@ export interface WmsCategoryDto {
 /** 细分类目视图对象 */
 export interface WmsSubCategoryVo {
   /** 细分类目ID */
-  id: number
+  id: EntityId
   /** 主类目ID */
-  categoryId: number
+  categoryId: EntityId
   /** 细分类目名称 */
   subCategoryName: string
   /** 细分类目编码 */
@@ -67,7 +71,7 @@ export interface WmsSubCategoryDto {
 /** 标签视图对象 */
 export interface WmsTagVo {
   /** 标签ID */
-  id: number
+  id: EntityId
   /** 标签名称 */
   tagName: string
   /** 标签颜色 */
@@ -99,7 +103,7 @@ export interface WmsTagDto {
 /** 物品视图对象 */
 export interface WmsItemVo {
   /** 物品ID */
-  id: number
+  id: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -109,19 +113,19 @@ export interface WmsItemVo {
   /** 计量单位 */
   unit: string
   /** 主类目ID */
-  categoryId: number
+  categoryId: EntityId
   /** 主类目名称 */
   categoryName: string
   /** 细分类目ID */
-  subCategoryId: number
+  subCategoryId: EntityId
   /** 细分类目名称 */
   subCategoryName: string
   /** 标签ID列表 */
-  tagIds: number[]
+  tagIds: EntityId[]
   /** 标签名称列表 */
   tagNames: string[]
   /** 供应商ID */
-  supplierId: number
+  supplierId: EntityId
   /** 供应商名称 */
   supplierName: string
   /** 安全库存(下限) */
@@ -145,9 +149,9 @@ export interface WmsItemVo {
 /** 物品图片视图对象 */
 export interface ItemImageVo {
   /** 图片ID */
-  id: number
+  id: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 图片URL */
   imageUrl: string
   /** 图片名称 */
@@ -167,13 +171,13 @@ export interface WmsItemDto {
   /** 计量单位 */
   unit: string
   /** 主类目ID */
-  categoryId: number
+  categoryId: EntityId
   /** 细分类目ID */
-  subCategoryId: number
+  subCategoryId: EntityId
   /** 标签ID列表 */
-  tagIds: number[]
+  tagIds: EntityId[]
   /** 供应商ID */
-  supplierId: number
+  supplierId: EntityId
   /** 安全库存(下限) */
   stockLowerLimit: number
   /** 最大库存(上限) */
@@ -187,23 +191,23 @@ export interface WmsItemDto {
 /** 库存视图对象 */
 export interface WmsStockVo {
   /** 库存ID */
-  id: number
+  id: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
   itemName: string
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 库房名称 */
   warehouseName: string
   /** 区域ID */
-  areaId: number
+  areaId: EntityId
   /** 存放柜ID */
-  cabinetId: number
+  cabinetId: EntityId
   /** 库位ID */
-  binId: number
+  binId: EntityId
   /** 库位编码 */
   binCode: string
   /** 数量 */

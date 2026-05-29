@@ -26,8 +26,8 @@ describe('permission store', () => {
 
     store.generateRoutes([
       {
-        id: 1,
-        parentId: 0,
+        id: '1',
+        parentId: '0',
         menuName: '系统管理',
         menuCode: 'SystemRoot',
         path: 'system',
@@ -56,8 +56,8 @@ describe('permission store', () => {
 
     store.generateRoutes([
       {
-        id: 1,
-        parentId: 0,
+        id: '1',
+        parentId: '0',
         menuName: '系统管理',
         menuCode: 'SystemRoot',
         path: 'system',
@@ -76,8 +76,8 @@ describe('permission store', () => {
 
     store.generateRoutes([
       {
-        id: 2,
-        parentId: 0,
+        id: '2',
+        parentId: '0',
         menuName: '业务管理',
         menuCode: 'BusinessRoot',
         path: 'business',

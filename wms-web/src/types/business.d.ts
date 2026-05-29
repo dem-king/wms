@@ -1,6 +1,10 @@
 /** 业务单据管理 */
 
 /** 单据状态枚举 */
+import type { EntityId } from './common'
+
+export type { EntityId }
+
 export type OrderStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'COMPLETED' | 'REJECTED'
 
 /** 入库类型枚举 */
@@ -12,7 +16,7 @@ export type OutboundType = 'BORROW' | 'TRANSFER' | 'SCRAP'
 /** 扫码标签元数据 */
 export interface ScannedLabelMeta {
   /** 标签ID */
-  labelId: number
+  labelId: EntityId
   /** 标签编号 */
   labelNo: string
 }
@@ -20,7 +24,7 @@ export interface ScannedLabelMeta {
 /** 单据扫码结果中的明细建议 */
 export interface OrderScanResultDetail {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 数量 */
   quantity: number
 }
@@ -28,13 +32,13 @@ export interface OrderScanResultDetail {
 /** 单据扫码结果 */
 export interface OrderScanResult {
   /** 标签ID */
-  labelId: number
+  labelId: EntityId
   /** 标签编号 */
   labelNo: string
   /** 标签状态 */
   labelStatus: number
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品名称 */
   itemName: string
   /** 物品编码 */
@@ -48,7 +52,7 @@ export interface OrderScanRequest {
   /** 扫码内容 */
   code: string
   /** 当前单据中已扫描的标签ID */
-  currentLabelIds?: number[]
+  currentLabelIds?: EntityId[]
 }
 
 /** 入库扫码请求 */
@@ -60,13 +64,13 @@ export type OutboundScanRequest = OrderScanRequest
 /** 表单中的扫码明细行 */
 export interface OrderScanDetailRow {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 数量 */
   quantity: number
   /** 单价 */
   unitPrice: number
   /** 库位ID */
-  binId?: number
+  binId?: EntityId
   /** 物品名称 */
   itemName?: string
   /** 物品编码 */
@@ -84,15 +88,15 @@ export interface OrderScanDetailRow {
 /** 入库单视图对象 */
 export interface InboundOrderVo {
   /** 入库单ID */
-  id: number
+  id: EntityId
   /** 入库单号 */
   orderNo: string
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 库房名称 */
   warehouseName: string
   /** 供应商ID */
-  supplierId: number
+  supplierId: EntityId
   /** 供应商名称 */
   supplierName: string
   /** 入库类型 */
@@ -112,11 +116,11 @@ export interface InboundOrderVo {
 /** 入库明细视图对象 */
 export interface InboundDetailVo {
   /** 明细ID */
-  id: number
+  id: EntityId
   /** 入库单ID */
-  orderId: number
+  orderId: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -136,9 +140,9 @@ export interface InboundDetailVo {
 /** 入库单新增/编辑DTO */
 export interface InboundOrderDto {
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 供应商ID */
-  supplierId: number
+  supplierId: EntityId
   /** 入库类型 */
   inboundType: InboundType
   /** 备注 */
@@ -150,23 +154,23 @@ export interface InboundOrderDto {
 /** 入库明细DTO */
 export interface InboundDetailDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 数量 */
   quantity: number
   /** 单价 */
   unitPrice: number
   /** 入库库位ID */
-  binId?: number
+  binId?: EntityId
 }
 
 /** 出库单视图对象 */
 export interface OutboundOrderVo {
   /** 出库单ID */
-  id: number
+  id: EntityId
   /** 出库单号 */
   orderNo: string
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 库房名称 */
   warehouseName: string
   /** 出库类型 */
@@ -192,11 +196,11 @@ export interface OutboundOrderVo {
 /** 出库明细视图对象 */
 export interface OutboundDetailVo {
   /** 明细ID */
-  id: number
+  id: EntityId
   /** 出库单ID */
-  orderId: number
+  orderId: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -216,7 +220,7 @@ export interface OutboundDetailVo {
 /** 出库单新增/编辑DTO */
 export interface OutboundOrderDto {
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 出库类型 */
   outboundType: OutboundType
   /** 领用人 */
@@ -234,23 +238,23 @@ export interface OutboundOrderDto {
 /** 出库明细DTO */
 export interface OutboundDetailDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 数量 */
   quantity: number
   /** 单价 */
   unitPrice: number
   /** 库位ID */
-  binId?: number
+  binId?: EntityId
 }
 
 /** 归还单视图对象 */
 export interface ReturnOrderVo {
   /** 归还单ID */
-  id: number
+  id: EntityId
   /** 归还单号 */
   orderNo: string
   /** 关联出库单ID */
-  outboundOrderId: number
+  outboundOrderId: EntityId
   /** 关联出库单号 */
   outboundOrderNo: string
   /** 领用人 */
@@ -270,11 +274,11 @@ export interface ReturnOrderVo {
 /** 归还明细视图对象 */
 export interface ReturnDetailVo {
   /** 明细ID */
-  id: number
+  id: EntityId
   /** 归还单ID */
-  orderId: number
+  orderId: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -290,7 +294,7 @@ export interface ReturnDetailVo {
 /** 归还单新增DTO */
 export interface ReturnOrderDto {
   /** 关联出库单ID */
-  outboundOrderId: number
+  outboundOrderId: EntityId
   /** 归还人 */
   receiver: string
   /** 备注 */
@@ -302,7 +306,7 @@ export interface ReturnOrderDto {
 /** 归还明细DTO */
 export interface ReturnDetailDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 归还数量 */
   quantity: number
   /** 物品状态(0-正常 1-损坏) */
@@ -314,11 +318,11 @@ export interface ReturnDetailDto {
 /** 报废单视图对象 */
 export interface ScrapOrderVo {
   /** 报废单ID */
-  id: number
+  id: EntityId
   /** 报废单号 */
   orderNo: string
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 库房名称 */
   warehouseName: string
   /** 报废原因 */
@@ -336,11 +340,11 @@ export interface ScrapOrderVo {
 /** 报废明细视图对象 */
 export interface ScrapDetailVo {
   /** 明细ID */
-  id: number
+  id: EntityId
   /** 报废单ID */
-  orderId: number
+  orderId: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -352,7 +356,7 @@ export interface ScrapDetailVo {
 /** 报废单新增DTO */
 export interface ScrapOrderDto {
   /** 库房ID */
-  warehouseId: number
+  warehouseId: EntityId
   /** 报废原因 */
   scrapReason: string
   /** 备注 */
@@ -364,7 +368,7 @@ export interface ScrapOrderDto {
 /** 报废明细DTO */
 export interface ScrapDetailDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 报废数量 */
   quantity: number
 }
@@ -372,15 +376,15 @@ export interface ScrapDetailDto {
 /** 调拨单视图对象 */
 export interface TransferOrderVo {
   /** 调拨单ID */
-  id: number
+  id: EntityId
   /** 调拨单号 */
   orderNo: string
   /** 调出库房ID */
-  fromWarehouseId: number
+  fromWarehouseId: EntityId
   /** 调出库房名称 */
   fromWarehouseName: string
   /** 调入库房ID */
-  toWarehouseId: number
+  toWarehouseId: EntityId
   /** 调入库房名称 */
   toWarehouseName: string
   /** 单据状态 */
@@ -396,11 +400,11 @@ export interface TransferOrderVo {
 /** 调拨明细视图对象 */
 export interface TransferDetailVo {
   /** 明细ID */
-  id: number
+  id: EntityId
   /** 调拨单ID */
-  orderId: number
+  orderId: EntityId
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -412,9 +416,9 @@ export interface TransferDetailVo {
 /** 调拨单新增DTO */
 export interface TransferOrderDto {
   /** 调出库房ID */
-  fromWarehouseId: number
+  fromWarehouseId: EntityId
   /** 调入库房ID */
-  toWarehouseId: number
+  toWarehouseId: EntityId
   /** 备注 */
   remark: string
   /** 明细列表 */
@@ -424,7 +428,7 @@ export interface TransferOrderDto {
 /** 调拨明细DTO */
 export interface TransferDetailDto {
   /** 物品ID */
-  itemId: number
+  itemId: EntityId
   /** 调拨数量 */
   quantity: number
 }
@@ -594,13 +598,13 @@ export interface ApprovalActionDto {
 /** 机器-备件关联视图对象 */
 export interface MachineSpareVo {
   /** ID */
-  id: number
+  id: EntityId
   /** 机器名称 */
   machineName: string
   /** 机器编号 */
   machineCode: string
   /** 备件物品ID */
-  itemId: number
+  itemId: EntityId
   /** 备件物品名称 */
   itemName: string
   /** 数量 */
@@ -618,7 +622,7 @@ export interface MachineSpareDto {
   /** 机器编号 */
   machineCode: string
   /** 备件物品ID */
-  itemId: number
+  itemId: EntityId
   /** 数量 */
   quantity: number
   /** 备注 */

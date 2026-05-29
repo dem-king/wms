@@ -218,7 +218,7 @@ import { getCategoryList } from '@/api/item/category'
 import { getSubCategories } from '@/api/item/category'
 import { getTagList } from '@/api/item/tag'
 import { getSupplierList } from '@/api/system/supplier'
-import type { WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
+import type { EntityId, WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, WmsTagVo, ItemImageVo } from '@/types/item'
 import type { SysSupplierVo } from '@/types/system'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { normalizePageTotal } from '@/utils/pagination'
@@ -237,7 +237,7 @@ const queryParams = reactive({
   size: 20,
   itemCode: '',
   itemName: '',
-  categoryId: undefined as number | undefined,
+  categoryId: undefined as EntityId | undefined,
   status: undefined as number | undefined
 })
 
@@ -246,15 +246,15 @@ const isEdit = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 
-const form = reactive<WmsItemDto & { id?: number; imageList: ItemImageVo[] }>({
+const form = reactive<WmsItemDto & { id?: EntityId; imageList: ItemImageVo[] }>({
   itemCode: '',
   itemName: '',
   specModel: '',
   unit: '',
-  categoryId: undefined as unknown as number,
-  subCategoryId: undefined as unknown as number,
+  categoryId: undefined as unknown as EntityId,
+  subCategoryId: undefined as unknown as EntityId,
   tagIds: [],
-  supplierId: undefined as unknown as number,
+  supplierId: undefined as unknown as EntityId,
   stockLowerLimit: 0,
   stockUpperLimit: 0,
   replenishThreshold: 0,
@@ -325,8 +325,8 @@ function handleEdit(row: WmsItemVo) {
   dialogVisible.value = true
 }
 
-async function handleCategoryChange(categoryId: number) {
-  form.subCategoryId = undefined as unknown as number
+async function handleCategoryChange(categoryId: EntityId) {
+  form.subCategoryId = undefined as unknown as EntityId
   const res = await getSubCategories(categoryId)
   subCategoryOptions.value = res.data
 }
@@ -384,7 +384,7 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: EntityId) {
   await deleteItem(id)
   ElMessage.success('删除成功')
   handleQuery()

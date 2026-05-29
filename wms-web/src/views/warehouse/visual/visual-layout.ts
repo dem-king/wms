@@ -151,7 +151,7 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
     totalBins: input.bins.length,
     disabledAreas: sortedAreas.filter(area => area.status === VISUAL_STATUS_DISABLED).length,
     disabledCabinets: sortedCabinets.filter(cabinet => cabinet.status === VISUAL_STATUS_DISABLED).length,
-    disabledBins: input.bins.filter(bin => bin.binStatus === VISUAL_STATUS_DISABLED).length,
+    disabledBins: input.bins.filter(bin => bin.status === VISUAL_STATUS_DISABLED).length,
   }
 
   if (sortedAreas.length === 0) {
@@ -380,9 +380,9 @@ export function applyCabinetLayoutSaveResult(
     id: bin.id,
     cabinetId: bin.cabinetId,
     binCode: bin.binCode,
-    rowNum: bin.row,
-    colNum: bin.col,
-    binStatus: bin.status,
+    row: bin.row,
+    col: bin.col,
+    status: bin.status,
     createTime: '',
   }))
 
@@ -401,8 +401,8 @@ function createCabinetNode(
   areaY: number,
   index: number,
 ): WarehouseVisualCabinetNode {
-  const gridRowCount = Math.max(cabinet.rows ?? 1, ...cabinetBins.map(bin => bin.rowNum), 1)
-  const gridColCount = Math.max(cabinet.cols ?? 1, ...cabinetBins.map(bin => bin.colNum), 1)
+  const gridRowCount = Math.max(cabinet.rows ?? 1, ...cabinetBins.map(bin => bin.row), 1)
+  const gridColCount = Math.max(cabinet.cols ?? 1, ...cabinetBins.map(bin => bin.col), 1)
   const cells = Array.from({ length: gridRowCount }, () => Array.from({ length: gridColCount }, () => null as WarehouseVisualBinNode | null))
   const binIds: EntityId[] = []
 
@@ -411,13 +411,13 @@ function createCabinetNode(
       id: bin.id,
       cabinetId: bin.cabinetId,
       binCode: bin.binCode,
-      row: bin.rowNum,
-      col: bin.colNum,
-      status: bin.binStatus,
+      row: bin.row,
+      col: bin.col,
+      status: bin.status,
     }
     binIds.push(bin.id)
-    if (bin.rowNum > 0 && bin.colNum > 0) {
-      cells[bin.rowNum - 1][bin.colNum - 1] = binNode
+    if (bin.row > 0 && bin.col > 0) {
+      cells[bin.row - 1][bin.col - 1] = binNode
     }
   }
 
@@ -491,7 +491,7 @@ function compareCabinet(left: WmsCabinetVo, right: WmsCabinetVo): number {
 }
 
 function compareBin(left: WmsBinVo, right: WmsBinVo): number {
-  return left.rowNum - right.rowNum || left.colNum - right.colNum || compareEntityId(left.id, right.id)
+  return left.row - right.row || left.col - right.col || compareEntityId(left.id, right.id)
 }
 
 function normalizeCode(value: string): string {

@@ -8,6 +8,7 @@ const viewsRoot = path.resolve(currentDir, '..')
 const stylesFile = path.resolve(viewsRoot, '..', 'styles', 'index.scss')
 const rolePageFile = path.resolve(viewsRoot, 'system', 'role', 'index.vue')
 const userPageFile = path.resolve(viewsRoot, 'system', 'user', 'index.vue')
+const tableActionGroupFile = path.resolve(viewsRoot, '..', 'components', 'TableActionGroup', 'TableActionGroup.vue')
 const actionColumnTagPattern = /<el-table-column\b[^>]*label="操作"[^>]*>/g
 const sharedClassPattern = /class-name="[^"]*\btable-action-column\b[^"]*"/
 const tableActionGroupPattern = /<TableActionGroup\b/
@@ -88,6 +89,15 @@ describe('table action columns', () => {
     expect(source).toContain('flex-wrap: nowrap')
     expect(source).toContain('.table-action-group')
     expect(source).toContain('.table-action-group__more')
+  })
+
+  it('moves actions after the first two into the more dropdown by default', () => {
+    const source = readFileSync(tableActionGroupFile, 'utf-8')
+
+    expect(source).toContain('maxInlineActions: 2')
+    expect(source).toContain('visibleActions.value.slice(0, props.maxInlineActions)')
+    expect(source).toContain('visibleActions.value.slice(props.maxInlineActions)')
+    expect(source).toContain('v-if="overflowActions.length > 0"')
   })
 
   it('sets explicit min-width on role and user action columns with three inline actions', () => {

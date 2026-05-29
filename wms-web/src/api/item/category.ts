@@ -1,6 +1,6 @@
 import { get, post, put, del } from '../request'
 import type { PageParams, PageResult } from '@/types/system'
-import type { WmsCategoryVo, WmsCategoryDto, WmsSubCategoryVo, WmsSubCategoryDto } from '@/types/item'
+import type { EntityId, WmsCategoryVo, WmsCategoryDto, WmsSubCategoryVo, WmsSubCategoryDto } from '@/types/item'
 
 export function getCategoryPage(params: PageParams) {
   return get<PageResult<WmsCategoryVo>>('/item/categories', params)
@@ -14,30 +14,30 @@ export function addCategory(data: WmsCategoryDto) {
   return post<WmsCategoryVo>('/item/categories', data)
 }
 
-export function updateCategory(id: number, data: WmsCategoryDto) {
+export function updateCategory(id: EntityId, data: WmsCategoryDto) {
   return put<WmsCategoryVo>(`/item/categories/${id}`, data)
 }
 
-export function deleteCategory(id: number) {
+export function deleteCategory(id: EntityId) {
   return del<void>(`/item/categories/${id}`)
 }
 
-export function getSubCategoryPage(categoryId: number, params: PageParams) {
+export function getSubCategoryPage(categoryId: EntityId, params: PageParams) {
   return get<PageResult<WmsSubCategoryVo>>(`/item/categories/${categoryId}/sub`, params)
 }
 
-export function getSubCategories(categoryId: number) {
+export function getSubCategories(categoryId: EntityId) {
   return get<WmsSubCategoryVo[]>(`/item/categories/${categoryId}/sub/list`)
 }
 
-export function addSubCategory(categoryId: number, data: WmsSubCategoryDto) {
+export function addSubCategory(categoryId: EntityId, data: WmsSubCategoryDto) {
   return post<WmsSubCategoryVo>(`/item/categories/${categoryId}/sub`, data)
 }
 
-export function updateSubCategory(id: number, data: WmsSubCategoryDto) {
+export function updateSubCategory(id: EntityId, data: WmsSubCategoryDto) {
   return put<WmsSubCategoryVo>(`/item/categories/sub/${id}`, data)
 }
 
-export function deleteSubCategory(id: number) {
+export function deleteSubCategory(id: EntityId) {
   return del<void>(`/item/categories/sub/${id}`)
 }

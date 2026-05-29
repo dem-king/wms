@@ -19,7 +19,6 @@ jwt:
 wms:
   auth:
     jwt-secret: ${JWT_SECRET:dev_jwt_secret}
-  default-password: ${WMS_DEFAULT_PASSWORD:dev_default_password}
     access-token-expire: 7200
     refresh-token-expire: 604800
     token-renew-threshold: 1800
@@ -29,6 +28,7 @@ wms:
     captcha-expire: 300
     rsa-key-expire: 86400
     captcha-enabled: true
+  default-password: ${WMS_DEFAULT_PASSWORD:dev_default_password}
   ip-region:
     enabled: ${IP_REGION_ENABLED:true}
     xdb-path: ${IP2REGION_XDB_PATH:classpath:ip2region.xdb}

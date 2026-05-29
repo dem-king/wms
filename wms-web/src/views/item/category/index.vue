@@ -154,7 +154,7 @@ import {
   updateCategory,
   updateSubCategory
 } from '@/api/item/category'
-import type { WmsCategoryDto, WmsCategoryVo, WmsSubCategoryDto, WmsSubCategoryVo } from '@/types/item'
+import type { EntityId, WmsCategoryDto, WmsCategoryVo, WmsSubCategoryDto, WmsSubCategoryVo } from '@/types/item'
 import { normalizePageTotal } from '@/utils/pagination'
 
 const DEFAULT_CATEGORY_COLOR = '#409EFF'
@@ -180,7 +180,7 @@ const subQuery = reactive({
 const categoryDialogVisible = ref(false)
 const isCategoryEdit = ref(false)
 const categoryFormRef = ref<FormInstance>()
-const categoryForm = reactive<WmsCategoryDto & { id?: number }>({
+const categoryForm = reactive<WmsCategoryDto & { id?: EntityId }>({
   categoryName: '',
   categoryCode: '',
   categoryColor: DEFAULT_CATEGORY_COLOR,
@@ -196,8 +196,8 @@ const categoryRules: FormRules = {
 const subDialogVisible = ref(false)
 const isSubEdit = ref(false)
 const subFormRef = ref<FormInstance>()
-const subForm = reactive<WmsSubCategoryDto & { id?: number; categoryId: number }>({
-  categoryId: 0,
+const subForm = reactive<WmsSubCategoryDto & { id?: EntityId; categoryId: EntityId }>({
+  categoryId: '',
   subCategoryName: '',
   subCategoryCode: '',
   sortOrder: 0
@@ -222,7 +222,7 @@ function resetCategoryData() {
 function resetSubData() {
   Object.assign(subForm, {
     id: undefined,
-    categoryId: currentCategory.value?.id || 0,
+    categoryId: currentCategory.value?.id || '',
     subCategoryName: '',
     subCategoryCode: '',
     sortOrder: 0
@@ -348,7 +348,7 @@ function handleEditSub(row: WmsSubCategoryVo) {
   subDialogVisible.value = true
 }
 
-async function handleDeleteSub(id: number) {
+async function handleDeleteSub(id: EntityId) {
   await deleteSubCategory(id)
   ElMessage.success('删除成功')
   await loadSubCategoryPage()

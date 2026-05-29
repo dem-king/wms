@@ -171,7 +171,7 @@ async function handleSubmitOrder(row: TransferOrderVo) {
   handleQuery()
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: TransferOrderVo['id']) {
   await deleteTransferOrder(id)
   ElMessage.success('删除成功')
   handleQuery()

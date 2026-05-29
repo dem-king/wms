@@ -171,7 +171,7 @@ async function handleSubmitOrder(row: ScrapOrderVo) {
   handleQuery()
 }
 
-async function handleDelete(id: number) {
+async function handleDelete(id: ScrapOrderVo['id']) {
   await deleteScrapOrder(id)
   ElMessage.success('删除成功')
   handleQuery()
