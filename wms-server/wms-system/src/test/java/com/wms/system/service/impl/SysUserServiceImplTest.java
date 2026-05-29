@@ -5,7 +5,9 @@ import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysUserDto;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.entity.SysUserRole;
+import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.vo.SysUserVo;
+import com.wms.system.mapper.SysRoleMapper;
 import com.wms.system.mapper.SysUserMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +41,9 @@ class SysUserServiceImplTest {
     @Mock
     private SysUserRoleMapper sysUserRoleMapper;
 
+    @Mock
+    private SysRoleMapper sysRoleMapper;
+
     @InjectMocks
     private SysUserServiceImpl sysUserService;
 
@@ -64,6 +69,7 @@ class SysUserServiceImplTest {
         when(sysUserMapper.selectCount(any())).thenReturn(0L);
         when(sysUserMapper.updateById(any(SysUser.class))).thenReturn(1);
         when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(existingRole));
+        when(sysRoleMapper.selectBatchIds(any())).thenReturn(List.of(role(roleId, "role-2")));
 
         SysUserVo result = sysUserService.update(userId, dto);
 
@@ -87,6 +93,7 @@ class SysUserServiceImplTest {
         when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(oldRole));
         when(sysUserRoleMapper.updateById(any(SysUserRole.class))).thenReturn(1);
         when(sysUserRoleMapper.insert(any(SysUserRole.class))).thenReturn(1);
+        when(sysRoleMapper.selectBatchIds(any())).thenReturn(List.of(role(2L, "role-2"), role(3L, "role-3")));
 
         sysUserService.update(userId, dto);
 
@@ -114,6 +121,15 @@ class SysUserServiceImplTest {
         userRole.setRoleId(roleId);
         userRole.setDelFlag(DelFlagConstants.NORMAL);
         return userRole;
+    }
+
+    private SysRole role(Long id, String code) {
+        SysRole role = new SysRole();
+        role.setId(id);
+        role.setRoleCode(code);
+        role.setStatus(BizConstants.STATUS_ENABLED);
+        role.setDelFlag(DelFlagConstants.NORMAL);
+        return role;
     }
 
     private SysUserDto buildUpdateDto(String username, List<Long> roleIds) {

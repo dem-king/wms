@@ -80,7 +80,7 @@ CREATE TABLE `sys_role` (
     `role_name`       VARCHAR(50)  NOT NULL                COMMENT '角色名称',
     `role_code`       VARCHAR(50)  NOT NULL                COMMENT '角色编码',
     `role_desc`       VARCHAR(200) DEFAULT NULL            COMMENT '角色描述',
-    `data_scope`      TINYINT      DEFAULT 1               COMMENT '数据范围(1-全部 2-本部门 3-自定义)',
+    `data_scope`      TINYINT      DEFAULT 1               COMMENT '数据范围(1-全部 2-自定义 3-本部门 4-本部门及以下 5-仅本人)',
     `status`          TINYINT      DEFAULT 1               COMMENT '状态(0-禁用 1-启用)',
     `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
     `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -107,6 +107,21 @@ CREATE TABLE `sys_user_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户-角色关联表';
 
 -- 5. 菜单表
+DROP TABLE IF EXISTS `sys_role_dept`;
+CREATE TABLE `sys_role_dept` (
+    `id`              BIGINT   NOT NULL COMMENT '主键(雪花ID)',
+    `role_id`         BIGINT   NOT NULL                COMMENT '角色ID',
+    `dept_id`         BIGINT   NOT NULL                COMMENT '部门ID',
+    `del_flag`        TINYINT  DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64) DEFAULT ''           COMMENT '创建人',
+    `update_time`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64) DEFAULT ''           COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    KEY `idx_role_dept` (`role_id`, `dept_id`),
+    KEY `idx_dept_id` (`dept_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色-部门数据范围关联表';
+
 DROP TABLE IF EXISTS `sys_menu`;
 CREATE TABLE `sys_menu` (
     `id`              BIGINT       NOT NULL COMMENT '主键',

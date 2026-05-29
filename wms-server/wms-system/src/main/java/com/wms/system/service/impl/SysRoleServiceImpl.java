@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DataScopeConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysRoleDto;
 import com.wms.system.domain.entity.SysRole;
+import com.wms.system.domain.entity.SysRoleDept;
 import com.wms.system.domain.entity.SysRoleMenu;
 import com.wms.system.domain.entity.SysRolePermission;
 import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.domain.vo.SysRoleVo;
 import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysRoleDeptMapper;
 import com.wms.system.mapper.SysRoleMenuMapper;
 import com.wms.system.mapper.SysRolePermissionMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
@@ -22,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +39,7 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl implements SysRoleService {
 
     private final SysRoleMapper sysRoleMapper;
+    private final SysRoleDeptMapper sysRoleDeptMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMenuMapper sysRoleMenuMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
@@ -48,7 +54,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         List<SysRole> roles = sysRoleMapper.selectList(
                 new LambdaQueryWrapper<SysRole>()
         );
-        return roles.stream().map(this::toVo).collect(Collectors.toList());
+        return toVoList(roles);
     }
 
     /**
@@ -62,7 +68,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                 new LambdaQueryWrapper<SysRole>()
                         .eq(SysRole::getStatus, BizConstants.STATUS_ENABLED)
         );
-        return roles.stream().map(this::toVo).collect(Collectors.toList());
+        return toVoList(roles);
     }
 
     /**
@@ -137,6 +143,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             role.setStatus(BizConstants.STATUS_ENABLED);
         }
         sysRoleMapper.insert(role);
+        saveRoleDeptScope(role.getId(), dto);
         return toVo(role);
     }
 
@@ -162,6 +169,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         copyDtoToEntity(dto, existing);
         existing.setId(id);
         sysRoleMapper.updateById(existing);
+        saveRoleDeptScope(id, dto);
         return toVo(existing);
     }
 
@@ -388,8 +396,126 @@ public class SysRoleServiceImpl implements SysRoleService {
         vo.setRoleCode(role.getRoleCode());
         vo.setRoleDesc(role.getRoleDesc());
         vo.setDataScope(role.getDataScope());
+        vo.setDeptIds(getRoleDeptIds(role.getId()));
         vo.setStatus(role.getStatus());
         vo.setCreateTime(role.getCreateTime());
         return vo;
+    }
+
+    /**
+     * 批量转换角色VO，并一次性加载自定义部门范围，避免列表查询N+1。
+     *
+     * @param roles 角色实体列表
+     * @return 角色VO列表
+     */
+    private List<SysRoleVo> toVoList(List<SysRole> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> roleIds = roles.stream().map(SysRole::getId).collect(Collectors.toList());
+        Map<Long, List<Long>> deptIdMap = buildRoleDeptIdMap(roleIds);
+        return roles.stream().map(role -> toVo(role, deptIdMap)).collect(Collectors.toList());
+    }
+
+    /**
+     * 使用已批量查询的部门范围转换角色VO。
+     *
+     * @param role 角色实体
+     * @param deptIdMap 角色部门范围映射
+     * @return 角色VO
+     */
+    private SysRoleVo toVo(SysRole role, Map<Long, List<Long>> deptIdMap) {
+        SysRoleVo vo = new SysRoleVo();
+        vo.setId(role.getId());
+        vo.setRoleName(role.getRoleName());
+        vo.setRoleCode(role.getRoleCode());
+        vo.setRoleDesc(role.getRoleDesc());
+        vo.setDataScope(role.getDataScope());
+        vo.setDeptIds(deptIdMap.getOrDefault(role.getId(), Collections.emptyList()));
+        vo.setStatus(role.getStatus());
+        vo.setCreateTime(role.getCreateTime());
+        return vo;
+    }
+
+    /**
+     * 获取角色的自定义部门范围。
+     *
+     * @param roleId 角色ID
+     * @return 部门ID列表
+     */
+    private List<Long> getRoleDeptIds(Long roleId) {
+        if (roleId == null) {
+            return Collections.emptyList();
+        }
+        return sysRoleDeptMapper.selectList(
+                new LambdaQueryWrapper<SysRoleDept>()
+                        .eq(SysRoleDept::getRoleId, roleId)
+        ).stream().map(SysRoleDept::getDeptId).collect(Collectors.toList());
+    }
+
+    /**
+     * 批量构建角色部门范围映射。
+     *
+     * @param roleIds 角色ID列表
+     * @return 角色部门范围映射
+     */
+    private Map<Long, List<Long>> buildRoleDeptIdMap(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<SysRoleDept> roleDepts = sysRoleDeptMapper.selectList(
+                new LambdaQueryWrapper<SysRoleDept>()
+                        .in(SysRoleDept::getRoleId, roleIds)
+        );
+        Map<Long, List<Long>> result = new HashMap<>();
+        for (SysRoleDept roleDept : roleDepts) {
+            result.computeIfAbsent(roleDept.getRoleId(), key -> new ArrayList<>()).add(roleDept.getDeptId());
+        }
+        return result;
+    }
+
+    /**
+     * 保存角色自定义部门范围。
+     *
+     * @param roleId 角色ID
+     * @param dto 角色参数
+     */
+    private void saveRoleDeptScope(Long roleId, SysRoleDto dto) {
+        clearRoleDeptScope(roleId);
+        if (dto.getDataScope() == null || dto.getDataScope() != DataScopeConstants.SCOPE_CUSTOM) {
+            return;
+        }
+        if (dto.getDeptIds() == null || dto.getDeptIds().isEmpty()) {
+            throw new BizException("自定义数据范围必须选择部门");
+        }
+        List<SysRoleDept> roleDeptList = dto.getDeptIds().stream().distinct().map(deptId -> {
+            SysRoleDept roleDept = new SysRoleDept();
+            roleDept.setRoleId(roleId);
+            roleDept.setDeptId(deptId);
+            return roleDept;
+        }).collect(Collectors.toList());
+        Db.saveBatch(roleDeptList);
+    }
+
+    /**
+     * 清理角色旧的自定义部门范围。
+     *
+     * @param roleId 角色ID
+     */
+    private void clearRoleDeptScope(Long roleId) {
+        List<SysRoleDept> oldRoleDepts = sysRoleDeptMapper.selectList(
+                new LambdaQueryWrapper<SysRoleDept>()
+                        .eq(SysRoleDept::getRoleId, roleId)
+        );
+        List<SysRoleDept> updateList = new ArrayList<>();
+        for (SysRoleDept oldRoleDept : oldRoleDepts) {
+            SysRoleDept update = new SysRoleDept();
+            update.setId(oldRoleDept.getId());
+            update.setDelFlag(DelFlagConstants.DELETED);
+            updateList.add(update);
+        }
+        if (!updateList.isEmpty()) {
+            Db.updateBatchById(updateList);
+        }
     }
 }

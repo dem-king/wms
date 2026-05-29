@@ -1,3 +1,82 @@
+<script setup lang="ts">
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Search, Refresh, Plus, Edit, Delete, Menu } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { getRoleList, deleteRole } from '@/api/system/role'
+import type { EntityId, SysRoleVo } from '@/types/system'
+import { normalizePageTotal } from '@/utils/pagination'
+import RoleForm from './components/RoleForm.vue'
+import RoleMenu from './components/RoleMenu.vue'
+
+const dataScopeMap: Record<number, string> = {
+  1: '全部数据',
+  2: '自定义数据',
+  3: '本部门数据',
+  4: '本部门及以下数据',
+  5: '仅本人数据'
+}
+
+const loading = ref(false)
+const tableData = ref<SysRoleVo[]>([])
+const total = ref(0)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+  roleName: '',
+  roleCode: '',
+  status: undefined as number | undefined
+})
+
+const formVisible = ref(false)
+const menuVisible = ref(false)
+const isEdit = ref(false)
+const currentRow = ref<SysRoleVo | null>(null)
+
+async function handleQuery() {
+  loading.value = true
+  try {
+    const res = await getRoleList(queryParams)
+    const roles = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = roles
+    total.value = normalizePageTotal(Array.isArray(res.data) ? roles.length : res.data.total)
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleReset() {
+  Object.assign(queryParams, { page: 1, roleName: '', roleCode: '', status: undefined })
+  handleQuery()
+}
+
+function handleAdd() {
+  isEdit.value = false
+  currentRow.value = null
+  formVisible.value = true
+}
+
+function handleEdit(row: SysRoleVo) {
+  isEdit.value = true
+  currentRow.value = row
+  formVisible.value = true
+}
+
+function handleAssignMenu(row: SysRoleVo) {
+  currentRow.value = row
+  menuVisible.value = true
+}
+
+async function handleDelete(id: EntityId) {
+  await deleteRole(id)
+  ElMessage.success('删除成功')
+  await handleQuery()
+}
+
+onMounted(handleQuery)
+</script>
+
 <template>
   <div class="app-container list-page">
     <el-form :model="queryParams" :inline="true" class="search-form">
@@ -29,15 +108,17 @@
       <el-table v-loading="loading" :data="tableData" border height="100%">
         <el-table-column prop="roleName" label="角色名称" min-width="120" />
         <el-table-column prop="roleCode" label="角色编码" min-width="120" />
-        <el-table-column prop="roleDesc" label="描述" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="dataScope" label="数据范围" min-width="120">
+        <el-table-column prop="roleDesc" label="角色描述" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="dataScope" label="数据范围" min-width="160">
           <template #default="{ row }">
             {{ dataScopeMap[row.dataScope] || '未知' }}
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" min-width="80">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+              {{ row.status === 1 ? '启用' : '禁用' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="240">
@@ -45,8 +126,8 @@
             <TableActionGroup
               :actions="[
                 { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '分配菜单', type: 'success', icon: Menu, onClick: () => handleAssignMenu(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该角色吗？', onClick: () => handleDelete(row.id) },
+                { label: '菜单', type: 'success', icon: Menu, onClick: () => handleAssignMenu(row) },
+                { label: '删除', type: 'danger', icon: Delete, confirmText: '确认删除该角色？', onClick: () => handleDelete(row.id) }
               ]"
             />
           </template>
@@ -71,90 +152,6 @@
     <RoleMenu v-model:visible="menuVisible" :role-id="currentRow?.id" :role-name="currentRow?.roleName" @success="handleQuery" />
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Search, Refresh, Plus, Edit, Delete, Menu } from '@element-plus/icons-vue'
-import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getRoleList, deleteRole } from '@/api/system/role'
-import type { EntityId, SysRoleVo } from '@/types/system'
-import { normalizePageTotal } from '@/utils/pagination'
-import RoleForm from './components/RoleForm.vue'
-import RoleMenu from './components/RoleMenu.vue'
-
-const dataScopeMap: Record<number, string> = {
-  1: '全部数据',
-  2: '自定义',
-  3: '本部门',
-  4: '本部门及以下',
-  5: '仅本人'
-}
-
-const loading = ref(false)
-const tableData = ref<SysRoleVo[]>([])
-const total = ref(0)
-
-const queryParams = reactive({
-  page: 1,
-  size: 20,
-  roleName: '',
-  roleCode: '',
-  status: undefined as number | undefined
-})
-
-const formVisible = ref(false)
-const menuVisible = ref(false)
-const isEdit = ref(false)
-const currentRow = ref<SysRoleVo | null>(null)
-
-async function handleQuery() {
-  loading.value = true
-  try {
-    const res = await getRoleList(queryParams)
-    const roles = Array.isArray(res.data) ? res.data : res.data.records
-    tableData.value = roles
-    total.value = Array.isArray(res.data) ? roles.length : normalizePageTotal(res.data.total)
-  } finally {
-    loading.value = false
-  }
-}
-
-function handleReset() {
-  queryParams.roleName = ''
-  queryParams.roleCode = ''
-  queryParams.status = undefined
-  queryParams.page = 1
-  handleQuery()
-}
-
-function handleAdd() {
-  isEdit.value = false
-  currentRow.value = null
-  formVisible.value = true
-}
-
-function handleEdit(row: SysRoleVo) {
-  isEdit.value = true
-  currentRow.value = { ...row }
-  formVisible.value = true
-}
-
-async function handleDelete(id: EntityId) {
-  await deleteRole(id)
-  ElMessage.success('删除成功')
-  handleQuery()
-}
-
-function handleAssignMenu(row: SysRoleVo) {
-  currentRow.value = { ...row }
-  menuVisible.value = true
-}
-
-onMounted(() => {
-  handleQuery()
-})
-</script>
 
 <style scoped lang="scss">
 .app-container.list-page {

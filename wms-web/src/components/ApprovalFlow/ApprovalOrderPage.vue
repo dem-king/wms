@@ -161,7 +161,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="approval-page">
+  <div class="app-container list-page approval-page">
     <el-alert
       :title="pageTitle"
       :description="props.mode === 'pending' ? '查看待处理审批并执行通过、驳回或本人撤回操作。' : '查看审批流转记录与处理结果。'"
@@ -187,46 +187,50 @@ onMounted(() => {
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="tableData" border>
-      <el-table-column prop="approvalNo" label="审批单号" min-width="170" />
-      <el-table-column label="业务类型" min-width="110">
-        <template #default="{ row }">
-          <el-tag>{{ getBizTypeLabel(row.bizType) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="bizNo" label="业务单号" min-width="170" />
-      <el-table-column prop="currentNodeName" label="当前节点" min-width="140" />
-      <el-table-column label="审批状态" min-width="110">
-        <template #default="{ row }">
-          <el-tag :type="getApprovalStatusTagType(row.status)">{{ getApprovalStatusLabel(row.status) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="applicantName" label="申请人" min-width="120" />
-      <el-table-column prop="createTime" label="创建时间" min-width="180" />
-      <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="220">
-        <template #default="{ row }">
-          <TableActionGroup
-            :actions="[
-              { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-              { label: '通过', type: 'success', visible: canApprove(row), onClick: () => openAction(row, 'approve') },
-              { label: '驳回', type: 'warning', visible: canApprove(row), onClick: () => openAction(row, 'reject') },
-              { label: '撤回', type: 'info', visible: canRevoke(row), onClick: () => handleRevoke(row) },
-            ]"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="table-section">
+      <el-table v-loading="loading" :data="tableData" border height="100%">
+        <el-table-column prop="approvalNo" label="审批单号" min-width="170" />
+        <el-table-column label="业务类型" min-width="110">
+          <template #default="{ row }">
+            <el-tag>{{ getBizTypeLabel(row.bizType) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="bizNo" label="业务单号" min-width="170" />
+        <el-table-column prop="currentNodeName" label="当前节点" min-width="140" />
+        <el-table-column label="审批状态" min-width="110">
+          <template #default="{ row }">
+            <el-tag :type="getApprovalStatusTagType(row.status)">{{ getApprovalStatusLabel(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="applicantName" label="申请人" min-width="120" />
+        <el-table-column prop="createTime" label="创建时间" min-width="180" />
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="220">
+          <template #default="{ row }">
+            <TableActionGroup
+              :actions="[
+                { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
+                { label: '通过', type: 'success', visible: canApprove(row), onClick: () => openAction(row, 'approve') },
+                { label: '驳回', type: 'warning', visible: canApprove(row), onClick: () => openAction(row, 'reject') },
+                { label: '撤回', type: 'info', visible: canRevoke(row), onClick: () => handleRevoke(row) },
+              ]"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <el-pagination
-      v-model:current-page="queryParams.page"
-      v-model:page-size="queryParams.size"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      class="pagination"
-      @size-change="loadTable"
-      @current-change="loadTable"
-    />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          class="pagination"
+          @size-change="loadTable"
+          @current-change="loadTable"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="detailVisible" title="审批详情" width="960px" @close="handleDetailClose">
       <div v-loading="detailLoading">
@@ -278,6 +282,11 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .approval-page {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
   .page-alert {
     margin-bottom: 16px;
   }
@@ -286,8 +295,19 @@ onMounted(() => {
     margin-bottom: 16px;
   }
 
-  .pagination {
+  .table-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pagination-container {
     margin-top: 16px;
+    flex-shrink: 0;
+  }
+
+  .pagination {
     justify-content: flex-end;
   }
 }

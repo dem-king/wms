@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 角色视图对象
+ * 角色视图对象。
  */
 @Data
 @Schema(description = "角色信息")
@@ -28,9 +29,13 @@ public class SysRoleVo {
     @Schema(description = "角色描述")
     private String roleDesc;
 
-    /** 数据范围(1-全部 2-本部门 3-本部门及子部门 4-自定义) */
-    @Schema(description = "数据范围(1-全部 2-本部门 3-本部门及子部门 4-自定义)")
+    /** 数据范围(1-全部 2-自定义 3-本部门 4-本部门及以下 5-仅本人) */
+    @Schema(description = "数据范围(1-全部 2-自定义 3-本部门 4-本部门及以下 5-仅本人)")
     private Integer dataScope;
+
+    /** 自定义数据范围部门ID列表 */
+    @Schema(description = "自定义数据范围部门ID列表")
+    private List<Long> deptIds;
 
     /** 状态(0-禁用 1-启用) */
     @Schema(description = "状态(0-禁用 1-启用)")

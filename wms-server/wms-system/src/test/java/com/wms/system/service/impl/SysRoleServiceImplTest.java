@@ -3,10 +3,13 @@ package com.wms.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.wms.common.constant.BizConstants;
+import com.wms.common.constant.DataScopeConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.entity.SysRole;
+import com.wms.system.domain.entity.SysRoleDept;
 import com.wms.system.domain.vo.SysRoleVo;
 import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysRoleDeptMapper;
 import com.wms.system.mapper.SysRoleMenuMapper;
 import com.wms.system.mapper.SysRolePermissionMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
@@ -40,13 +43,19 @@ class SysRoleServiceImplTest {
     @BeforeAll
     static void initTableInfo() {
         Configuration configuration = new Configuration();
-        MapperBuilderAssistant assistant = new MapperBuilderAssistant(configuration, "");
-        assistant.setCurrentNamespace(SysRoleMapper.class.getName());
-        TableInfoHelper.initTableInfo(assistant, SysRole.class);
+        MapperBuilderAssistant roleAssistant = new MapperBuilderAssistant(configuration, "");
+        roleAssistant.setCurrentNamespace(SysRoleMapper.class.getName());
+        TableInfoHelper.initTableInfo(roleAssistant, SysRole.class);
+        MapperBuilderAssistant roleDeptAssistant = new MapperBuilderAssistant(configuration, "");
+        roleDeptAssistant.setCurrentNamespace(SysRoleDeptMapper.class.getName());
+        TableInfoHelper.initTableInfo(roleDeptAssistant, SysRoleDept.class);
     }
 
     @Mock
     private SysRoleMapper sysRoleMapper;
+
+    @Mock
+    private SysRoleDeptMapper sysRoleDeptMapper;
 
     @Mock
     private SysUserRoleMapper sysUserRoleMapper;
@@ -78,5 +87,29 @@ class SysRoleServiceImplTest {
         assertTrue(wrapperCaptor.getValue().getSqlSegment().contains("status"));
         assertEquals(1, result.size());
         assertEquals(BizConstants.STATUS_ENABLED, result.get(0).getStatus());
+    }
+
+    @Test
+    @DisplayName("查询自定义数据范围角色详情时应返回部门ID列表")
+    void shouldReturnDeptIdsWhenGetCustomDataScopeRole() {
+        SysRole role = new SysRole();
+        role.setId(2L);
+        role.setRoleName("仓库主管");
+        role.setRoleCode("warehouse_manager");
+        role.setDataScope(DataScopeConstants.SCOPE_CUSTOM);
+        role.setStatus(BizConstants.STATUS_ENABLED);
+        role.setDelFlag(DelFlagConstants.NORMAL);
+        SysRoleDept first = new SysRoleDept();
+        first.setRoleId(2L);
+        first.setDeptId(10L);
+        SysRoleDept second = new SysRoleDept();
+        second.setRoleId(2L);
+        second.setDeptId(11L);
+        when(sysRoleMapper.selectById(2L)).thenReturn(role);
+        when(sysRoleDeptMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(first, second));
+
+        SysRoleVo result = sysRoleService.getById(2L);
+
+        assertEquals(List.of(10L, 11L), result.getDeptIds());
     }
 }

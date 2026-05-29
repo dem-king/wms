@@ -48,6 +48,7 @@
             v-if="row.images && row.images.length > 0"
             :src="row.images[0].imageUrl"
             :preview-src-list="row.images.map((img: any) => img.imageUrl)"
+            :preview-teleported="true"
             fit="cover"
             style="width: 40px; height: 40px; border-radius: 4px"
           />

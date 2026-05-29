@@ -66,6 +66,8 @@ export interface SysRoleVo {
   roleDesc: string
   /** 数据范围(1-全部 2-自定义 3-本部门 4-本部门及以下 5-仅本人) */
   dataScope: number
+  /** 自定义数据范围部门ID列表 */
+  deptIds?: EntityId[]
   /** 状态(0-禁用 1-启用) */
   status: number
   /** 创建时间 */
@@ -82,6 +84,8 @@ export interface SysRoleDto {
   roleDesc: string
   /** 数据范围 */
   dataScope: number
+  /** 自定义数据范围部门ID列表 */
+  deptIds?: EntityId[]
   /** 状态(0-禁用 1-启用) */
   status: number
 }

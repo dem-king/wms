@@ -15,4 +15,8 @@ describe('item list display', () => {
     expect(source).toContain('return row.currentStock ?? 0')
     expect(source).not.toContain('return row.currentStock ?? row.stockQty')
   })
+
+  it('teleports table image preview above the table layout', () => {
+    expect(source).toContain(':preview-teleported="true"')
+  })
 })
