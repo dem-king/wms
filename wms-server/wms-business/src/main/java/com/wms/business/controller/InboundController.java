@@ -38,7 +38,7 @@ public class InboundController {
      */
     @Operation(summary = "入库单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:list')")
     @DataScope
     public R<PageResult<InboundOrderVo>> pageOrders(PageParam pageParam,
                                                      @RequestParam(required = false) Long warehouseId,
@@ -53,7 +53,7 @@ public class InboundController {
      */
     @Operation(summary = "入库单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:list')")
     @DataScope
     public R<InboundOrderVo> getOrderById(@PathVariable Long id) {
         return R.ok(inboundService.getOrderById(id));
@@ -64,7 +64,7 @@ public class InboundController {
      */
     @Operation(summary = "新增入库单")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:add')")
     @OperLog(module = "business", type = "新增", desc = "新增入库单")
     public R<InboundOrderVo> createOrder(@Valid @RequestBody InboundOrderDto dto) {
         return R.ok(inboundService.createOrder(dto));
@@ -75,7 +75,7 @@ public class InboundController {
      */
     @Operation(summary = "更新入库单")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:edit')")
     @OperLog(module = "business", type = "更新", desc = "更新入库单")
     public R<InboundOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody InboundOrderDto dto) {
         return R.ok(inboundService.updateOrder(id, dto));
@@ -86,7 +86,7 @@ public class InboundController {
      */
     @Operation(summary = "入库单扫码识别")
     @PostMapping("/scan")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:scan')")
     @DataScope
     public R<InboundScanResultVo> scan(@Valid @RequestBody InboundScanDto dto) {
         return R.ok(inboundScanService.scan(dto));
@@ -97,7 +97,7 @@ public class InboundController {
      */
     @Operation(summary = "提交入库单")
     @PostMapping("/{id}/submit")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:submit')")
     @OperLog(module = "business", type = "提交", desc = "提交入库单")
     public R<Void> submitOrder(@PathVariable Long id) {
         inboundService.submitOrder(id);
@@ -109,7 +109,7 @@ public class InboundController {
      */
     @Operation(summary = "删除入库单")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:inbound:delete')")
     @OperLog(module = "business", type = "删除", desc = "删除入库单")
     public R<Void> deleteOrder(@PathVariable Long id) {
         inboundService.deleteOrder(id);

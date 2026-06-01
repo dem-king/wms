@@ -26,7 +26,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('item:item:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
       <el-col :span="6">
         <el-input
@@ -100,8 +100,8 @@
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该物品吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'item:item:edit', onClick: () => handleEdit(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'item:item:delete', confirmText: '确定删除该物品吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -259,6 +259,7 @@ import type { CascaderProps, FormInstance, FormRules, UploadFile } from 'element
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import { getItemList, addItem, updateItem, deleteItem, searchItem, attachItemImage, deleteItemImage } from '@/api/item/item'
 import { getCategoryList } from '@/api/item/category'
 import { getSubCategories } from '@/api/item/category'
@@ -279,6 +280,8 @@ import {
   locationsToCascaderValue,
   type LocationCascaderValue,
 } from './item-location-utils'
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const tableData = ref<WmsItemVo[]>([])

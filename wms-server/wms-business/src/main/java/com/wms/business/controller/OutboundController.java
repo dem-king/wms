@@ -38,7 +38,7 @@ public class OutboundController {
      */
     @Operation(summary = "出库单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:list')")
     @DataScope
     public R<PageResult<OutboundOrderVo>> pageOrders(PageParam pageParam,
                                                       @RequestParam(required = false) Long warehouseId,
@@ -53,7 +53,7 @@ public class OutboundController {
      */
     @Operation(summary = "出库单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:list')")
     @DataScope
     public R<OutboundOrderVo> getOrderById(@PathVariable Long id) {
         return R.ok(outboundService.getOrderById(id));
@@ -64,7 +64,7 @@ public class OutboundController {
      */
     @Operation(summary = "新增出库单")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:add')")
     @OperLog(module = "business", type = "新增", desc = "新增出库单")
     public R<OutboundOrderVo> createOrder(@Valid @RequestBody OutboundOrderDto dto) {
         return R.ok(outboundService.createOrder(dto));
@@ -75,7 +75,7 @@ public class OutboundController {
      */
     @Operation(summary = "更新出库单")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:edit')")
     @OperLog(module = "business", type = "更新", desc = "更新出库单")
     public R<OutboundOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody OutboundOrderDto dto) {
         return R.ok(outboundService.updateOrder(id, dto));
@@ -86,7 +86,7 @@ public class OutboundController {
      */
     @Operation(summary = "出库单扫码识别")
     @PostMapping("/scan")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:scan')")
     @DataScope
     public R<OutboundScanResultVo> scan(@Valid @RequestBody OutboundScanDto dto) {
         return R.ok(outboundScanService.scan(dto));
@@ -97,7 +97,7 @@ public class OutboundController {
      */
     @Operation(summary = "提交出库单")
     @PostMapping("/{id}/submit")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:submit')")
     @OperLog(module = "business", type = "提交", desc = "提交出库单")
     public R<Void> submitOrder(@PathVariable Long id) {
         outboundService.submitOrder(id);
@@ -109,7 +109,7 @@ public class OutboundController {
      */
     @Operation(summary = "删除出库单")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:outbound:delete')")
     @OperLog(module = "business", type = "删除", desc = "删除出库单")
     public R<Void> deleteOrder(@PathVariable Long id) {
         outboundService.deleteOrder(id);

@@ -20,6 +20,8 @@ import type { ApprovalActionDto, ApprovalOrderQuery, ApprovalOrderVo } from '@/t
 
 interface Props {
   mode: 'pending' | 'history'
+  approvePermission?: string
+  rejectPermission?: string
 }
 
 const props = defineProps<Props>()
@@ -209,8 +211,8 @@ onMounted(() => {
             <TableActionGroup
               :actions="[
                 { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-                { label: '通过', type: 'success', visible: canApprove(row), onClick: () => openAction(row, 'approve') },
-                { label: '驳回', type: 'warning', visible: canApprove(row), onClick: () => openAction(row, 'reject') },
+                { label: '通过', type: 'success', permission: props.approvePermission, visible: canApprove(row), onClick: () => openAction(row, 'approve') },
+                { label: '驳回', type: 'warning', permission: props.rejectPermission, visible: canApprove(row), onClick: () => openAction(row, 'reject') },
                 { label: '撤回', type: 'info', visible: canRevoke(row), onClick: () => handleRevoke(row) },
               ]"
             />

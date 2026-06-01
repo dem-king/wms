@@ -38,7 +38,7 @@ public class CabinetController {
      */
     @Operation(summary = "按区域分页查询存放柜列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:list')")
     @DataScope
     public R<PageResult<CabinetVo>> page(PageParam pageParam, @RequestParam Long areaId) {
         return R.ok(cabinetService.page(pageParam, areaId));
@@ -49,7 +49,7 @@ public class CabinetController {
      */
     @Operation(summary = "按区域查询存放柜列表")
     @GetMapping("/area/{areaId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:list')")
     @DataScope
     public R<List<CabinetVo>> listByAreaId(@PathVariable Long areaId) {
         return R.ok(cabinetService.listByAreaId(areaId));
@@ -60,7 +60,7 @@ public class CabinetController {
      */
     @Operation(summary = "存放柜详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:list')")
     @DataScope
     public R<CabinetVo> getById(@PathVariable Long id) {
         return R.ok(cabinetService.getById(id));
@@ -71,7 +71,7 @@ public class CabinetController {
      */
     @Operation(summary = "新增存放柜")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:add')")
     @OperLog(module = "warehouse", type = "新增", desc = "新增存放柜")
     public R<CabinetVo> create(@Valid @RequestBody CabinetDto dto) {
         return R.ok(cabinetService.create(dto));
@@ -82,7 +82,7 @@ public class CabinetController {
      */
     @Operation(summary = "更新存放柜")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新存放柜")
     public R<CabinetVo> update(@PathVariable Long id, @Valid @RequestBody CabinetDto dto) {
         return R.ok(cabinetService.update(id, dto));
@@ -93,7 +93,7 @@ public class CabinetController {
      */
     @Operation(summary = "删除存放柜")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:delete')")
     @OperLog(module = "warehouse", type = "删除", desc = "删除存放柜")
     public R<Void> delete(@PathVariable Long id) {
         cabinetService.delete(id);
@@ -105,7 +105,7 @@ public class CabinetController {
      */
     @Operation(summary = "更新存放柜位置坐标")
     @PutMapping("/{id}/position")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:cabinet:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新存放柜位置坐标")
     public R<Void> updatePosition(@PathVariable Long id,
                                   @RequestParam Integer x,
@@ -119,7 +119,7 @@ public class CabinetController {
      */
     @Operation(summary = "批量保存存放柜布局")
     @PostMapping("/layout")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "批量保存存放柜布局")
     public R<CabinetLayoutSaveVo> saveLayout(@Valid @RequestBody CabinetLayoutBatchSaveDto dto) {
         return R.ok(cabinetService.saveLayout(dto));

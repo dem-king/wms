@@ -40,7 +40,7 @@ public class ItemController {
      */
     @Operation(summary = "物品分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:list')")
     @DataScope
     public R<PageResult<ItemVo>> page(PageParam pageParam,
                                       @RequestParam(required = false) Long categoryId,
@@ -56,7 +56,7 @@ public class ItemController {
      */
     @Operation(summary = "物品详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:list')")
     @DataScope
     public R<ItemVo> getById(@PathVariable Long id) {
         return R.ok(itemService.getById(id));
@@ -67,7 +67,7 @@ public class ItemController {
      */
     @Operation(summary = "新增物品")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:add')")
     @OperLog(module = "item", type = "新增", desc = "新增物品")
     public R<ItemVo> create(@Valid @RequestBody ItemDto dto) {
         return R.ok(itemService.create(dto));
@@ -78,7 +78,7 @@ public class ItemController {
      */
     @Operation(summary = "更新物品")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:edit')")
     @OperLog(module = "item", type = "更新", desc = "更新物品")
     public R<ItemVo> update(@PathVariable Long id, @Valid @RequestBody ItemDto dto) {
         return R.ok(itemService.update(id, dto));
@@ -89,7 +89,7 @@ public class ItemController {
      */
     @Operation(summary = "删除物品")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:delete')")
     @OperLog(module = "item", type = "删除", desc = "删除物品")
     public R<Void> delete(@PathVariable Long id) {
         itemService.delete(id);
@@ -101,7 +101,7 @@ public class ItemController {
      */
     @Operation(summary = "上传物品图片")
     @PostMapping(value = "/{itemId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:edit')")
     @OperLog(module = "item", type = "新增", desc = "上传物品图片")
     public R<ItemImageVo> uploadImage(@PathVariable Long itemId,
                                       @RequestParam("file") MultipartFile file) {
@@ -113,7 +113,7 @@ public class ItemController {
      */
     @Operation(summary = "关联已上传的物品图片")
     @PostMapping(value = "/{itemId}/images", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:edit')")
     @OperLog(module = "item", type = "新增", desc = "关联已上传的物品图片")
     public R<ItemImageVo> attachImage(@PathVariable Long itemId,
                                       @Valid @RequestBody ItemImageDto dto) {
@@ -125,7 +125,7 @@ public class ItemController {
      */
     @Operation(summary = "删除物品图片")
     @DeleteMapping("/{itemId}/images/{imageId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:edit')")
     @OperLog(module = "item", type = "删除", desc = "删除物品图片")
     public R<Void> deleteImage(@PathVariable Long itemId, @PathVariable Long imageId) {
         itemService.deleteImage(itemId, imageId);
@@ -137,7 +137,7 @@ public class ItemController {
      */
     @Operation(summary = "快速搜索物品")
     @GetMapping("/search")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:item:list')")
     @DataScope
     public R<List<ItemVo>> search(@RequestParam String keyword) {
         return R.ok(itemService.search(keyword));

@@ -31,7 +31,7 @@ public class TransferReportController {
      */
     @Operation(summary = "调拨汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:transfer:list')")
     @DataScope
     public R<TransferReportVo.SummaryVo> getSummary(@Valid TransferReportQueryDto queryDto) {
         return R.ok(transferReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class TransferReportController {
      */
     @Operation(summary = "调拨趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:transfer:list')")
     @DataScope
     public R<TransferReportVo.TrendVo> getTrend(@Valid TransferReportQueryDto queryDto) {
         return R.ok(transferReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class TransferReportController {
      */
     @Operation(summary = "调拨分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:transfer:list')")
     @DataScope
     public R<TransferReportVo.DistributionVo> getDistribution(@Valid TransferReportQueryDto queryDto) {
         return R.ok(transferReportService.getDistribution(queryDto));

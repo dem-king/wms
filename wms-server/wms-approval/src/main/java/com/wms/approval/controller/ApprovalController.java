@@ -35,7 +35,7 @@ public class ApprovalController {
      */
     @Operation(summary = "审批单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('approval:pending:list','approval:history:list')")
     @DataScope
     public R<PageResult<ApprovalOrderVo>> pageApprovals(PageParam pageParam,
                                                          @RequestParam(required = false) Integer bizType,
@@ -48,7 +48,7 @@ public class ApprovalController {
      */
     @Operation(summary = "审批单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('approval:pending:list','approval:history:list')")
     @DataScope
     public R<ApprovalOrderVo> getApprovalById(@PathVariable Long id) {
         return R.ok(approvalService.getApprovalById(id));
@@ -59,7 +59,7 @@ public class ApprovalController {
      */
     @Operation(summary = "按业务单据查询审批单")
     @GetMapping("/biz")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('approval:pending:list','approval:history:list')")
     @DataScope
     public R<ApprovalOrderVo> getByBiz(@RequestParam Long bizId,
                                         @RequestParam @Min(0) Integer bizType) {
@@ -71,7 +71,7 @@ public class ApprovalController {
      */
     @Operation(summary = "审批通过")
     @PostMapping("/{id}/approve")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:pending:approve')")
     @OperLog(module = "approval", type = "审批", desc = "审批通过")
     public R<Void> approve(@PathVariable Long id, @Valid @RequestBody ApprovalActionDto dto) {
         approvalService.approve(id, dto);
@@ -83,7 +83,7 @@ public class ApprovalController {
      */
     @Operation(summary = "审批驳回")
     @PostMapping("/{id}/reject")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:pending:reject')")
     @OperLog(module = "approval", type = "审批", desc = "审批驳回")
     public R<Void> reject(@PathVariable Long id, @Valid @RequestBody ApprovalActionDto dto) {
         approvalService.reject(id, dto);
@@ -95,7 +95,7 @@ public class ApprovalController {
      */
     @Operation(summary = "撤回审批")
     @PostMapping("/{id}/revoke")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:pending:revoke')")
     @OperLog(module = "approval", type = "撤回", desc = "撤回审批")
     public R<Void> revoke(@PathVariable Long id) {
         approvalService.revoke(id);

@@ -36,7 +36,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "分页查询机器-备件关联")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:list')")
     @DataScope
     public R<PageResult<MachineSpareVo>> pageList(PageParam pageParam,
                                                   @RequestParam(required = false) String machineName,
@@ -49,7 +49,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "获取机器-备件关联详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:list')")
     @DataScope
     public R<MachineSpareVo> getById(@PathVariable Long id) {
         return R.ok(machineSpareService.getById(id));
@@ -60,7 +60,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "按机器编号查询备件列表")
     @GetMapping("/machine/{machineCode}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:list')")
     @DataScope
     public R<List<MachineSpareVo>> listByMachineCode(@PathVariable String machineCode) {
         return R.ok(machineSpareService.listByMachineCode(machineCode));
@@ -71,7 +71,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "新增机器-备件关联")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:add')")
     @OperLog(module = "item", type = "新增", desc = "新增机器-备件关联")
     public R<MachineSpareVo> create(@Valid @RequestBody MachineSpareDto dto) {
         return R.ok(machineSpareService.create(dto));
@@ -82,7 +82,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "更新机器-备件关联")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:edit')")
     @OperLog(module = "item", type = "更新", desc = "更新机器-备件关联")
     public R<MachineSpareVo> update(@PathVariable Long id, @Valid @RequestBody MachineSpareDto dto) {
         return R.ok(machineSpareService.update(id, dto));
@@ -93,7 +93,7 @@ public class MachineSpareController {
      */
     @Operation(summary = "删除机器-备件关联")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:machine-spare:delete')")
     @OperLog(module = "item", type = "删除", desc = "删除机器-备件关联")
     public R<Void> delete(@PathVariable Long id) {
         machineSpareService.delete(id);

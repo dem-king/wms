@@ -36,7 +36,7 @@ public class AreaController {
      */
     @Operation(summary = "按库房分页查询区域列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:area:list')")
     @DataScope
     public R<PageResult<AreaVo>> page(PageParam pageParam, @RequestParam Long warehouseId) {
         return R.ok(areaService.page(pageParam, warehouseId));
@@ -47,7 +47,7 @@ public class AreaController {
      */
     @Operation(summary = "按库房查询区域列表")
     @GetMapping("/warehouse/{warehouseId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:area:list')")
     @DataScope
     public R<List<AreaVo>> listByWarehouseId(@PathVariable Long warehouseId) {
         return R.ok(areaService.listByWarehouseId(warehouseId));
@@ -58,7 +58,7 @@ public class AreaController {
      */
     @Operation(summary = "新增区域")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:area:add')")
     @OperLog(module = "warehouse", type = "新增", desc = "新增区域")
     public R<AreaVo> create(@Valid @RequestBody AreaDto dto) {
         return R.ok(areaService.create(dto));
@@ -69,7 +69,7 @@ public class AreaController {
      */
     @Operation(summary = "更新区域")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:area:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新区域")
     public R<AreaVo> update(@PathVariable Long id, @Valid @RequestBody AreaDto dto) {
         return R.ok(areaService.update(id, dto));
@@ -80,7 +80,7 @@ public class AreaController {
      */
     @Operation(summary = "删除区域")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:area:delete')")
     @OperLog(module = "warehouse", type = "删除", desc = "删除区域")
     public R<Void> delete(@PathVariable Long id) {
         areaService.delete(id);

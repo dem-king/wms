@@ -38,7 +38,7 @@ public class CategoryController {
      */
     @Operation(summary = "主类目列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:list')")
     @DataScope
     public R<PageResult<CategoryVo>> page(PageParam pageParam) {
         return R.ok(categoryService.page(pageParam));
@@ -49,7 +49,7 @@ public class CategoryController {
      */
     @Operation(summary = "主类目列表")
     @GetMapping("/list")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:list')")
     @DataScope
     public R<List<CategoryVo>> listAll() {
         return R.ok(categoryService.listAll());
@@ -60,7 +60,7 @@ public class CategoryController {
      */
     @Operation(summary = "新增主类目")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:add')")
     @OperLog(module = "item", type = "新增", desc = "新增主类目")
     public R<CategoryVo> create(@Valid @RequestBody CategoryDto dto) {
         return R.ok(categoryService.create(dto));
@@ -71,7 +71,7 @@ public class CategoryController {
      */
     @Operation(summary = "更新主类目")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:edit')")
     @OperLog(module = "item", type = "更新", desc = "更新主类目")
     public R<CategoryVo> update(@PathVariable Long id, @Valid @RequestBody CategoryDto dto) {
         return R.ok(categoryService.update(id, dto));
@@ -82,7 +82,7 @@ public class CategoryController {
      */
     @Operation(summary = "删除主类目")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:delete')")
     @OperLog(module = "item", type = "删除", desc = "删除主类目")
     public R<Void> delete(@PathVariable Long id) {
         categoryService.delete(id);
@@ -94,7 +94,7 @@ public class CategoryController {
      */
     @Operation(summary = "细分类目列表")
     @GetMapping("/{categoryId}/sub")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:list')")
     @DataScope
     public R<PageResult<SubCategoryVo>> pageSubCategories(@PathVariable Long categoryId, PageParam pageParam) {
         return R.ok(categoryService.pageSubCategories(categoryId, pageParam));
@@ -105,7 +105,7 @@ public class CategoryController {
      */
     @Operation(summary = "细分类目列表")
     @GetMapping("/{categoryId}/sub/list")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:list')")
     @DataScope
     public R<List<SubCategoryVo>> listSubCategories(@PathVariable Long categoryId) {
         return R.ok(categoryService.listSubCategories(categoryId));
@@ -116,7 +116,7 @@ public class CategoryController {
      */
     @Operation(summary = "新增细分类目")
     @PostMapping("/{categoryId}/sub")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:add')")
     @OperLog(module = "item", type = "新增", desc = "新增细分类目")
     public R<SubCategoryVo> createSubCategory(@PathVariable Long categoryId,
                                               @Valid @RequestBody SubCategoryDto dto) {
@@ -128,7 +128,7 @@ public class CategoryController {
      */
     @Operation(summary = "更新细分类目")
     @PutMapping("/sub/{subId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:edit')")
     @OperLog(module = "item", type = "更新", desc = "更新细分类目")
     public R<SubCategoryVo> updateSubCategory(@PathVariable Long subId,
                                               @Valid @RequestBody SubCategoryDto dto) {
@@ -140,7 +140,7 @@ public class CategoryController {
      */
     @Operation(summary = "删除细分类目")
     @DeleteMapping("/sub/{subId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:category:delete')")
     @OperLog(module = "item", type = "删除", desc = "删除细分类目")
     public R<Void> deleteSubCategory(@PathVariable Long subId) {
         categoryService.deleteSubCategory(subId);

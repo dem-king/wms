@@ -2,7 +2,7 @@
   <div class="app-container list-page">
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('warehouse:warehouse:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -23,8 +23,8 @@
             <TableActionGroup
               :actions="[
                 { label: '可视化', type: 'success', icon: DataAnalysis, onClick: () => handleVisualize(row) },
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该库房吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'warehouse:warehouse:edit', onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'warehouse:warehouse:delete', confirmText: '确定删除该库房吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
@@ -90,11 +90,14 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, DataAnalysis } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import { getWarehousePage, addWarehouse, updateWarehouse, deleteWarehouse } from '@/api/warehouse/warehouse'
 import type { EntityId, WmsWarehouseVo, WmsWarehouseDto } from '@/types/warehouse'
 import { normalizePageTotal } from '@/utils/pagination'
 
 const router = useRouter()
+const userStore = useUserStore()
+
 const loading = ref(false)
 const tableData = ref<WmsWarehouseVo[]>([])
 const total = ref(0)

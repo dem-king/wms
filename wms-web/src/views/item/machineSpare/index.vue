@@ -2,7 +2,7 @@
   <div class="app-container list-page">
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('item:machine-spare:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -17,8 +17,8 @@
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该关联记录吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'item:machine-spare:edit', onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'item:machine-spare:delete', confirmText: '确定删除该关联记录吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
@@ -73,10 +73,13 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import { getMachineSpareList, addMachineSpare, updateMachineSpare, deleteMachineSpare } from '@/api/item/machineSpare'
 import { getItemList } from '@/api/item/item'
 import type { EntityId, MachineSpareVo, MachineSpareDto } from '@/types/business'
 import type { WmsItemVo } from '@/types/item'
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const tableData = ref<MachineSpareVo[]>([])

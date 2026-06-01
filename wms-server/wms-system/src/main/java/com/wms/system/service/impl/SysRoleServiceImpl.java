@@ -7,6 +7,7 @@ import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DataScopeConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.event.PermissionCacheEvictEvent;
+import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.dto.SysRoleDto;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysRoleDept;
@@ -28,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -280,33 +283,48 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRoleMenus(Long id, List<Long> menuIds) {
-        // 先逻辑删除旧的角色菜单关联
-        List<SysRoleMenu> oldRoleMenus = sysRoleMenuMapper.selectList(
-                new LambdaQueryWrapper<SysRoleMenu>()
-                        .eq(SysRoleMenu::getRoleId, id)
-        );
-        List<SysRoleMenu> updateMenuList = new ArrayList<>();
-        for (SysRoleMenu oldMenu : oldRoleMenus) {
-            SysRoleMenu updateMenu = new SysRoleMenu();
-            updateMenu.setId(oldMenu.getId());
-            updateMenu.setDelFlag(DelFlagConstants.DELETED);
-        
-            updateMenuList.add(updateMenu);
+        String updateBy = SecurityUtil.getCurrentUsername();
+        List<SysRoleMenu> roleMenus = sysRoleMenuMapper.selectAllByRoleId(id);
+        Map<Long, SysRoleMenu> activeMenuMap = new LinkedHashMap<>();
+        Map<Long, SysRoleMenu> deletedMenuMap = new LinkedHashMap<>();
+        for (SysRoleMenu roleMenu : roleMenus) {
+            if (roleMenu.getMenuId() == null) {
+                continue;
+            }
+            if (DelFlagConstants.DELETED == roleMenu.getDelFlag()) {
+                deletedMenuMap.putIfAbsent(roleMenu.getMenuId(), roleMenu);
+                continue;
+            }
+            activeMenuMap.putIfAbsent(roleMenu.getMenuId(), roleMenu);
         }
-        if (!updateMenuList.isEmpty()) {
-            Db.updateBatchById(updateMenuList);
+        Set<Long> targetMenuIds = normalizeIds(menuIds);
+        for (Map.Entry<Long, SysRoleMenu> entry : activeMenuMap.entrySet()) {
+            if (!targetMenuIds.contains(entry.getKey())) {
+                sysRoleMenuMapper.updateDelFlagById(
+                        entry.getValue().getId(),
+                        DelFlagConstants.DELETED,
+                        updateBy
+                );
+            }
         }
-        // 批量插入新的角色菜单关联
-        if (menuIds != null && !menuIds.isEmpty()) {
-            List<SysRoleMenu> roleMenuList = new ArrayList<>();
-            for (Long menuId : menuIds) {
+        for (Long menuId : targetMenuIds) {
+            if (activeMenuMap.containsKey(menuId)) {
+                continue;
+            }
+            SysRoleMenu deletedMenu = deletedMenuMap.get(menuId);
+            if (deletedMenu != null) {
+                sysRoleMenuMapper.updateDelFlagById(
+                        deletedMenu.getId(),
+                        DelFlagConstants.NORMAL,
+                        updateBy
+                );
+                continue;
+            }
+            if (menuId != null) {
                 SysRoleMenu roleMenu = new SysRoleMenu();
                 roleMenu.setRoleId(id);
                 roleMenu.setMenuId(menuId);
-                roleMenuList.add(roleMenu);
-            }
-            if (!roleMenuList.isEmpty()) {
-                Db.saveBatch(roleMenuList);
+                sysRoleMenuMapper.insert(roleMenu);
             }
         }
     }
@@ -337,33 +355,49 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     public void assignRolePermissions(Long id, List<Long> permIds) {
         Set<Long> affectedUserIds = findUserIdsByRoleId(id);
-        // 先逻辑删除旧的角色权限关联
-        List<SysRolePermission> oldRolePerms = sysRolePermissionMapper.selectList(
-                new LambdaQueryWrapper<SysRolePermission>()
-                        .eq(SysRolePermission::getRoleId, id)
-        );
-        List<SysRolePermission> updatePermList = new ArrayList<>();
-        for (SysRolePermission oldPerm : oldRolePerms) {
-            SysRolePermission updatePerm = new SysRolePermission();
-            updatePerm.setId(oldPerm.getId());
-            updatePerm.setDelFlag(DelFlagConstants.DELETED);
-    
-            updatePermList.add(updatePerm);
+        String updateBy = SecurityUtil.getCurrentUsername();
+        List<SysRolePermission> rolePermissions = sysRolePermissionMapper.selectAllByRoleId(id);
+        Map<Long, SysRolePermission> activePermissionMap = new LinkedHashMap<>();
+        Map<Long, SysRolePermission> deletedPermissionMap = new LinkedHashMap<>();
+        for (SysRolePermission rolePermission : rolePermissions) {
+            if (rolePermission.getPermId() == null) {
+                continue;
+            }
+            if (DelFlagConstants.DELETED == rolePermission.getDelFlag()) {
+                deletedPermissionMap.putIfAbsent(rolePermission.getPermId(), rolePermission);
+                continue;
+            }
+            activePermissionMap.putIfAbsent(rolePermission.getPermId(), rolePermission);
         }
-        if (!updatePermList.isEmpty()) {
-            Db.updateBatchById(updatePermList);
+        Set<Long> targetPermIds = normalizeIds(permIds);
+        for (Map.Entry<Long, SysRolePermission> entry : activePermissionMap.entrySet()) {
+            if (!targetPermIds.contains(entry.getKey())) {
+                sysRolePermissionMapper.updateDelFlagById(
+                        entry.getValue().getId(),
+                        DelFlagConstants.DELETED,
+                        updateBy
+                );
+            }
         }
-        // 批量插入新的角色权限关联
-        if (permIds != null && !permIds.isEmpty()) {
-            List<SysRolePermission> rolePermList = new ArrayList<>();
-            for (Long permId : permIds) {
+        for (Long permId : targetPermIds) {
+            if (activePermissionMap.containsKey(permId)) {
+                continue;
+            }
+            SysRolePermission deletedPermission = deletedPermissionMap.get(permId);
+            if (deletedPermission != null) {
+                sysRolePermissionMapper.updateDelFlagById(
+                        deletedPermission.getId(),
+                        DelFlagConstants.NORMAL,
+                        updateBy
+                );
+                continue;
+            }
+            // 仅对真正新增的权限插入新关联，避免唯一索引重复冲突。
+            if (permId != null) {
                 SysRolePermission rolePerm = new SysRolePermission();
                 rolePerm.setRoleId(id);
                 rolePerm.setPermId(permId);
-                rolePermList.add(rolePerm);
-            }
-            if (!rolePermList.isEmpty()) {
-                Db.saveBatch(rolePermList);
+                sysRolePermissionMapper.insert(rolePerm);
             }
         }
         publishPermissionCacheEvictEvent(affectedUserIds);
@@ -493,20 +527,57 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @param dto 角色参数
      */
     private void saveRoleDeptScope(Long roleId, SysRoleDto dto) {
-        clearRoleDeptScope(roleId);
         if (dto.getDataScope() == null || dto.getDataScope() != DataScopeConstants.SCOPE_CUSTOM) {
+            clearRoleDeptScope(roleId);
             return;
         }
         if (dto.getDeptIds() == null || dto.getDeptIds().isEmpty()) {
             throw new BizException("自定义数据范围必须选择部门");
         }
-        List<SysRoleDept> roleDeptList = dto.getDeptIds().stream().distinct().map(deptId -> {
-            SysRoleDept roleDept = new SysRoleDept();
-            roleDept.setRoleId(roleId);
-            roleDept.setDeptId(deptId);
-            return roleDept;
-        }).collect(Collectors.toList());
-        Db.saveBatch(roleDeptList);
+        String updateBy = SecurityUtil.getCurrentUsername();
+        List<SysRoleDept> roleDepts = sysRoleDeptMapper.selectAllByRoleId(roleId);
+        Map<Long, SysRoleDept> activeDeptMap = new LinkedHashMap<>();
+        Map<Long, SysRoleDept> deletedDeptMap = new LinkedHashMap<>();
+        for (SysRoleDept roleDept : roleDepts) {
+            if (roleDept.getDeptId() == null) {
+                continue;
+            }
+            if (DelFlagConstants.DELETED == roleDept.getDelFlag()) {
+                deletedDeptMap.putIfAbsent(roleDept.getDeptId(), roleDept);
+                continue;
+            }
+            activeDeptMap.putIfAbsent(roleDept.getDeptId(), roleDept);
+        }
+        Set<Long> targetDeptIds = normalizeIds(dto.getDeptIds());
+        for (Map.Entry<Long, SysRoleDept> entry : activeDeptMap.entrySet()) {
+            if (!targetDeptIds.contains(entry.getKey())) {
+                sysRoleDeptMapper.updateDelFlagById(
+                        entry.getValue().getId(),
+                        DelFlagConstants.DELETED,
+                        updateBy
+                );
+            }
+        }
+        for (Long deptId : targetDeptIds) {
+            if (activeDeptMap.containsKey(deptId)) {
+                continue;
+            }
+            SysRoleDept deletedDept = deletedDeptMap.get(deptId);
+            if (deletedDept != null) {
+                sysRoleDeptMapper.updateDelFlagById(
+                        deletedDept.getId(),
+                        DelFlagConstants.NORMAL,
+                        updateBy
+                );
+                continue;
+            }
+            if (deptId != null) {
+                SysRoleDept roleDept = new SysRoleDept();
+                roleDept.setRoleId(roleId);
+                roleDept.setDeptId(deptId);
+                sysRoleDeptMapper.insert(roleDept);
+            }
+        }
     }
 
     /**
@@ -515,20 +586,23 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @param roleId 角色ID
      */
     private void clearRoleDeptScope(Long roleId) {
-        List<SysRoleDept> oldRoleDepts = sysRoleDeptMapper.selectList(
-                new LambdaQueryWrapper<SysRoleDept>()
-                        .eq(SysRoleDept::getRoleId, roleId)
-        );
-        List<SysRoleDept> updateList = new ArrayList<>();
+        String updateBy = SecurityUtil.getCurrentUsername();
+        List<SysRoleDept> oldRoleDepts = sysRoleDeptMapper.selectAllByRoleId(roleId);
         for (SysRoleDept oldRoleDept : oldRoleDepts) {
-            SysRoleDept update = new SysRoleDept();
-            update.setId(oldRoleDept.getId());
-            update.setDelFlag(DelFlagConstants.DELETED);
-            updateList.add(update);
+            if (DelFlagConstants.DELETED == oldRoleDept.getDelFlag()) {
+                continue;
+            }
+            sysRoleDeptMapper.updateDelFlagById(oldRoleDept.getId(), DelFlagConstants.DELETED, updateBy);
         }
-        if (!updateList.isEmpty()) {
-            Db.updateBatchById(updateList);
+    }
+
+    private Set<Long> normalizeIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptySet();
         }
+        return ids.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private Set<Long> findUserIdsByRoleId(Long roleId) {

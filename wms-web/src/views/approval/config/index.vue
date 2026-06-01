@@ -4,6 +4,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Edit, Plus, Refresh, Search } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import {
   addApprovalConfig,
   deleteApprovalConfig,
@@ -41,6 +42,8 @@ interface ConfigFormModel {
   timeoutAction: number
   nodes: ApprovalNodeDto[]
 }
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const tableData = ref<ApprovalConfigVo[]>([])
@@ -261,7 +264,7 @@ onMounted(() => {
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('approval:config:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -297,8 +300,8 @@ onMounted(() => {
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该审批配置吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'approval:config:edit', onClick: () => handleEdit(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'approval:config:delete', confirmText: '确定删除该审批配置吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -377,7 +380,7 @@ onMounted(() => {
       <el-divider content-position="left">审批节点</el-divider>
       <div v-if="showNodes">
         <div class="detail-toolbar">
-          <el-button type="primary" plain :icon="Plus" @click="addNode">新增节点</el-button>
+          <el-button v-if="userStore.hasPermission('approval:config:add')" type="primary" plain :icon="Plus" @click="addNode">新增节点</el-button>
         </div>
         <el-table :data="form.nodes" border>
           <el-table-column label="节点顺序" min-width="100">

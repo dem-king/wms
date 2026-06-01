@@ -34,7 +34,7 @@ public class TransferController {
      */
     @Operation(summary = "调拨单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:list')")
     @DataScope
     public R<PageResult<TransferOrderVo>> pageOrders(PageParam pageParam,
                                                       @RequestParam(required = false) Integer status,
@@ -47,7 +47,7 @@ public class TransferController {
      */
     @Operation(summary = "调拨单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:list')")
     @DataScope
     public R<TransferOrderVo> getOrderById(@PathVariable Long id) {
         return R.ok(transferService.getOrderById(id));
@@ -58,7 +58,7 @@ public class TransferController {
      */
     @Operation(summary = "新增调拨单")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:add')")
     @OperLog(module = "business", type = "新增", desc = "新增调拨单")
     public R<TransferOrderVo> createOrder(@Valid @RequestBody TransferOrderDto dto) {
         return R.ok(transferService.createOrder(dto));
@@ -69,7 +69,7 @@ public class TransferController {
      */
     @Operation(summary = "更新调拨单")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:edit')")
     @OperLog(module = "business", type = "修改", desc = "更新调拨单")
     public R<TransferOrderVo> updateOrder(@PathVariable Long id,
                                           @Valid @RequestBody TransferOrderDto dto) {
@@ -81,7 +81,7 @@ public class TransferController {
      */
     @Operation(summary = "删除调拨单")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:delete')")
     @OperLog(module = "business", type = "删除", desc = "删除调拨单")
     public R<Void> deleteOrder(@PathVariable Long id) {
         transferService.deleteOrder(id);
@@ -93,7 +93,7 @@ public class TransferController {
      */
     @Operation(summary = "提交调拨单")
     @PostMapping("/{id}/submit")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:transfer:submit')")
     @OperLog(module = "business", type = "提交", desc = "提交调拨单")
     public R<Void> submitOrder(@PathVariable Long id) {
         transferService.submitOrder(id);

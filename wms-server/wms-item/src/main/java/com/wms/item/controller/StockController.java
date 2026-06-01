@@ -36,7 +36,7 @@ public class StockController {
      */
     @Operation(summary = "库存分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:stock:list')")
     @DataScope
     public R<PageResult<StockVo>> page(PageParam pageParam,
                                        @RequestParam(required = false) Long warehouseId,
@@ -50,7 +50,7 @@ public class StockController {
      */
     @Operation(summary = "物品库存详情")
     @GetMapping("/{itemId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:stock:list')")
     @DataScope
     public R<List<StockVo>> getByItemId(@PathVariable Long itemId) {
         return R.ok(stockService.getByItemId(itemId));
@@ -61,7 +61,7 @@ public class StockController {
      */
     @Operation(summary = "库存预警列表")
     @GetMapping("/alert")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:stock:list')")
     @DataScope
     public R<List<StockVo>> getAlertList() {
         return R.ok(stockService.getAlertList());
@@ -73,7 +73,7 @@ public class StockController {
      */
     @Operation(summary = "设置库存预警阈值")
     @PutMapping("/{itemId}/threshold")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:stock:edit')")
     @OperLog(module = "stock", type = "更新", desc = "设置库存预警阈值")
     public R<StockVo> updateThreshold(@PathVariable Long itemId,
                                       @Valid @RequestBody StockThresholdDto dto) {

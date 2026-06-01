@@ -37,7 +37,7 @@
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '阈值设置', type: 'primary', onClick: () => handleEditThreshold(row) },
+              { label: '阈值设置', type: 'primary', permission: 'item:stock:edit', onClick: () => handleEditThreshold(row) },
             ]"
           />
         </template>

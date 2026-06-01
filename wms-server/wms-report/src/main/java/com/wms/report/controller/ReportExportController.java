@@ -34,7 +34,7 @@ public class ReportExportController {
      */
     @Operation(summary = "导出Excel")
     @PostMapping("/excel")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('report:stock:export','report:inbound:export','report:outbound:export','report:borrow-return:export','report:scrap:export','report:transfer:export','report:alert:export','report:cost:export')")
     @DataScope
     @OperLog(module = "report", type = "导出", desc = "导出Excel报表")
     public ResponseEntity<byte[]> exportExcel(@Valid @RequestBody ExportQueryDto queryDto) {
@@ -50,7 +50,7 @@ public class ReportExportController {
      */
     @Operation(summary = "导出PDF")
     @PostMapping("/pdf")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('report:stock:export','report:inbound:export','report:outbound:export','report:borrow-return:export','report:scrap:export','report:transfer:export','report:alert:export','report:cost:export')")
     @DataScope
     @OperLog(module = "report", type = "导出", desc = "导出PDF报表")
     public ResponseEntity<byte[]> exportPdf(@Valid @RequestBody ExportQueryDto queryDto) {

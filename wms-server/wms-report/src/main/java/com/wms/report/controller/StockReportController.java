@@ -31,7 +31,7 @@ public class StockReportController {
      */
     @Operation(summary = "库存汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:stock:list')")
     @DataScope
     public R<StockReportVo.SummaryVo> getSummary(@Valid ReportQueryDto queryDto) {
         return R.ok(stockReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class StockReportController {
      */
     @Operation(summary = "库存趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:stock:list')")
     @DataScope
     public R<StockReportVo.TrendVo> getTrend(@Valid ReportQueryDto queryDto) {
         return R.ok(stockReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class StockReportController {
      */
     @Operation(summary = "库存分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:stock:list')")
     @DataScope
     public R<StockReportVo.DistributionVo> getDistribution(@Valid ReportQueryDto queryDto) {
         return R.ok(stockReportService.getDistribution(queryDto));

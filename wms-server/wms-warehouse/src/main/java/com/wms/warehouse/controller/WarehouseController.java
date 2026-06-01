@@ -36,7 +36,7 @@ public class WarehouseController {
      */
     @Operation(summary = "查询所有库房列表")
     @GetMapping("/list")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:warehouse:list')")
     @DataScope
     public R<List<WarehouseVo>> listAll() {
         return R.ok(warehouseService.listAll());
@@ -47,7 +47,7 @@ public class WarehouseController {
      */
     @Operation(summary = "库房分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:warehouse:list')")
     @DataScope
     public R<PageResult<WarehouseVo>> page(PageParam pageParam,
                                            @RequestParam(required = false) Integer status,
@@ -60,7 +60,7 @@ public class WarehouseController {
      */
     @Operation(summary = "新增库房")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:warehouse:add')")
     @OperLog(module = "warehouse", type = "新增", desc = "新增库房")
     public R<WarehouseVo> create(@Valid @RequestBody WarehouseDto dto) {
         return R.ok(warehouseService.create(dto));
@@ -71,7 +71,7 @@ public class WarehouseController {
      */
     @Operation(summary = "更新库房")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:warehouse:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新库房")
     public R<WarehouseVo> update(@PathVariable Long id, @Valid @RequestBody WarehouseDto dto) {
         return R.ok(warehouseService.update(id, dto));
@@ -82,7 +82,7 @@ public class WarehouseController {
      */
     @Operation(summary = "删除库房")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:warehouse:delete')")
     @OperLog(module = "warehouse", type = "删除", desc = "删除库房")
     public R<Void> delete(@PathVariable Long id) {
         warehouseService.delete(id);

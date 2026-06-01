@@ -35,13 +35,13 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleGenerate">批量生成</el-button>
+        <el-button v-if="userStore.hasPermission('item:label:generate')" type="primary" plain :icon="Plus" @click="handleGenerate">批量生成</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="warning" plain :icon="Clock" @click="handleIdleLabels">闲置标签</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="success" plain :icon="Printer" :disabled="selectedIds.length === 0" @click="handleBatchPrint">批量打印</el-button>
+        <el-button v-if="userStore.hasPermission('item:label:print')" type="success" plain :icon="Printer" :disabled="selectedIds.length === 0" @click="handleBatchPrint">批量打印</el-button>
       </el-col>
     </el-row>
 
@@ -76,8 +76,8 @@
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '绑定', type: 'primary', visible: !row.itemId, onClick: () => handleBind(row) },
-              { label: '状态', type: 'warning', onClick: () => handleStatusChange(row) },
+              { label: '绑定', type: 'primary', permission: 'item:label:bind', visible: !row.itemId, onClick: () => handleBind(row) },
+              { label: '状态', type: 'warning', permission: 'item:label:status', onClick: () => handleStatusChange(row) },
               { label: '详情', type: 'primary', icon: View, onClick: () => handleView(row) },
             ]"
           />
@@ -248,6 +248,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh, Plus, Printer, View, Clock } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import QrBarCode from '@/components/QrBarCode/index.vue'
 import LabelBind from './components/LabelBind.vue'
 import LabelPrintComponent from './components/LabelPrint.vue'
@@ -286,6 +287,8 @@ function labelStatusTagType(status: number): TagType {
 }
 
 /** 搜索栏 */
+const userStore = useUserStore()
+
 const loading = ref(false)
 const tableData = ref<ElectronicLabelVo[]>([])
 const total = ref(0)

@@ -31,7 +31,7 @@ public class InboundReportController {
      */
     @Operation(summary = "入库汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:inbound:list')")
     @DataScope
     public R<InboundReportVo.SummaryVo> getSummary(@Valid ReportQueryDto queryDto) {
         return R.ok(inboundReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class InboundReportController {
      */
     @Operation(summary = "入库趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:inbound:list')")
     @DataScope
     public R<InboundReportVo.TrendVo> getTrend(@Valid ReportQueryDto queryDto) {
         return R.ok(inboundReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class InboundReportController {
      */
     @Operation(summary = "入库分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:inbound:list')")
     @DataScope
     public R<InboundReportVo.DistributionVo> getDistribution(@Valid ReportQueryDto queryDto) {
         return R.ok(inboundReportService.getDistribution(queryDto));

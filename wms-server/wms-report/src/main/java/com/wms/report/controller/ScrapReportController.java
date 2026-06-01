@@ -31,7 +31,7 @@ public class ScrapReportController {
      */
     @Operation(summary = "报废汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:scrap:list')")
     @DataScope
     public R<ScrapReportVo.SummaryVo> getSummary(@Valid ReportQueryDto queryDto) {
         return R.ok(scrapReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class ScrapReportController {
      */
     @Operation(summary = "报废趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:scrap:list')")
     @DataScope
     public R<ScrapReportVo.TrendVo> getTrend(@Valid ReportQueryDto queryDto) {
         return R.ok(scrapReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class ScrapReportController {
      */
     @Operation(summary = "报废分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:scrap:list')")
     @DataScope
     public R<ScrapReportVo.DistributionVo> getDistribution(@Valid ReportQueryDto queryDto) {
         return R.ok(scrapReportService.getDistribution(queryDto));

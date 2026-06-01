@@ -33,7 +33,7 @@ public class CostAccountController {
      */
     @Operation(summary = "费用核算汇总")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:cost:list')")
     @DataScope
     public R<CostAccountVo> getSummary(@RequestParam @Min(2000) Integer year) {
         return R.ok(costAccountService.getSummary(year));
@@ -44,7 +44,7 @@ public class CostAccountController {
      */
     @Operation(summary = "获取费用核算配置")
     @GetMapping("/config")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('report:cost:list')")
     @DataScope
     public R<CostAccountVo> getConfig() {
         return R.ok(costAccountService.getConfig());
@@ -55,7 +55,7 @@ public class CostAccountController {
      */
     @Operation(summary = "更新费用核算配置")
     @PutMapping("/config")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('report:cost:edit')")
     @OperLog(module = "report", type = "修改", desc = "更新费用核算配置")
     public R<CostAccountVo> updateConfig(@Valid @RequestBody CostAccountConfigDto dto) {
         return R.ok(costAccountService.updateConfig(dto));

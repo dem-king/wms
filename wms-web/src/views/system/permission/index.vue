@@ -13,35 +13,26 @@
       </el-form-item>
     </el-form>
 
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button v-if="userStore.hasPermission('system:perm:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
-      </el-col>
-    </el-row>
-
     <div class="table-section">
       <el-table v-loading="loading" :data="tableData" border height="100%">
         <el-table-column prop="permName" label="权限名称" min-width="120" />
         <el-table-column prop="permCode" label="权限编码" min-width="150" />
         <el-table-column prop="permType" label="权限类型" min-width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.permType === 1" type="warning">菜单</el-tag>
-            <el-tag v-else-if="row.permType === 2" type="success">按钮</el-tag>
-            <el-tag v-else type="info">数据</el-tag>
+            <el-tag :type="getPermTypeTagType(row.permType)">{{ getPermTypeLabel(row.permType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="menuName" label="关联菜单" min-width="120" />
         <el-table-column prop="status" label="状态" min-width="80">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
+            <el-tag :type="getStatusTagType(row.status)">{{ getStatusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:perm:edit', onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, permission: 'system:perm:delete', confirmText: '确定删除该权限吗？', onClick: () => handleDelete(row.id) },
+                { label: '查看详情', type: 'primary', icon: View, onClick: () => handleViewDetail(row) },
               ]"
             />
           </template>
@@ -62,42 +53,26 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑权限' : '新增权限'" width="500px" @close="handleClose">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="权限名称" prop="permName">
-          <el-input v-model="form.permName" placeholder="请输入权限名称" />
-        </el-form-item>
-        <el-form-item label="权限编码" prop="permCode">
-          <el-input v-model="form.permCode" placeholder="请输入权限编码" />
-        </el-form-item>
-        <el-form-item label="权限类型" prop="permType">
-          <el-select v-model="form.permType" placeholder="请选择权限类型">
-            <el-option label="菜单" :value="1" />
-            <el-option label="按钮" :value="2" />
-            <el-option label="数据" :value="3" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="关联菜单" prop="menuId">
-          <el-tree-select
-            v-model="form.menuId"
-            :data="menuTreeForSelect"
-            :props="{ label: 'menuName', children: 'children' }"
-            value-key="id"
-            placeholder="请选择关联菜单"
-            check-strictly
-            default-expand-all
-          />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
+    <el-dialog v-model="detailVisible" title="权限详情" width="560px" @close="handleDetailClose">
+      <el-descriptions v-if="currentPermission" :column="1" border>
+        <el-descriptions-item label="权限名称">{{ currentPermission.permName }}</el-descriptions-item>
+        <el-descriptions-item label="权限编码">{{ currentPermission.permCode }}</el-descriptions-item>
+        <el-descriptions-item label="权限类型">
+          <el-tag :type="getPermTypeTagType(currentPermission.permType)">
+            {{ getPermTypeLabel(currentPermission.permType) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="关联菜单">{{ currentPermission.menuName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="菜单ID">{{ currentPermission.menuId ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusTagType(currentPermission.status)">
+            {{ getStatusLabel(currentPermission.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ currentPermission.createTime || '-' }}</el-descriptions-item>
+      </el-descriptions>
       <template #footer>
-        <el-button @click="handleClose">取 消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
+        <el-button type="primary" @click="handleDetailClose">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -105,22 +80,17 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
-import { ElMessage } from 'element-plus'
-import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Search, Refresh, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
-import { getPermissionList, addPermission, updatePermission, deletePermission } from '@/api/system/permission'
-import { getMenuTree } from '@/api/system/menu'
-import { useUserStore } from '@/store/modules/user'
-import type { EntityId, SysPermissionVo } from '@/types/system'
-import type { MenuTreeNode } from '@/types/auth'
+import { getPermissionList } from '@/api/system/permission'
+import type { SysPermissionVo } from '@/types/system'
 import { normalizePageTotal } from '@/utils/pagination'
 
-const userStore = useUserStore()
 const loading = ref(false)
 const tableData = ref<SysPermissionVo[]>([])
 const total = ref(0)
-const menuTreeForSelect = ref<MenuTreeNode[]>([])
+const detailVisible = ref(false)
+const currentPermission = ref<SysPermissionVo | null>(null)
 
 const queryParams = reactive({
   page: 1,
@@ -129,25 +99,10 @@ const queryParams = reactive({
   permCode: '',
 })
 
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref<FormInstance>()
-const submitLoading = ref(false)
-
-const form = reactive({
-  id: undefined as EntityId | undefined,
-  permName: '',
-  permCode: '',
-  permType: 2,
-  menuId: undefined as EntityId | undefined,
-  status: 1,
-})
-
-const rules: FormRules = {
-  permName: [{ required: true, message: '请输入权限名称', trigger: 'blur' }],
-  permCode: [{ required: true, message: '请输入权限编码', trigger: 'blur' }],
-  permType: [{ required: true, message: '请选择权限类型', trigger: 'change' }],
-  menuId: [{ required: true, message: '请选择关联菜单', trigger: 'change' }],
+const permTypeMap: Record<number, { label: string; tagType: 'success' | 'warning' | 'info' }> = {
+  1: { label: '菜单', tagType: 'warning' },
+  2: { label: '按钮', tagType: 'success' },
+  3: { label: '数据', tagType: 'info' },
 }
 
 async function handleQuery() {
@@ -168,55 +123,34 @@ function handleReset() {
   handleQuery()
 }
 
-function handleAdd() {
-  isEdit.value = false
-  dialogVisible.value = true
+function getPermTypeLabel(permType: number) {
+  return permTypeMap[permType]?.label || '未知'
 }
 
-function handleEdit(row: SysPermissionVo) {
-  isEdit.value = true
-  Object.assign(form, { id: row.id, permName: row.permName, permCode: row.permCode, permType: row.permType, menuId: row.menuId, status: row.status })
-  dialogVisible.value = true
+function getPermTypeTagType(permType: number) {
+  return permTypeMap[permType]?.tagType || 'info'
 }
 
-async function handleSubmit() {
-  await formRef.value?.validate()
-  submitLoading.value = true
-  try {
-    if (isEdit.value && form.id) {
-      await updatePermission(form.id, { permName: form.permName, permCode: form.permCode, permType: form.permType, menuId: form.menuId!, status: form.status })
-      ElMessage.success('编辑成功')
-    } else {
-      await addPermission({ permName: form.permName, permCode: form.permCode, permType: form.permType, menuId: form.menuId!, status: form.status })
-      ElMessage.success('新增成功')
-    }
-    handleClose()
-    handleQuery()
-  } finally {
-    submitLoading.value = false
-  }
+function getStatusLabel(status: number) {
+  return status === 1 ? '启用' : '禁用'
 }
 
-async function handleDelete(id: EntityId) {
-  await deletePermission(id)
-  ElMessage.success('删除成功')
-  handleQuery()
+function getStatusTagType(status: number) {
+  return status === 1 ? 'success' : 'danger'
 }
 
-function handleClose() {
-  dialogVisible.value = false
-  formRef.value?.resetFields()
-  Object.assign(form, { id: undefined, permName: '', permCode: '', permType: 2, menuId: undefined, status: 1 })
+function handleViewDetail(row: SysPermissionVo) {
+  currentPermission.value = row
+  detailVisible.value = true
 }
 
-async function loadMenuTree() {
-  const res = await getMenuTree()
-  menuTreeForSelect.value = res.data
+function handleDetailClose() {
+  detailVisible.value = false
+  currentPermission.value = null
 }
 
 onMounted(() => {
   handleQuery()
-  loadMenuTree()
 })
 </script>
 
@@ -242,10 +176,6 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 16px;
-}
-
-.mb8 {
-  margin-bottom: 8px;
 }
 
 .pagination {

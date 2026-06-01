@@ -34,7 +34,7 @@ public class ApprovalConfigController {
      */
     @Operation(summary = "审批配置分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:config:list')")
     @DataScope
     public R<PageResult<ApprovalConfigVo>> pageConfigs(PageParam pageParam,
                                                        @RequestParam(required = false) Integer bizType) {
@@ -46,7 +46,7 @@ public class ApprovalConfigController {
      */
     @Operation(summary = "审批配置详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:config:list')")
     @DataScope
     public R<ApprovalConfigVo> getConfigById(@PathVariable Long id) {
         return R.ok(approvalConfigService.getConfigById(id));
@@ -57,7 +57,7 @@ public class ApprovalConfigController {
      */
     @Operation(summary = "新增审批配置")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:config:add')")
     @OperLog(module = "approval", type = "新增", desc = "新增审批配置")
     public R<ApprovalConfigVo> createConfig(@Valid @RequestBody ApprovalConfigDto dto) {
         return R.ok(approvalConfigService.createConfig(dto));
@@ -68,7 +68,7 @@ public class ApprovalConfigController {
      */
     @Operation(summary = "更新审批配置")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:config:edit')")
     @OperLog(module = "approval", type = "更新", desc = "更新审批配置")
     public R<ApprovalConfigVo> updateConfig(@PathVariable Long id, @Valid @RequestBody ApprovalConfigDto dto) {
         return R.ok(approvalConfigService.updateConfig(id, dto));
@@ -79,7 +79,7 @@ public class ApprovalConfigController {
      */
     @Operation(summary = "删除审批配置")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('approval:config:delete')")
     @OperLog(module = "approval", type = "删除", desc = "删除审批配置")
     public R<Void> deleteConfig(@PathVariable Long id) {
         approvalConfigService.deleteConfig(id);

@@ -32,7 +32,7 @@ public class StockAlertController {
      */
     @Operation(summary = "预警记录分页查询")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('monitor:stock-alert:list')")
     @DataScope
     public R<PageResult<StockAlertVo>> page(PageParam pageParam,
                                             @RequestParam(required = false) String alertType,
@@ -46,7 +46,7 @@ public class StockAlertController {
      */
     @Operation(summary = "处理预警记录")
     @PutMapping("/{id}/resolve")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('monitor:stock-alert:resolve')")
     @OperLog(module = "monitor", type = "处理", desc = "处理库存预警")
     public R<StockAlertVo> resolve(@PathVariable Long id) {
         return R.ok(stockAlertService.resolve(id));

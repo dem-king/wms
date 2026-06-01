@@ -37,7 +37,7 @@ public class BinController {
      */
     @Operation(summary = "按存放柜分页查询库位列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:list')")
     @DataScope
     public R<PageResult<BinVo>> page(PageParam pageParam, @RequestParam Long cabinetId) {
         return R.ok(binService.page(pageParam, cabinetId));
@@ -48,7 +48,7 @@ public class BinController {
      */
     @Operation(summary = "按存放柜查询库位列表")
     @GetMapping("/cabinet/{cabinetId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:list')")
     @DataScope
     public R<List<BinVo>> listByCabinetId(@PathVariable Long cabinetId) {
         return R.ok(binService.listByCabinetId(cabinetId));
@@ -59,7 +59,7 @@ public class BinController {
      */
     @Operation(summary = "新增库位")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:add')")
     @OperLog(module = "warehouse", type = "新增", desc = "新增库位")
     public R<BinVo> create(@Valid @RequestBody BinDto dto) {
         return R.ok(binService.create(dto));
@@ -70,7 +70,7 @@ public class BinController {
      */
     @Operation(summary = "更新库位")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新库位")
     public R<BinVo> update(@PathVariable Long id, @Valid @RequestBody BinDto dto) {
         return R.ok(binService.update(id, dto));
@@ -81,7 +81,7 @@ public class BinController {
      */
     @Operation(summary = "删除库位")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:delete')")
     @OperLog(module = "warehouse", type = "删除", desc = "删除库位")
     public R<Void> delete(@PathVariable Long id) {
         binService.delete(id);
@@ -93,7 +93,7 @@ public class BinController {
      */
     @Operation(summary = "批量生成库位")
     @PostMapping("/cabinet/{cabinetId}/batch")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:bin:batch')")
     @OperLog(module = "warehouse", type = "新增", desc = "批量生成库位")
     public R<List<BinVo>> batchCreate(@PathVariable Long cabinetId,
                                       @RequestParam @Min(1) Integer rows,

@@ -27,6 +27,9 @@ public final class ReportConstants {
     /** 预警类型：库存超储 */
     public static final String ALERT_TYPE_STOCK_HIGH = "STOCK_HIGH";
 
+    /** 预警类型：消耗品需补货 */
+    public static final String ALERT_TYPE_REPLENISH = "REPLENISH";
+
     /** 预警类型名称：库存不足 */
     public static final String ALERT_TYPE_NAME_STOCK_LOW = "库存不足";
 

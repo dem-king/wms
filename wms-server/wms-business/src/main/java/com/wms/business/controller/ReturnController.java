@@ -34,7 +34,7 @@ public class ReturnController {
      */
     @Operation(summary = "归还单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:list')")
     @DataScope
     public R<PageResult<ReturnOrderVo>> pageOrders(PageParam pageParam,
                                                     @RequestParam(required = false) Integer status,
@@ -47,7 +47,7 @@ public class ReturnController {
      */
     @Operation(summary = "归还单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:list')")
     @DataScope
     public R<ReturnOrderVo> getOrderById(@PathVariable Long id) {
         return R.ok(returnService.getOrderById(id));
@@ -58,7 +58,7 @@ public class ReturnController {
      */
     @Operation(summary = "新增归还单")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:add')")
     @OperLog(module = "business", type = "新增", desc = "新增归还单")
     public R<ReturnOrderVo> createOrder(@Valid @RequestBody ReturnOrderDto dto) {
         return R.ok(returnService.createOrder(dto));
@@ -69,7 +69,7 @@ public class ReturnController {
      */
     @Operation(summary = "更新归还单")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:edit')")
     @OperLog(module = "business", type = "更新", desc = "更新归还单")
     public R<ReturnOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody ReturnOrderDto dto) {
         return R.ok(returnService.updateOrder(id, dto));
@@ -80,7 +80,7 @@ public class ReturnController {
      */
     @Operation(summary = "提交归还单")
     @PostMapping("/{id}/submit")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:submit')")
     @OperLog(module = "business", type = "提交", desc = "提交归还单")
     public R<Void> submitOrder(@PathVariable Long id) {
         returnService.submitOrder(id);
@@ -92,7 +92,7 @@ public class ReturnController {
      */
     @Operation(summary = "删除归还单")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:return:delete')")
     @OperLog(module = "business", type = "删除", desc = "删除归还单")
     public R<Void> deleteOrder(@PathVariable Long id) {
         returnService.deleteOrder(id);

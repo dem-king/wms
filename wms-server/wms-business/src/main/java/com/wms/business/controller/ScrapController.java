@@ -34,7 +34,7 @@ public class ScrapController {
      */
     @Operation(summary = "报废单分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:list')")
     @DataScope
     public R<PageResult<ScrapOrderVo>> pageOrders(PageParam pageParam,
                                                    @RequestParam(required = false) Integer status,
@@ -47,7 +47,7 @@ public class ScrapController {
      */
     @Operation(summary = "报废单详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:list')")
     @DataScope
     public R<ScrapOrderVo> getOrderById(@PathVariable Long id) {
         return R.ok(scrapService.getOrderById(id));
@@ -58,7 +58,7 @@ public class ScrapController {
      */
     @Operation(summary = "新增报废单")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:add')")
     @OperLog(module = "business", type = "新增", desc = "新增报废单")
     public R<ScrapOrderVo> createOrder(@Valid @RequestBody ScrapOrderDto dto) {
         return R.ok(scrapService.createOrder(dto));
@@ -69,7 +69,7 @@ public class ScrapController {
      */
     @Operation(summary = "更新报废单")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:edit')")
     @OperLog(module = "business", type = "更新", desc = "更新报废单")
     public R<ScrapOrderVo> updateOrder(@PathVariable Long id, @Valid @RequestBody ScrapOrderDto dto) {
         return R.ok(scrapService.updateOrder(id, dto));
@@ -80,7 +80,7 @@ public class ScrapController {
      */
     @Operation(summary = "提交报废单")
     @PostMapping("/{id}/submit")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:submit')")
     @OperLog(module = "business", type = "提交", desc = "提交报废单")
     public R<Void> submitOrder(@PathVariable Long id) {
         scrapService.submitOrder(id);
@@ -92,7 +92,7 @@ public class ScrapController {
      */
     @Operation(summary = "删除报废单")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('business:scrap:delete')")
     @OperLog(module = "business", type = "删除", desc = "删除报废单")
     public R<Void> deleteOrder(@PathVariable Long id) {
         scrapService.deleteOrder(id);

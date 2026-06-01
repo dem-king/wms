@@ -1,6 +1,7 @@
 package com.wms.monitor.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.item.domain.constant.ItemConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.domain.entity.WmsStock;
 import com.wms.item.mapper.WmsItemMapper;
@@ -12,6 +13,7 @@ import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,10 @@ public class StockAlertScanTask {
     private final WmsItemMapper wmsItemMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final MonitorStockAlertMapper monitorStockAlertMapper;
+
+    /** 全局库存预警下限阈值，物品未配置stockLowerLimit时使用 */
+    @Value("${wms.business.low-stock-threshold:10}")
+    private int globalLowStockThreshold;
 
     /**
      * 库存预警扫描定时任务
@@ -104,12 +110,13 @@ public class StockAlertScanTask {
             WmsWarehouse warehouse = warehouseMap.get(warehouseId);
             String warehouseName = warehouse != null ? warehouse.getWarehouseName() : "";
 
-            // 检查库存不足预警
-            if (item.getStockLowerLimit() != null && currentQty < item.getStockLowerLimit()) {
+            // 检查库存不足预警：优先使用物品级别阈值，未配置则使用全局默认阈值
+            Integer lowerLimit = item.getStockLowerLimit() != null ? item.getStockLowerLimit() : globalLowStockThreshold;
+            if (currentQty < lowerLimit) {
                 String alertKey = itemId + "_" + warehouseId + "_" + MonitorConstants.ALERT_TYPE_STOCK_LOW;
                 currentAlertKeys.add(alertKey);
                 upsertAlert(alertKey, existingAlertMap, itemId, item, warehouseId, warehouseName,
-                        currentQty, item.getStockLowerLimit(), MonitorConstants.ALERT_TYPE_STOCK_LOW, now);
+                        currentQty, lowerLimit, MonitorConstants.ALERT_TYPE_STOCK_LOW, now);
             }
 
             // 检查库存超储预警
@@ -118,6 +125,15 @@ public class StockAlertScanTask {
                 currentAlertKeys.add(alertKey);
                 upsertAlert(alertKey, existingAlertMap, itemId, item, warehouseId, warehouseName,
                         currentQty, item.getStockUpperLimit(), MonitorConstants.ALERT_TYPE_STOCK_HIGH, now);
+            }
+
+            // 检查消耗品补货预警：消耗品且库存低于等于补货阈值时触发
+            boolean isConsumable = item.getIsConsumable() != null && item.getIsConsumable() != ItemConstants.IS_CONSUMABLE_NO;
+            if (isConsumable && item.getReplenishThreshold() != null && currentQty <= item.getReplenishThreshold()) {
+                String alertKey = itemId + "_" + warehouseId + "_" + MonitorConstants.ALERT_TYPE_REPLENISH;
+                currentAlertKeys.add(alertKey);
+                upsertAlert(alertKey, existingAlertMap, itemId, item, warehouseId, warehouseName,
+                        currentQty, item.getReplenishThreshold(), MonitorConstants.ALERT_TYPE_REPLENISH, now);
             }
         }
 

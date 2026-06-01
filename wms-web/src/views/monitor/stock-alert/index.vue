@@ -51,11 +51,16 @@ async function handleResolve(row: StockAlertVo) {
 }
 
 function getAlertTypeTag(type: string) {
-  return type === 'STOCK_LOW' ? 'danger' : 'warning'
+  if (type === 'STOCK_LOW') return 'danger'
+  if (type === 'REPLENISH') return 'warning'
+  return 'warning'
 }
 
 function getAlertTypeLabel(type: string) {
-  return type === 'STOCK_LOW' ? '库存不足' : '库存超储'
+  if (type === 'STOCK_LOW') return '库存不足'
+  if (type === 'STOCK_HIGH') return '库存超储'
+  if (type === 'REPLENISH') return '需补货'
+  return type
 }
 
 function getStatusTag(status: string) {
@@ -80,6 +85,7 @@ onMounted(() => { handleQuery() })
         <el-select v-model="queryParams.alertType" placeholder="全部" clearable style="width: 160px">
           <el-option label="库存不足" value="STOCK_LOW" />
           <el-option label="库存超储" value="STOCK_HIGH" />
+          <el-option label="需补货" value="REPLENISH" />
         </el-select>
       </el-form-item>
       <el-form-item label="处理状态">
@@ -115,7 +121,7 @@ onMounted(() => { handleQuery() })
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '处理', visible: row.status === 'PENDING', onClick: () => handleResolve(row) },
+              { label: '处理', permission: 'monitor:stock-alert:resolve', visible: row.status === 'PENDING', onClick: () => handleResolve(row) },
             ]"
           />
         </template>

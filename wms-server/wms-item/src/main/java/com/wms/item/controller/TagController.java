@@ -37,7 +37,7 @@ public class TagController {
      */
     @Operation(summary = "标签列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:list')")
     @DataScope
     public R<PageResult<TagVo>> page(PageParam pageParam) {
         return R.ok(tagService.page(pageParam));
@@ -48,7 +48,7 @@ public class TagController {
      */
     @Operation(summary = "标签列表")
     @GetMapping("/list")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:list')")
     @DataScope
     public R<List<TagVo>> listAll() {
         return R.ok(tagService.listAll());
@@ -59,7 +59,7 @@ public class TagController {
      */
     @Operation(summary = "新增标签")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:add')")
     @OperLog(module = "item", type = "新增", desc = "新增标签")
     public R<TagVo> create(@Valid @RequestBody TagDto dto) {
         return R.ok(tagService.create(dto));
@@ -70,7 +70,7 @@ public class TagController {
      */
     @Operation(summary = "更新标签")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:edit')")
     @OperLog(module = "item", type = "更新", desc = "更新标签")
     public R<TagVo> update(@PathVariable Long id, @Valid @RequestBody TagDto dto) {
         return R.ok(tagService.update(id, dto));
@@ -81,7 +81,7 @@ public class TagController {
      */
     @Operation(summary = "删除标签")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:delete')")
     @OperLog(module = "item", type = "删除", desc = "删除标签")
     public R<Void> delete(@PathVariable Long id) {
         tagService.delete(id);
@@ -93,7 +93,7 @@ public class TagController {
      */
     @Operation(summary = "按标签筛选物品")
     @GetMapping("/{tagId}/items")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:tag:list')")
     @DataScope
     public R<List<ItemVo>> getItemsByTag(@PathVariable Long tagId) {
         return R.ok(tagService.getItemsByTag(tagId));

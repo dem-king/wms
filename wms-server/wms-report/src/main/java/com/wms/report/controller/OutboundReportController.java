@@ -31,7 +31,7 @@ public class OutboundReportController {
      */
     @Operation(summary = "出库汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:outbound:list')")
     @DataScope
     public R<OutboundReportVo.SummaryVo> getSummary(@Valid ReportQueryDto queryDto) {
         return R.ok(outboundReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class OutboundReportController {
      */
     @Operation(summary = "出库趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:outbound:list')")
     @DataScope
     public R<OutboundReportVo.TrendVo> getTrend(@Valid ReportQueryDto queryDto) {
         return R.ok(outboundReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class OutboundReportController {
      */
     @Operation(summary = "出库分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:outbound:list')")
     @DataScope
     public R<OutboundReportVo.DistributionVo> getDistribution(@Valid ReportQueryDto queryDto) {
         return R.ok(outboundReportService.getDistribution(queryDto));

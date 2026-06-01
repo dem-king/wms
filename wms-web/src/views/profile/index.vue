@@ -1,68 +1,115 @@
 <template>
   <div class="profile-page">
-    <section class="profile-hero">
-      <div class="profile-hero__identity">
-        <el-avatar v-if="profileUserInfo?.avatar" :size="72" :src="profileUserInfo.avatar" />
-        <div v-else class="profile-hero__avatar">{{ displayInitial }}</div>
-        <div class="profile-hero__meta">
-          <div class="profile-hero__title">账号概览</div>
-          <h1 class="profile-hero__name">{{ displayName }}</h1>
-          <p class="profile-hero__subtitle">{{ profileUserInfo?.username || '未获取到用户名' }}</p>
+    <div class="profile-bento">
+      <!-- 1. Hero Section -->
+      <section class="bento-item bento-hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+          <div class="hero-identity">
+            <el-avatar v-if="profileUserInfo?.avatar" :size="80" :src="profileUserInfo.avatar" class="hero-avatar" />
+            <div v-else class="hero-avatar hero-avatar--text">{{ displayInitial }}</div>
+            <div class="hero-meta">
+              <div class="hero-title">账号概览</div>
+              <h1 class="hero-name">{{ displayName }}</h1>
+              <p class="hero-subtitle">{{ profileUserInfo?.username || '未获取到用户名' }}</p>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <el-tag type="success" effect="light" round size="large">
+              <template #icon><el-icon><Check /></el-icon></template>
+              已登录
+            </el-tag>
+            <el-tag effect="light" round size="large" :type="userStore.isLogin() ? 'primary' : 'danger'">
+              <template #icon><el-icon><Key /></el-icon></template>
+              {{ tokenStatusLabel }}
+            </el-tag>
+          </div>
         </div>
-      </div>
-      <div class="profile-hero__badges">
-        <el-tag type="success">已登录</el-tag>
-        <el-tag>{{ tokenStatusLabel }}</el-tag>
-      </div>
-    </section>
+      </section>
 
-    <div class="profile-grid">
-      <el-card shadow="hover" class="profile-card">
-        <template #header>基础资料</template>
-        <div class="profile-info-list">
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">用户ID</span>
-            <span class="profile-info-item__value">{{ profileUserInfo?.userId ?? '-' }}</span>
+      <!-- 2. Stats Section -->
+      <div class="bento-stats">
+        <el-card shadow="never" class="bento-card stat-card">
+          <div class="stat-icon stat-icon--primary">
+            <el-icon><Lock /></el-icon>
           </div>
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">用户名</span>
-            <span class="profile-info-item__value">{{ profileUserInfo?.username || '-' }}</span>
+          <div class="stat-info">
+            <div class="stat-value">{{ profilePermissions.length }}</div>
+            <div class="stat-label">权限数量</div>
           </div>
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">真实姓名</span>
-            <span class="profile-info-item__value">{{ profileUserInfo?.realName || profileUserInfo?.username || '用户' }}</span>
+        </el-card>
+
+        <el-card shadow="never" class="bento-card stat-card">
+          <div class="stat-icon stat-icon--success">
+            <el-icon><User /></el-icon>
           </div>
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">部门ID</span>
-            <span class="profile-info-item__value">{{ profileUserInfo?.deptId ?? '-' }}</span>
+          <div class="stat-info">
+            <div class="stat-value">{{ profileRoles.length }}</div>
+            <div class="stat-label">角色数量</div>
           </div>
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">头像地址</span>
-            <span class="profile-info-item__value profile-info-item__value--break">{{ profileUserInfo?.avatar || '未设置' }}</span>
+        </el-card>
+
+        <el-card shadow="never" class="bento-card stat-card">
+          <div class="stat-icon stat-icon--warning">
+            <el-icon><Timer /></el-icon>
           </div>
+          <div class="stat-info">
+            <div class="stat-value stat-value--text">{{ formattedLoginTime }}</div>
+            <div class="stat-label">最近登录时间</div>
+          </div>
+        </el-card>
+      </div>
+
+      <!-- 3. Basic Info -->
+      <el-card shadow="never" class="bento-card bento-basic">
+        <template #header>
+          <div class="card-header">
+            <el-icon><InfoFilled /></el-icon>
+            <span>基础资料</span>
+          </div>
+        </template>
+        <el-descriptions :column="2" class="profile-descriptions">
+          <el-descriptions-item label="用户ID">{{ profileUserInfo?.userId ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item label="部门ID">{{ profileUserInfo?.deptId ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item label="用户名">{{ profileUserInfo?.username || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="真实姓名">{{ profileUserInfo?.realName || profileUserInfo?.username || '用户' }}</el-descriptions-item>
+          <el-descriptions-item label="最近登录IP" :span="2">{{ lastLoginIpText }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+
+      <!-- 4. Security Center -->
+      <el-card shadow="never" class="bento-card bento-security">
+        <template #header>
+          <div class="card-header">
+            <el-icon><Setting /></el-icon>
+            <span>安全中心</span>
+          </div>
+        </template>
+        <div class="security-actions">
+          <el-button class="security-btn" type="primary" plain @click="openPasswordDialog">
+            <el-icon><Lock /></el-icon>修改密码
+          </el-button>
+          <el-button class="security-btn" @click="loadProfile">
+            <el-icon><Refresh /></el-icon>刷新资料
+          </el-button>
+          <el-button class="security-btn" type="danger" plain @click="handleLogout">
+            <el-icon><SwitchButton /></el-icon>退出登录
+          </el-button>
         </div>
       </el-card>
 
-      <el-card shadow="hover" class="profile-card">
-        <template #header>登录信息</template>
-        <div class="profile-info-list">
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">最近登录时间</span>
-            <span class="profile-info-item__value">{{ formattedLoginTime }}</span>
+      <!-- 5. Edit Profile -->
+      <el-card shadow="never" class="bento-card bento-edit">
+        <template #header>
+          <div class="card-header">
+            <el-icon><Edit /></el-icon>
+            <span>编辑资料</span>
           </div>
-          <div class="profile-info-item">
-            <span class="profile-info-item__label">最近登录IP</span>
-            <span class="profile-info-item__value">{{ lastLoginIpText }}</span>
-          </div>
-        </div>
-      </el-card>
-
-      <el-card shadow="hover" class="profile-card">
-        <template #header>编辑资料</template>
-        <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="88px" class="profile-edit-form">
+        </template>
+        <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-position="top" class="profile-edit-form">
           <div class="profile-avatar-editor">
-            <el-avatar v-if="previewAvatarUrl" :size="84" :src="previewAvatarUrl" />
-            <div v-else class="profile-hero__avatar profile-hero__avatar--large">{{ displayInitial }}</div>
+            <el-avatar v-if="previewAvatarUrl" :size="84" :src="previewAvatarUrl" class="avatar-preview" />
+            <div v-else class="hero-avatar hero-avatar--text avatar-preview">{{ displayInitial }}</div>
             <div class="profile-avatar-editor__actions">
               <input
                 ref="avatarInputRef"
@@ -71,52 +118,36 @@
                 accept="image/png,image/jpeg,image/jpg,image/webp"
                 @change="handleAvatarChange"
               />
-              <el-button @click="triggerAvatarSelect">更换头像</el-button>
+              <el-button type="primary" plain @click="triggerAvatarSelect">
+                <el-icon><Upload /></el-icon>更换头像
+              </el-button>
               <span class="profile-avatar-editor__tip">支持 PNG/JPG/JPEG/WEBP，上传后自动预览</span>
             </div>
           </div>
 
-          <el-form-item label="真实姓名" prop="realName">
-            <el-input v-model="editForm.realName" placeholder="请输入真实姓名" />
-          </el-form-item>
-          <el-form-item label="手机号" prop="phone">
-            <el-input v-model="editForm.phone" placeholder="请输入手机号" />
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="editForm.email" placeholder="请输入邮箱" />
-          </el-form-item>
+          <div class="edit-form-grid">
+            <el-form-item label="真实姓名" prop="realName">
+              <el-input v-model="editForm.realName" placeholder="请输入真实姓名">
+                <template #prefix><el-icon><User /></el-icon></template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="手机号" prop="phone">
+              <el-input v-model="editForm.phone" placeholder="请输入手机号">
+                <template #prefix><el-icon><Iphone /></el-icon></template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="editForm.email" placeholder="请输入邮箱">
+                <template #prefix><el-icon><Message /></el-icon></template>
+              </el-input>
+            </el-form-item>
+          </div>
+
           <div class="profile-actions">
             <el-button @click="resetEditForm">重置</el-button>
             <el-button type="primary" :loading="saveLoading" @click="handleSaveProfile">保存资料</el-button>
           </div>
         </el-form>
-      </el-card>
-
-      <el-card shadow="hover" class="profile-card">
-        <template #header>账户摘要</template>
-        <div class="profile-summary">
-          <div class="profile-summary__item">
-            <span class="profile-summary__value">{{ profilePermissions.length }}</span>
-            <span class="profile-summary__label">权限数量</span>
-          </div>
-          <div class="profile-summary__item">
-            <span class="profile-summary__value">{{ profileRoles.length }}</span>
-            <span class="profile-summary__label">角色数量</span>
-          </div>
-          <div class="profile-summary__item">
-            <span class="profile-summary__value">{{ tokenStatusLabel }}</span>
-            <span class="profile-summary__label">Token状态</span>
-          </div>
-        </div>
-      </el-card>
-
-      <el-card shadow="hover" class="profile-card">
-        <template #header>安全中心</template>
-        <div class="profile-actions">
-          <el-button type="primary" @click="openPasswordDialog">修改密码</el-button>
-          <el-button @click="loadProfile">刷新资料</el-button>
-          <el-button type="danger" plain @click="handleLogout">退出登录</el-button>
-        </div>
       </el-card>
     </div>
 
@@ -133,6 +164,21 @@ import type { LastLoginInfoVO, ProfileResp, UpdateProfileReq, UserInfoVO } from 
 import { useUserStore } from '@/store/modules/user'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import ChangePasswordDialog from '@/views/system/password/ChangePasswordDialog.vue'
+import { 
+  Check, 
+  Key, 
+  Lock, 
+  User, 
+  Timer, 
+  InfoFilled, 
+  Setting, 
+  Edit, 
+  Refresh, 
+  SwitchButton, 
+  Upload, 
+  Iphone, 
+  Message 
+} from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const passwordDialogVisible = ref(false)
@@ -309,100 +355,288 @@ function formatDateTime(loginTime: string | null) {
 
 <style lang="scss" scoped>
 .profile-page {
-  display: flex;
-  flex-direction: column;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.profile-bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
   gap: 20px;
 }
 
-.profile-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 28px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 24px;
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--card)));
+/* Base Card Style */
+.bento-card {
+  border: none !important;
+  border-radius: 12px !important;
+  background: var(--el-bg-color-overlay);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-2px);
+  }
+
+  :deep(.el-card__header) {
+    border-bottom: 1px solid var(--el-border-color-lighter);
+    padding: 18px 24px;
+  }
+
+  :deep(.el-card__body) {
+    padding: 24px;
+    height: 100%;
+    box-sizing: border-box;
+  }
 }
 
-.profile-hero__identity {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.profile-hero__avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(220 95% 62%));
-  color: #fff;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.profile-hero__meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.profile-hero__title {
-  color: var(--text-muted-foreground);
-  font-size: 13px;
-}
-
-.profile-hero__name {
-  margin: 0;
-  color: var(--text-foreground);
-  font-size: 28px;
-  line-height: 1.2;
-}
-
-.profile-hero__subtitle {
-  margin: 0;
-  color: var(--text-muted-foreground);
-  font-size: 14px;
-}
-
-.profile-hero__badges {
+.card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--el-text-color-primary);
+
+  .el-icon {
+    font-size: 18px;
+    color: var(--el-color-primary);
+  }
 }
 
-.profile-grid {
+/* 1. Hero Section */
+.bento-hero {
+  grid-column: span 12;
+  position: relative;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--el-color-primary-light-8) 0%, var(--el-bg-color-overlay) 100%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  background: radial-gradient(circle at top right, var(--el-color-primary-light-5), transparent 60%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  padding: 32px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  z-index: 1;
+}
+
+.hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.hero-avatar {
+  border: 4px solid var(--el-bg-color-overlay);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.hero-avatar--text {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
+  color: #fff;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-title {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.hero-name {
+  margin: 0;
+  color: var(--el-text-color-primary);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  margin: 0;
+  color: var(--el-text-color-regular);
+  font-size: 15px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* 2. Stats Section */
+.bento-stats {
+  grid-column: span 12;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
-.profile-card {
-  border-radius: 20px;
+.stat-card {
+  :deep(.el-card__body) {
+    display: flex;
+    align-items: center;
+    padding: 24px 32px;
+    gap: 24px;
+  }
 }
 
-.profile-edit-form {
+.stat-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.stat-icon--primary {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+}
+
+.stat-icon--success {
+  background: var(--el-color-success-light-9);
+  color: var(--el-color-success);
+}
+
+.stat-icon--warning {
+  background: var(--el-color-warning-light-9);
+  color: var(--el-color-warning);
+}
+
+.stat-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  line-height: 1.2;
+}
+
+.stat-value--text {
+  font-size: 18px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--el-text-color-secondary);
+}
+
+/* 3. Basic Info & 4. Security Center */
+.bento-basic {
+  grid-column: span 8;
+}
+
+.bento-security {
+  grid-column: span 4;
+}
+
+.profile-descriptions {
+  :deep(.el-descriptions__cell) {
+    padding-bottom: 20px !important;
+  }
+  :deep(.el-descriptions__label) {
+    width: 100px;
+    color: var(--el-text-color-secondary);
+    font-size: 14px;
+  }
+  :deep(.el-descriptions__content) {
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.security-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.security-btn {
+  width: 100%;
+  margin-left: 0 !important;
+  justify-content: flex-start;
+  padding: 20px 24px;
+  height: auto;
+  font-size: 15px;
+  border-radius: 10px;
+  
+  .el-icon {
+    margin-right: 12px;
+    font-size: 20px;
+  }
+}
+
+/* 5. Edit Profile */
+.bento-edit {
+  grid-column: span 12;
 }
 
 .profile-avatar-editor {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding-bottom: 18px;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px dashed var(--el-border-color-lighter);
+}
+
+.avatar-preview {
+  width: 84px !important;
+  height: 84px !important;
+  font-size: 32px;
 }
 
 .profile-avatar-editor__actions {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 12px;
 }
 
 .profile-avatar-editor__input {
@@ -410,103 +644,56 @@ function formatDateTime(loginTime: string | null) {
 }
 
 .profile-avatar-editor__tip {
-  color: var(--text-muted-foreground);
-  font-size: 12px;
-}
-
-.profile-info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.profile-info-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid hsl(var(--border) / 0.7);
-}
-
-.profile-info-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.profile-info-item__label {
-  color: var(--text-muted-foreground);
-}
-
-.profile-info-item__value {
-  color: var(--text-foreground);
-  font-weight: 500;
-  text-align: right;
-}
-
-.profile-info-item__value--break {
-  word-break: break-all;
-}
-
-.profile-hero__avatar--large {
-  width: 84px;
-  height: 84px;
-  border-radius: 28px;
-  font-size: 32px;
-}
-
-.profile-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.profile-summary__item {
-  padding: 18px 14px;
-  border-radius: 18px;
-  background: hsl(var(--accent));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.profile-summary__value {
-  color: var(--color-primary);
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.profile-summary__label {
-  color: var(--text-muted-foreground);
+  color: var(--el-text-color-secondary);
   font-size: 13px;
 }
 
-.profile-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
-@media (max-width: 960px) {
-  .profile-hero {
+.profile-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .bento-basic {
+    grid-column: span 12;
+  }
+  .bento-security {
+    grid-column: span 12;
+  }
+  .security-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .security-btn {
+    width: auto;
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content {
     flex-direction: column;
     align-items: flex-start;
+    padding: 24px;
   }
-
-  .profile-grid {
+  .bento-stats {
     grid-template-columns: 1fr;
   }
-
-  .profile-summary {
+  .edit-form-grid {
     grid-template-columns: 1fr;
   }
-
-  .profile-info-item {
+  .security-actions {
     flex-direction: column;
-  }
-
-  .profile-info-item__value {
-    text-align: left;
   }
 }
 </style>

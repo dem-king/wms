@@ -25,9 +25,17 @@ public class SysConfigVo {
     @Schema(description = "配置值")
     private String configValue;
 
+    /** 配置名称 */
+    @Schema(description = "配置名称")
+    private String configName;
+
+    /** 配置分组 */
+    @Schema(description = "配置分组")
+    private String configGroup;
+
     /** 配置描述 */
     @Schema(description = "配置描述")
-    private String description;
+    private String configDesc;
 
     /** 创建时间 */
     @Schema(description = "创建时间")

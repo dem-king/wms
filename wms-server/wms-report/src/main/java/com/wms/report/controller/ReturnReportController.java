@@ -31,7 +31,7 @@ public class ReturnReportController {
      */
     @Operation(summary = "借还汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:borrow-return:list')")
     @DataScope
     public R<ReturnReportVo.SummaryVo> getSummary(@Valid ReportQueryDto queryDto) {
         return R.ok(returnReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class ReturnReportController {
      */
     @Operation(summary = "借还趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:borrow-return:list')")
     @DataScope
     public R<ReturnReportVo.TrendVo> getTrend(@Valid ReportQueryDto queryDto) {
         return R.ok(returnReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class ReturnReportController {
      */
     @Operation(summary = "借还分类分布统计")
     @GetMapping("/category-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:borrow-return:list')")
     @DataScope
     public R<ReturnReportVo.DistributionVo> getDistribution(@Valid ReportQueryDto queryDto) {
         return R.ok(returnReportService.getDistribution(queryDto));

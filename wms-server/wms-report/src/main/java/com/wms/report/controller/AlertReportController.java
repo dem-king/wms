@@ -31,7 +31,7 @@ public class AlertReportController {
      */
     @Operation(summary = "预警汇总统计")
     @GetMapping("/summary")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:alert:list')")
     @DataScope
     public R<AlertReportVo.SummaryVo> getSummary(@Valid AlertReportQueryDto queryDto) {
         return R.ok(alertReportService.getSummary(queryDto));
@@ -42,7 +42,7 @@ public class AlertReportController {
      */
     @Operation(summary = "预警趋势统计")
     @GetMapping("/trend")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:alert:list')")
     @DataScope
     public R<AlertReportVo.TrendVo> getTrend(@Valid AlertReportQueryDto queryDto) {
         return R.ok(alertReportService.getTrend(queryDto));
@@ -53,7 +53,7 @@ public class AlertReportController {
      */
     @Operation(summary = "预警类型分布统计")
     @GetMapping("/type-distribution")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('report:alert:list')")
     @DataScope
     public R<AlertReportVo.DistributionVo> getDistribution(@Valid AlertReportQueryDto queryDto) {
         return R.ok(alertReportService.getDistribution(queryDto));

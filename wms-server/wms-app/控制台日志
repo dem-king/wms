@@ -1,14 +1,1577 @@
-2026-05-29T16:53:57.642+08:00 ERROR 47472 --- [wms-server] [nio-8080-exec-6] c.w.c.exception.GlobalExceptionHandler   : 系统异常
+C:\Users\admin\jdk17\jdk\bin\java.exe -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:64168,suspend=y,server=n -Dvisualgc.id=525681059139300 -XX:TieredStopAtLevel=1 -Dspring.output.ansi.enabled=always -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true "-Dmanagement.endpoints.jmx.exposure.include=*" -javaagent:C:\Users\admin\AppData\Local\JetBrains\IntelliJIdea2024.1\captureAgent\debugger-agent.jar=file:/C:/Users/admin/AppData/Local/Temp/capture.props -Dfile.encoding=UTF-8 -classpath "D:\Codes\WMS_code\wms-server\wms-app\target\classes;D:\Codes\WMS_code\wms-server\wms-common\target\classes;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;C:\Users\admin\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;C:\Users\admin\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;C:\Users\admin\.m2\repository\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;C:\Users\admin\.m2\repository\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;C:\Users\admin\.m2\repository\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;C:\Users\admin\.m2\repository\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.2.5\spring-boot-starter-validation-3.2.5.jar;C:\Users\admin\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;C:\Users\admin\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\admin\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\admin\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\admin\.m2\repository\com\fasterxml\classmate\1.6.0\classmate-1.6.0.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;C:\Users\admin\.m2\repository\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;C:\Users\admin\.m2\repository\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;C:\Users\admin\.m2\repository\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;C:\Users\admin\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\admin\.m2\repository\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus-spring-boot3-starter\3.5.6\mybatis-plus-spring-boot3-starter-3.5.6.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus\3.5.6\mybatis-plus-3.5.6.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus-core\3.5.6\mybatis-plus-core-3.5.6.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus-annotation\3.5.6\mybatis-plus-annotation-3.5.6.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus-extension\3.5.6\mybatis-plus-extension-3.5.6.jar;C:\Users\admin\.m2\repository\org\mybatis\mybatis\3.5.16\mybatis-3.5.16.jar;C:\Users\admin\.m2\repository\com\github\jsqlparser\jsqlparser\4.9\jsqlparser-4.9.jar;C:\Users\admin\.m2\repository\org\mybatis\mybatis-spring\3.0.3\mybatis-spring-3.0.3.jar;C:\Users\admin\.m2\repository\com\baomidou\mybatis-plus-spring-boot-autoconfigure\3.5.6\mybatis-plus-spring-boot-autoconfigure-3.5.6.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;C:\Users\admin\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\admin\.m2\repository\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar;C:\Users\admin\.m2\repository\cn\hutool\hutool-all\5.8.26\hutool-all-5.8.26.jar;C:\Users\admin\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.5\jjwt-api-0.12.5.jar;C:\Users\admin\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.5\jjwt-impl-0.12.5.jar;C:\Users\admin\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.5\jjwt-jackson-0.12.5.jar;C:\Users\admin\.m2\repository\org\apache\poi\poi-ooxml\5.2.5\poi-ooxml-5.2.5.jar;C:\Users\admin\.m2\repository\org\apache\poi\poi\5.2.5\poi-5.2.5.jar;C:\Users\admin\.m2\repository\org\apache\commons\commons-math3\3.6.1\commons-math3-3.6.1.jar;C:\Users\admin\.m2\repository\com\zaxxer\SparseBitSet\1.3\SparseBitSet-1.3.jar;C:\Users\admin\.m2\repository\org\apache\poi\poi-ooxml-lite\5.2.5\poi-ooxml-lite-5.2.5.jar;C:\Users\admin\.m2\repository\org\apache\xmlbeans\xmlbeans\5.2.0\xmlbeans-5.2.0.jar;C:\Users\admin\.m2\repository\commons-io\commons-io\2.15.0\commons-io-2.15.0.jar;C:\Users\admin\.m2\repository\com\github\virtuald\curvesapi\1.08\curvesapi-1.08.jar;C:\Users\admin\.m2\repository\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;C:\Users\admin\.m2\repository\org\apache\commons\commons-collections4\4.4\commons-collections4-4.4.jar;C:\Users\admin\.m2\repository\com\belerweb\pinyin4j\2.5.1\pinyin4j-2.5.1.jar;C:\Users\admin\.m2\repository\org\mapstruct\mapstruct\1.5.5.Final\mapstruct-1.5.5.Final.jar;C:\Users\admin\.m2\repository\com\github\xiaoymin\knife4j-openapi3-jakarta-spring-boot-starter\4.4.0\knife4j-openapi3-jakarta-spring-boot-starter-4.4.0.jar;C:\Users\admin\.m2\repository\com\github\xiaoymin\knife4j-core\4.4.0\knife4j-core-4.4.0.jar;C:\Users\admin\.m2\repository\com\github\xiaoymin\knife4j-openapi3-ui\4.4.0\knife4j-openapi3-ui-4.4.0.jar;C:\Users\admin\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.3.0\springdoc-openapi-starter-webmvc-ui-2.3.0.jar;C:\Users\admin\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.3.0\springdoc-openapi-starter-webmvc-api-2.3.0.jar;C:\Users\admin\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.3.0\springdoc-openapi-starter-common-2.3.0.jar;C:\Users\admin\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.19\swagger-core-jakarta-2.2.19.jar;C:\Users\admin\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.19\swagger-annotations-jakarta-2.2.19.jar;C:\Users\admin\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.19\swagger-models-jakarta-2.2.19.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.4\jackson-dataformat-yaml-2.15.4.jar;C:\Users\admin\.m2\repository\org\webjars\swagger-ui\5.10.3\swagger-ui-5.10.3.jar;C:\Users\admin\.m2\repository\org\lionsoul\ip2region\3.3.7\ip2region-3.3.7.jar;D:\Codes\WMS_code\wms-server\wms-system\target\classes;C:\Users\admin\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Codes\WMS_code\wms-server\wms-warehouse\target\classes;D:\Codes\WMS_code\wms-server\wms-item\target\classes;C:\Users\admin\.m2\repository\com\google\zxing\core\3.5.3\core-3.5.3.jar;C:\Users\admin\.m2\repository\com\google\zxing\javase\3.5.3\javase-3.5.3.jar;C:\Users\admin\.m2\repository\com\beust\jcommander\1.82\jcommander-1.82.jar;C:\Users\admin\.m2\repository\com\github\jai-imageio\jai-imageio-core\1.4.0\jai-imageio-core-1.4.0.jar;D:\Codes\WMS_code\wms-server\wms-business\target\classes;D:\Codes\WMS_code\wms-server\wms-approval\target\classes;D:\Codes\WMS_code\wms-server\wms-report\target\classes;C:\Users\admin\.m2\repository\com\itextpdf\kernel\7.2.5\kernel-7.2.5.jar;C:\Users\admin\.m2\repository\com\itextpdf\io\7.2.5\io-7.2.5.jar;C:\Users\admin\.m2\repository\com\itextpdf\commons\7.2.5\commons-7.2.5.jar;C:\Users\admin\.m2\repository\org\bouncycastle\bcpkix-jdk15on\1.70\bcpkix-jdk15on-1.70.jar;C:\Users\admin\.m2\repository\org\bouncycastle\bcutil-jdk15on\1.70\bcutil-jdk15on-1.70.jar;C:\Users\admin\.m2\repository\org\bouncycastle\bcprov-jdk15on\1.70\bcprov-jdk15on-1.70.jar;C:\Users\admin\.m2\repository\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;C:\Users\admin\.m2\repository\com\itextpdf\layout\7.2.5\layout-7.2.5.jar;D:\Codes\WMS_code\wms-server\wms-monitor\target\classes;D:\Codes\WMS_code\wms-server\wms-auth\target\classes;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.2.5\spring-boot-starter-aop-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;C:\Users\admin\.m2\repository\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;C:\Users\admin\.m2\repository\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;C:\Users\admin\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;C:\Users\admin\.m2\repository\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;C:\Users\admin\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\admin\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\admin\.m2\repository\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;C:\Users\admin\.m2\repository\org\aspectj\aspectjweaver\1.9.22\aspectjweaver-1.9.22.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.2.5\spring-boot-starter-security-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\security\spring-security-config\6.2.4\spring-security-config-6.2.4.jar;C:\Users\admin\.m2\repository\org\springframework\security\spring-security-core\6.2.4\spring-security-core-6.2.4.jar;C:\Users\admin\.m2\repository\org\springframework\security\spring-security-crypto\6.2.4\spring-security-crypto-6.2.4.jar;C:\Users\admin\.m2\repository\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\security\spring-security-web\6.2.4\spring-security-web-6.2.4.jar;C:\Users\admin\.m2\repository\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\boot\spring-boot-starter-quartz\3.2.5\spring-boot-starter-quartz-3.2.5.jar;C:\Users\admin\.m2\repository\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;C:\Users\admin\.m2\repository\org\quartz-scheduler\quartz\2.3.2\quartz-2.3.2.jar;C:\Users\admin\.m2\repository\com\mchange\mchange-commons-java\0.2.15\mchange-commons-java-0.2.15.jar;C:\Users\admin\.m2\repository\io\minio\minio\8.5.9\minio-8.5.9.jar;C:\Users\admin\.m2\repository\com\carrotsearch\thirdparty\simple-xml-safe\2.7.1\simple-xml-safe-2.7.1.jar;C:\Users\admin\.m2\repository\com\google\guava\guava\33.0.0-jre\guava-33.0.0-jre.jar;C:\Users\admin\.m2\repository\com\google\guava\failureaccess\1.0.2\failureaccess-1.0.2.jar;C:\Users\admin\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\admin\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\admin\.m2\repository\org\checkerframework\checker-qual\3.41.0\checker-qual-3.41.0.jar;C:\Users\admin\.m2\repository\com\google\errorprone\error_prone_annotations\2.23.0\error_prone_annotations-2.23.0.jar;C:\Users\admin\.m2\repository\com\google\j2objc\j2objc-annotations\2.8\j2objc-annotations-2.8.jar;C:\Users\admin\.m2\repository\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;C:\Users\admin\.m2\repository\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;C:\Users\admin\.m2\repository\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;C:\Users\admin\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;C:\Users\admin\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;C:\Users\admin\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;C:\Users\admin\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar;C:\Users\admin\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;C:\Users\admin\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;C:\Users\admin\.m2\repository\org\bouncycastle\bcprov-jdk18on\1.77\bcprov-jdk18on-1.77.jar;C:\Users\admin\.m2\repository\org\apache\commons\commons-compress\1.26.0\commons-compress-1.26.0.jar;C:\Users\admin\.m2\repository\org\apache\commons\commons-lang3\3.13.0\commons-lang3-3.13.0.jar;C:\Users\admin\.m2\repository\commons-codec\commons-codec\1.16.1\commons-codec-1.16.1.jar;C:\Users\admin\.m2\repository\org\xerial\snappy\snappy-java\1.1.10.5\snappy-java-1.1.10.5.jar;C:\Users\admin\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;C:\Users\admin\.m2\repository\org\projectlombok\lombok\1.18.32\lombok-1.18.32.jar;C:\Users\admin\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\admin\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\admin\.m2\repository\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;C:\Users\admin\.m2\repository\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.2\lib\idea_rt.jar" com.wms.WmsApplication
+Connected to the target VM, address: '127.0.0.1:64168', transport: 'socket'
 
-org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Unrecognized field "id" (class com.wms.system.domain.dto.SysMenuDto), not marked as ignorable
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:406) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.read(AbstractJackson2HttpMessageConverter.java:354) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodArgumentResolver.readWithMessageConverters(AbstractMessageConverterMethodArgumentResolver.java:184) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.readWithMessageConverters(RequestResponseBodyMethodProcessor.java:161) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor.resolveArgument(RequestResponseBodyMethodProcessor.java:135) ~[spring-webmvc-6.1.6.jar:6.1.6]
-	at org.springframework.web.method.support.HandlerMethodArgumentResolverComposite.resolveArgument(HandlerMethodArgumentResolverComposite.java:122) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.method.support.InvocableHandlerMethod.getMethodArgumentValues(InvocableHandlerMethod.java:224) ~[spring-web-6.1.6.jar:6.1.6]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:178) ~[spring-web-6.1.6.jar:6.1.6]
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-06-01T11:06:28.153+08:00  INFO 25124 --- [wms-server] [           main] com.wms.WmsApplication                   : Starting WmsApplication using Java 17.0.9 with PID 25124 (D:\Codes\WMS_code\wms-server\wms-app\target\classes started by admin in D:\Codes\WMS_code\wms-server)
+2026-06-01T11:06:28.155+08:00  INFO 25124 --- [wms-server] [           main] com.wms.WmsApplication                   : The following 1 profile is active: "dev"
+2026-06-01T11:06:29.045+08:00  INFO 25124 --- [wms-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-01T11:06:29.047+08:00  INFO 25124 --- [wms-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-06-01T11:06:29.084+08:00  INFO 25124 --- [wms-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 Redis repository interfaces.
+2026-06-01T11:06:29.819+08:00  INFO 25124 --- [wms-server] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-06-01T11:06:29.827+08:00  INFO 25124 --- [wms-server] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-01T11:06:29.828+08:00  INFO 25124 --- [wms-server] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-06-01T11:06:29.882+08:00  INFO 25124 --- [wms-server] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+2026-06-01T11:06:29.883+08:00  INFO 25124 --- [wms-server] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1683 ms
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Use localhost address 
+Get DESKTOP-MN36FI6/2.0.1.189 network interface 
+Get network interface info: name:eth5 (Sangfor SSL VPN CS Support System VNIC)
+Initialization Sequence datacenterId:7 workerId:25
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.6 
+2026-06-01T11:06:30.536+08:00  INFO 25124 --- [wms-server] [           main] c.w.c.storage.StorageAutoConfiguration   : 文件存储策略: 本地文件系统, baseDir=storage
+2026-06-01T11:06:31.761+08:00  WARN 25124 --- [wms-server] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 26a56e66-a785-4ae1-a5b8-e8963d9df6b5
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-06-01T11:06:32.019+08:00  INFO 25124 --- [wms-server] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3b0c38f2, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@5cc152f9, org.springframework.security.web.context.SecurityContextHolderFilter@72015156, org.springframework.security.web.header.HeaderWriterFilter@c8531b9, org.springframework.web.filter.CorsFilter@36f497b1, org.springframework.security.web.authentication.logout.LogoutFilter@85f5f55, com.wms.auth.security.JwtAuthenticationFilter@3e489ac1, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@bb38c49, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@4e67e090, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4b86a656, org.springframework.security.web.session.SessionManagementFilter@4ac77269, org.springframework.security.web.access.ExceptionTranslationFilter@2a79da3a, org.springframework.security.web.access.intercept.AuthorizationFilter@42150951]
+2026-06-01T11:06:32.372+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.impl.StdSchedulerFactory      : Using default implementation for ThreadExecutor
+2026-06-01T11:06:32.382+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.core.SchedulerSignalerImpl    : Initialized Scheduler Signaller of type: class org.quartz.core.SchedulerSignalerImpl
+2026-06-01T11:06:32.382+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.core.QuartzScheduler          : Quartz Scheduler v.2.3.2 created.
+2026-06-01T11:06:32.382+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.simpl.RAMJobStore             : RAMJobStore initialized.
+2026-06-01T11:06:32.383+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.core.QuartzScheduler          : Scheduler meta-data: Quartz Scheduler (v2.3.2) 'quartzScheduler' with instanceId 'NON_CLUSTERED'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.quartz.simpl.RAMJobStore' - which does not support persistence. and is not clustered.
+
+2026-06-01T11:06:32.383+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.impl.StdSchedulerFactory      : Quartz scheduler 'quartzScheduler' initialized from an externally provided properties instance.
+2026-06-01T11:06:32.383+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.impl.StdSchedulerFactory      : Quartz scheduler version: 2.3.2
+2026-06-01T11:06:32.383+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.core.QuartzScheduler          : JobFactory set to: org.springframework.scheduling.quartz.SpringBeanJobFactory@3bc33ad9
+2026-06-01T11:06:32.446+08:00  INFO 25124 --- [wms-server] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api'
+2026-06-01T11:06:32.447+08:00  INFO 25124 --- [wms-server] [           main] o.s.s.quartz.SchedulerFactoryBean        : Starting Quartz Scheduler now
+2026-06-01T11:06:32.447+08:00  INFO 25124 --- [wms-server] [           main] org.quartz.core.QuartzScheduler          : Scheduler quartzScheduler_$_NON_CLUSTERED started.
+2026-06-01T11:06:32.458+08:00  INFO 25124 --- [wms-server] [           main] com.wms.WmsApplication                   : Started WmsApplication in 4.766 seconds (process running for 5.375)
+2026-06-01T11:06:38.553+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-01T11:06:38.554+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-01T11:06:38.555+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@e7aa4f5] was not registered for synchronization because synchronization is not active
+2026-06-01T11:06:39.038+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-01T11:06:39.183+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@30383591
+2026-06-01T11:06:39.184+08:00  INFO 25124 --- [wms-server] [nio-8080-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+JDBC Connection [HikariProxyConnection@8862201 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@e7aa4f5]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5620c296] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1405953297 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5620c296]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@187520cd] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@619642327 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, username, `password`, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by FROM sys_user WHERE id = ? AND del_flag = 0
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, admin, $2a$10$LsVmTwWRujlN2FfVwZIwaOBCg20ejyN5x0yqPHM7JO3Bjrc/FKMr6, 系统管理员, null, , , /api/storage/avatars/984a7cef2d0f45eab243ffeba8a93e06.jpeg, 1, 0, 2026-05-14 09:31:19, system, 2026-05-28 16:58:32, system
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@187520cd]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@ae58170] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@877498558 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@ae58170]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5d0981b2] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1713662615 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5d0981b2]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4935bfdb] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@760999147 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4935bfdb]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@15b48b87] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1714493679 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_id, menu_id, del_flag, create_time, create_by, update_time, update_by FROM sys_role_menu WHERE del_flag = 0 AND (role_id IN (?))
+==> Parameters: 1(Long)
+<==    Columns: id, role_id, menu_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 500, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 2, 1, 502, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 3, 1, 503, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 4, 1, 501, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 5, 1, 400, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 6, 1, 401, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 7, 1, 402, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 8, 1, 403, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 9, 1, 404, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 10, 1, 405, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 11, 1, 300, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 12, 1, 302, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 13, 1, 304, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 14, 1, 301, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 15, 1, 305, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 16, 1, 303, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 17, 1, 800, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 18, 1, 802, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 19, 1, 801, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 20, 1, 700, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 21, 1, 701, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 22, 1, 600, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 23, 1, 607, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 24, 1, 604, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 25, 1, 608, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 26, 1, 602, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 27, 1, 603, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 28, 1, 605, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 29, 1, 601, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 30, 1, 606, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 31, 1, 100, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 32, 1, 106, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 33, 1, 105, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 34, 1, 103, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 35, 1, 1031, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 36, 1, 1033, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 37, 1, 1032, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 38, 1, 1034, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 39, 1, 104, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 40, 1, 102, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 41, 1, 1021, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 42, 1, 1023, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 43, 1, 1022, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 44, 1, 1024, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 45, 1, 107, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 46, 1, 101, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 47, 1, 1011, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 48, 1, 1013, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 49, 1, 1012, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 50, 1, 1014, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 51, 1, 1015, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 52, 1, 200, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 53, 1, 202, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 54, 1, 204, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 55, 1, 203, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 56, 1, 205, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 57, 1, 201, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 64, 1, 306, 0, 2026-05-21 17:56:15, , 2026-05-21 17:56:15, 
+<==        Row: 65, 1, 702, 0, 2026-05-22 15:13:26, , 2026-05-22 15:13:26, 
+<==        Row: 66, 1, 1041, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 67, 1, 1042, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 68, 1, 1043, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 69, 1, 1044, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 70, 1, 1051, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 71, 1, 1052, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 72, 1, 1053, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 73, 1, 1054, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 74, 1, 1061, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 75, 1, 1062, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 76, 1, 1071, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 77, 1, 1072, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 78, 1, 1073, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 79, 1, 1074, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 80, 1, 8011, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 81, 1, 8021, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==      Total: 75
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@15b48b87]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@50afc0b7] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2066378915 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, menu_name, menu_code, parent_id, menu_type, path, component, redirect, icon, is_external, is_cache, visible, status, sort_order, perm_code, del_flag, create_time, create_by, update_time, update_by FROM sys_menu WHERE del_flag = 0 AND (id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AND menu_type IN (?, ?) AND status = ? AND visible = ?) ORDER BY sort_order ASC
+==> Parameters: 500(Long), 502(Long), 503(Long), 501(Long), 400(Long), 401(Long), 402(Long), 403(Long), 404(Long), 405(Long), 300(Long), 302(Long), 304(Long), 301(Long), 305(Long), 303(Long), 800(Long), 802(Long), 801(Long), 700(Long), 701(Long), 600(Long), 607(Long), 604(Long), 608(Long), 602(Long), 603(Long), 605(Long), 601(Long), 606(Long), 100(Long), 106(Long), 105(Long), 103(Long), 1031(Long), 1033(Long), 1032(Long), 1034(Long), 104(Long), 102(Long), 1021(Long), 1023(Long), 1022(Long), 1024(Long), 107(Long), 101(Long), 1011(Long), 1013(Long), 1012(Long), 1014(Long), 1015(Long), 200(Long), 202(Long), 204(Long), 203(Long), 205(Long), 201(Long), 306(Long), 702(Long), 1041(Long), 1042(Long), 1043(Long), 1044(Long), 1051(Long), 1052(Long), 1053(Long), 1054(Long), 1061(Long), 1062(Long), 1071(Long), 1072(Long), 1073(Long), 1074(Long), 8011(Long), 8021(Long), 1(Integer), 2(Integer), 1(Integer), 1(Integer)
+<==    Columns: id, menu_name, menu_code, parent_id, menu_type, path, component, redirect, icon, is_external, is_cache, visible, status, sort_order, perm_code, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 801, 操作日志, log:operation, 800, 2, operation, log/operation, null, Document, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 301, 物品列表, item:list, 300, 2, list, item/list, null, List, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 601, 库存报表, report:stock, 600, 2, stock, report/stock, null, PieChart, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 101, 用户管理, system:user, 100, 2, user, system/user, null, User, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 401, 入库管理, business:inbound, 400, 2, inbound, business/inbound, null, Bottom, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 701, 库存预警, monitor:stock-alert, 700, 2, stock-alert, monitor/stock-alert, null, Warning, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-22 15:13:26, 
+<==        Row: 201, 库房管理, warehouse:warehouse, 200, 2, warehouse, warehouse/warehouse, null, OfficeBuilding, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 501, 待审批, approval:pending, 500, 2, pending, approval/pending, null, Bell, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 802, 登录日志, log:login, 800, 2, login, log/login, null, User, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 302, 类目管理, item:category, 300, 2, category, item/category, null, Menu, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 602, 入库报表, report:inbound, 600, 2, inbound, report/inbound, null, TrendCharts, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 102, 角色管理, system:role, 100, 2, role, system/role, null, UserFilled, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 402, 出库/领用, business:outbound, 400, 2, outbound, business/outbound, null, Top, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 702, 逾期归还, monitor:overdue-return, 700, 2, overdue-return, monitor/overdue-return, null, Timer, 0, 0, 1, 1, 2, null, 0, 2026-05-22 15:13:26, , 2026-05-22 15:13:26, 
+<==        Row: 200, 库房管理, warehouse, 0, 1, warehouse, , /warehouse/warehouse, House, 0, 0, 1, 1, 2, , 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 202, 区域管理, warehouse:area, 200, 2, area, warehouse/area, null, Grid, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 502, 审批配置, approval:config, 500, 2, config, approval/config, null, Operation, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 300, 物品管理, item, 0, 1, item, null, /item/list, Box, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 303, 标签管理, item:tag, 300, 2, tag, item/tag, null, PriceTag, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 603, 出库报表, report:outbound, 600, 2, outbound, report/outbound, null, DataLine, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 103, 菜单管理, system:menu, 100, 2, menu, system/menu, null, Menu, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 403, 归还管理, business:return, 400, 2, return, business/return, null, RefreshLeft, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 203, 存放柜管理, warehouse:cabinet, 200, 2, cabinet, warehouse/cabinet, null, Files, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 503, 审批记录, approval:history, 500, 2, history, approval/history, null, Document, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 304, 电子标签, item:label, 300, 2, label, label, null, Ticket, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 604, 借还报表, report:borrow-return, 600, 2, borrow-return, report/borrow-return, null, Connection, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 104, 权限管理, system:permission, 100, 2, permission, system/permission, null, Lock, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 400, 业务管理, business, 0, 1, business, null, /business/inbound, Document, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 404, 报废管理, business:scrap, 400, 2, scrap, business/scrap, null, Delete, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 204, 库位管理, warehouse:bin, 200, 2, bin, warehouse/bin, null, Collection, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 305, 库存管理, item:stock, 300, 2, stock, stock, null, Goods, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 605, 报废报表, report:scrap, 600, 2, scrap, report/scrap, null, Histogram, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 105, 部门管理, system:dept, 100, 2, dept, system/dept, null, OfficeBuilding, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 405, 调拨管理, business:transfer, 400, 2, transfer, business/transfer, null, Sort, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 205, 库房可视化, warehouse:visual, 200, 2, visual, warehouse/visual, null, Picture, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 500, 审批管理, approval, 0, 1, approval, null, /approval/pending, Stamp, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 306, 机器备件, item:machine-spare, 300, 2, machine-spare, item/machineSpare/index, null, Connection, 0, 0, 1, 1, 6, null, 0, 2026-05-21 17:21:52, , 2026-05-21 17:21:52, 
+<==        Row: 600, 统计报表, report, 0, 1, report, null, /report/stock, DataAnalysis, 0, 0, 1, 1, 6, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 606, 调拨报表, report:transfer, 600, 2, transfer, report/transfer, null, Guide, 0, 0, 1, 1, 6, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 106, 系统配置, system:config, 100, 2, config, system/config, null, Operation, 0, 0, 1, 1, 6, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 607, 预警报表, report:alert, 600, 2, alert, report/alert, null, Warning, 0, 0, 1, 1, 7, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 100, 系统管理, system, 0, 1, system, null, /system/user, Setting, 0, 0, 1, 1, 7, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 107, 供应商管理, system:supplier, 100, 2, supplier, system/supplier, null, Van, 0, 0, 1, 1, 7, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 700, 预警监控, monitor, 0, 1, monitor, null, /monitor/stock-alert, AlarmClock, 0, 0, 1, 1, 7, null, 0, 2026-05-14 10:55:27, , 2026-05-22 15:13:26, 
+<==        Row: 800, 日志管理, log, 0, 1, log, null, /log/operation, Notebook, 0, 0, 1, 1, 8, null, 0, 2026-05-14 10:55:27, , 2026-05-22 15:13:26, 
+<==        Row: 608, 费用核算, report:cost, 600, 2, cost, report/cost, null, Money, 0, 0, 1, 1, 8, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 46
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@50afc0b7]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3c6b9d4e] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@746631833 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3c6b9d4e]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@545db0fb] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1983558879 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@545db0fb]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@d4c5817] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@217349478 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, username, `password`, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by FROM sys_user WHERE id = ? AND del_flag = 0
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, admin, $2a$10$LsVmTwWRujlN2FfVwZIwaOBCg20ejyN5x0yqPHM7JO3Bjrc/FKMr6, 系统管理员, null, , , /api/storage/avatars/984a7cef2d0f45eab243ffeba8a93e06.jpeg, 1, 0, 2026-05-14 09:31:19, system, 2026-05-28 16:58:32, system
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@d4c5817]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@511f47a1] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1180701841 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@511f47a1]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3a4375c1] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@114670781 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3a4375c1]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@480e8dd0] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1604438030 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0
+==> Parameters: 
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==        Row: 2, 库房管理员, warehouse_manager, 备件库经手人，负责日常出入库操作, 3, 1, 0, 2026-05-26 17:25:39, , 2026-05-29 16:31:13, 
+<==        Row: 3, 领取人, receiver, 申请领用备件的人员, 3, 1, 0, 2026-05-26 17:25:39, , 2026-05-29 16:31:13, 
+<==        Row: 4, 审核人, reviewer, 负责单据审核, 3, 1, 0, 2026-05-26 17:25:39, , 2026-05-29 16:31:13, 
+<==        Row: 5, 审批人, approver, 负责最终审批, 1, 1, 0, 2026-05-26 17:25:39, , 2026-05-26 17:25:39, 
+<==        Row: 2056289514888773634, 超级大总管, 001, 拥有系统最高权限, 1, 0, 0, 2026-05-18 16:23:19, 1, 2026-05-18 16:23:19, 1
+<==      Total: 6
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@480e8dd0]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13b3797e] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1279143171 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_id, dept_id, del_flag, create_time, create_by, update_time, update_by FROM sys_role_dept WHERE del_flag = 0 AND (role_id IN (?, ?, ?, ?, ?, ?))
+==> Parameters: 1(Long), 2(Long), 3(Long), 4(Long), 5(Long), 2056289514888773634(Long)
+<==      Total: 0
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13b3797e]
+Creating a new SqlSession
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2abb4d0f] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@cc32941] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@467379173 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1814156046 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@cc32941]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2abb4d0f]
+Creating a new SqlSession
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19f90b9d] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4fd5dee] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2123338394 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1065121908 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@19f90b9d]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4fd5dee]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@70bedcc4] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1752821704 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, username, `password`, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by FROM sys_user WHERE id = ? AND del_flag = 0
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, admin, $2a$10$LsVmTwWRujlN2FfVwZIwaOBCg20ejyN5x0yqPHM7JO3Bjrc/FKMr6, 系统管理员, null, , , /api/storage/avatars/984a7cef2d0f45eab243ffeba8a93e06.jpeg, 1, 0, 2026-05-14 09:31:19, system, 2026-05-28 16:58:32, system
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@70bedcc4]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@496dd739] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1044577427 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@496dd739]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d010b06] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1876493268 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4d010b06]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a9b8b4] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@663849101 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_id, perm_id, del_flag, create_time, create_by, update_time, update_by FROM sys_role_permission WHERE del_flag = 0 AND (role_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, role_id, perm_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 10, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 2, 1, 12, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 3, 1, 11, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 4, 1, 13, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 5, 1, 6, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 6, 1, 8, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 7, 1, 7, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 8, 1, 9, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 9, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 10, 1, 3, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 11, 1, 2, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 12, 1, 4, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 13, 1, 5, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 14, 1, 14, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 15, 1, 15, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 16, 1, 16, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 17, 1, 17, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 18, 1, 18, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 19, 1, 19, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 20, 1, 20, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 21, 1, 21, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 22, 1, 22, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 23, 1, 23, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 24, 1, 24, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 25, 1, 25, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 26, 1, 26, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 27, 1, 27, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 28, 1, 28, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 29, 1, 29, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 320001, 1, 20001, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320002, 1, 20002, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320003, 1, 20003, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320004, 1, 20004, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320005, 1, 20005, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320006, 1, 20006, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320007, 1, 20007, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320008, 1, 20008, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320009, 1, 20009, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320010, 1, 20010, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320011, 1, 20011, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320012, 1, 20012, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320013, 1, 20013, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320014, 1, 20014, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320015, 1, 20015, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320016, 1, 20016, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320017, 1, 20017, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320018, 1, 20018, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320019, 1, 20019, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320020, 1, 20020, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320021, 1, 20021, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320022, 1, 20022, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320023, 1, 20023, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320024, 1, 20024, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320025, 1, 20025, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320026, 1, 20026, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320027, 1, 20027, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320028, 1, 20028, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320029, 1, 20029, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320030, 1, 20030, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320031, 1, 20031, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320032, 1, 20032, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320033, 1, 20033, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320034, 1, 20034, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320035, 1, 20035, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320036, 1, 20036, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320037, 1, 20037, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320038, 1, 20038, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320039, 1, 20039, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320040, 1, 20040, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320041, 1, 20041, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320042, 1, 20042, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320043, 1, 20043, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320044, 1, 20044, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320045, 1, 20045, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320046, 1, 20046, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320047, 1, 20047, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320048, 1, 20048, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320049, 1, 20049, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320050, 1, 20050, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320051, 1, 20051, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320052, 1, 20052, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320053, 1, 20053, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320054, 1, 20054, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320055, 1, 20055, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320056, 1, 20056, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320057, 1, 20057, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320058, 1, 20058, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320059, 1, 20059, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320060, 1, 20060, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320061, 1, 20061, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320062, 1, 20062, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320063, 1, 20063, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320064, 1, 20064, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320065, 1, 20065, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320066, 1, 20066, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320067, 1, 20067, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320068, 1, 20068, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320069, 1, 20069, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320070, 1, 20070, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320071, 1, 20071, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320072, 1, 20072, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320073, 1, 20073, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320074, 1, 20074, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320075, 1, 20075, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320076, 1, 20076, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320077, 1, 20077, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320078, 1, 20078, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320079, 1, 20079, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320080, 1, 20080, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320081, 1, 20081, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320082, 1, 20082, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320083, 1, 20083, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320084, 1, 20084, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320085, 1, 20085, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320086, 1, 20086, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320087, 1, 20087, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320088, 1, 20088, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320089, 1, 20089, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320090, 1, 20090, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320091, 1, 20091, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320092, 1, 20092, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320093, 1, 20093, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320094, 1, 20094, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320095, 1, 20095, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320096, 1, 20096, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320097, 1, 20097, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==      Total: 126
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a9b8b4]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@207f71ab] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2025614171 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT id, username, `password`, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by FROM sys_user WHERE id = ? AND del_flag = 0
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, real_name, dept_id, phone, email, avatar, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, admin, $2a$10$LsVmTwWRujlN2FfVwZIwaOBCg20ejyN5x0yqPHM7JO3Bjrc/FKMr6, 系统管理员, null, , , /api/storage/avatars/984a7cef2d0f45eab243ffeba8a93e06.jpeg, 1, 0, 2026-05-14 09:31:19, system, 2026-05-28 16:58:32, system
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@207f71ab]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6e159616] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1753451821 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6e159616]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d56221b] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@201781446 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7d56221b]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3d3fc81e] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1835037109 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM sys_permission WHERE del_flag = 0
+==> Parameters: 
+<==    Columns: total
+<==        Row: 126
+<==      Total: 1
+==>  Preparing: SELECT id, perm_name, perm_code, perm_type, parent_id, menu_id, status, del_flag, create_time, create_by, update_time, update_by FROM sys_permission WHERE del_flag = 0 ORDER BY create_time DESC LIMIT ?
+==> Parameters: 100(Long)
+<==    Columns: id, perm_name, perm_code, perm_type, parent_id, menu_id, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 20076, 库存报表查询, report:stock:list, 2, 0, 601, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20083, 借还报表导出, report:borrow-return:export, 2, 0, 604, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20079, 入库报表导出, report:inbound:export, 2, 0, 602, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20077, 库存报表导出, report:stock:export, 2, 0, 601, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20085, 报废报表导出, report:scrap:export, 2, 0, 605, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20084, 报废报表查询, report:scrap:list, 2, 0, 605, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20075, 审批记录查询, approval:history:list, 2, 0, 503, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20080, 出库报表查询, report:outbound:list, 2, 0, 603, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20078, 入库报表查询, report:inbound:list, 2, 0, 602, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20074, 审批配置删除, approval:config:delete, 2, 0, 502, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20082, 借还报表查询, report:borrow-return:list, 2, 0, 604, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20081, 出库报表导出, report:outbound:export, 2, 0, 603, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20073, 审批配置编辑, approval:config:edit, 2, 0, 502, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20086, 调拨报表查询, report:transfer:list, 2, 0, 606, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20087, 调拨报表导出, report:transfer:export, 2, 0, 606, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20088, 预警报表查询, report:alert:list, 2, 0, 607, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20089, 预警报表导出, report:alert:export, 2, 0, 607, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20090, 费用核算查询, report:cost:list, 2, 0, 608, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20091, 费用核算导出, report:cost:export, 2, 0, 608, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20092, 费用核算配置, report:cost:edit, 2, 0, 608, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20093, 库存预警查询, monitor:stock-alert:list, 2, 0, 701, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20094, 库存预警处理, monitor:stock-alert:resolve, 2, 0, 701, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20095, 逾期归还查询, monitor:overdue-return:list, 2, 0, 701, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20096, 入库扫码, business:inbound:scan, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20097, 出库扫码, business:outbound:scan, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20001, 库房查询, warehouse:warehouse:list, 2, 0, 201, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20002, 库房新增, warehouse:warehouse:add, 2, 0, 201, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20003, 库房编辑, warehouse:warehouse:edit, 2, 0, 201, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20004, 库房删除, warehouse:warehouse:delete, 2, 0, 201, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20005, 区域查询, warehouse:area:list, 2, 0, 202, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20006, 区域新增, warehouse:area:add, 2, 0, 202, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20007, 区域编辑, warehouse:area:edit, 2, 0, 202, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20008, 区域删除, warehouse:area:delete, 2, 0, 202, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20009, 存放柜查询, warehouse:cabinet:list, 2, 0, 203, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20010, 存放柜新增, warehouse:cabinet:add, 2, 0, 203, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20011, 存放柜编辑, warehouse:cabinet:edit, 2, 0, 203, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20012, 存放柜删除, warehouse:cabinet:delete, 2, 0, 203, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20013, 库位查询, warehouse:bin:list, 2, 0, 204, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20014, 库位新增, warehouse:bin:add, 2, 0, 204, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20015, 库位编辑, warehouse:bin:edit, 2, 0, 204, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20016, 库位删除, warehouse:bin:delete, 2, 0, 204, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20017, 库位批量生成, warehouse:bin:batch, 2, 0, 204, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20018, 库房可视化编辑, warehouse:visual:edit, 2, 0, 205, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20019, 物品查询, item:item:list, 2, 0, 301, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20020, 物品新增, item:item:add, 2, 0, 301, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20021, 物品编辑, item:item:edit, 2, 0, 301, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20022, 物品删除, item:item:delete, 2, 0, 301, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20023, 类目查询, item:category:list, 2, 0, 302, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20024, 类目新增, item:category:add, 2, 0, 302, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20025, 类目编辑, item:category:edit, 2, 0, 302, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20026, 类目删除, item:category:delete, 2, 0, 302, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20027, 标签查询, item:tag:list, 2, 0, 303, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20028, 标签新增, item:tag:add, 2, 0, 303, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20029, 标签编辑, item:tag:edit, 2, 0, 303, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20030, 标签删除, item:tag:delete, 2, 0, 303, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20031, 电子标签查询, item:label:list, 2, 0, 304, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20032, 电子标签生成, item:label:generate, 2, 0, 304, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20033, 电子标签绑定, item:label:bind, 2, 0, 304, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20034, 电子标签状态修改, item:label:status, 2, 0, 304, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20035, 电子标签打印, item:label:print, 2, 0, 304, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20036, 库存查询, item:stock:list, 2, 0, 305, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20037, 库存阈值设置, item:stock:edit, 2, 0, 305, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20038, 机器备件查询, item:machine-spare:list, 2, 0, 306, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20039, 机器备件新增, item:machine-spare:add, 2, 0, 306, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20040, 机器备件编辑, item:machine-spare:edit, 2, 0, 306, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20041, 机器备件删除, item:machine-spare:delete, 2, 0, 306, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20042, 入库单查询, business:inbound:list, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20043, 入库单新增, business:inbound:add, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20044, 入库单编辑, business:inbound:edit, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20045, 入库单提交, business:inbound:submit, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20046, 入库单删除, business:inbound:delete, 2, 0, 401, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20047, 出库单查询, business:outbound:list, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20048, 出库单新增, business:outbound:add, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20049, 出库单编辑, business:outbound:edit, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20050, 出库单提交, business:outbound:submit, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20051, 出库单删除, business:outbound:delete, 2, 0, 402, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20052, 归还单查询, business:return:list, 2, 0, 403, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20053, 归还单新增, business:return:add, 2, 0, 403, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20054, 归还单编辑, business:return:edit, 2, 0, 403, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20055, 归还单提交, business:return:submit, 2, 0, 403, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20056, 归还单删除, business:return:delete, 2, 0, 403, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20057, 报废单查询, business:scrap:list, 2, 0, 404, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20058, 报废单新增, business:scrap:add, 2, 0, 404, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20059, 报废单编辑, business:scrap:edit, 2, 0, 404, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20060, 报废单提交, business:scrap:submit, 2, 0, 404, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20061, 报废单删除, business:scrap:delete, 2, 0, 404, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20062, 调拨单查询, business:transfer:list, 2, 0, 405, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20063, 调拨单新增, business:transfer:add, 2, 0, 405, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20064, 调拨单编辑, business:transfer:edit, 2, 0, 405, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20065, 调拨单提交, business:transfer:submit, 2, 0, 405, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20066, 调拨单删除, business:transfer:delete, 2, 0, 405, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20067, 待审批查询, approval:pending:list, 2, 0, 501, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20068, 审批通过, approval:pending:approve, 2, 0, 501, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20069, 审批驳回, approval:pending:reject, 2, 0, 501, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20070, 审批撤回, approval:pending:revoke, 2, 0, 501, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20071, 审批配置查询, approval:config:list, 2, 0, 502, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 20072, 审批配置新增, approval:config:add, 2, 0, 502, 1, 0, 2026-06-01 10:32:35, , 2026-06-01 10:32:35, 
+<==        Row: 14, 权限新增, system:perm:add, 2, 0, 1041, 1, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 15, 权限编辑, system:perm:edit, 2, 0, 1042, 1, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 28, 操作日志查询, system:oper-log:list, 2, 0, 8011, 1, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==      Total: 100
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3d3fc81e]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@68af8412] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@550680586 wrapping com.mysql.cj.jdbc.ConnectionImpl@4bfbac18] will not be managed by Spring
+==>  Preparing: SELECT id, menu_name, menu_code, parent_id, menu_type, path, component, redirect, icon, is_external, is_cache, visible, status, sort_order, perm_code, del_flag, create_time, create_by, update_time, update_by FROM sys_menu WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AND del_flag = 0
+==> Parameters: 601(Long), 604(Long), 602(Long), 605(Long), 503(Long), 603(Long), 502(Long), 606(Long), 607(Long), 608(Long), 701(Long), 401(Long), 402(Long), 201(Long), 202(Long), 203(Long), 204(Long), 205(Long), 301(Long), 302(Long), 303(Long), 304(Long), 305(Long), 306(Long), 403(Long), 404(Long), 405(Long), 501(Long), 1041(Long), 1042(Long), 8011(Long)
+<==    Columns: id, menu_name, menu_code, parent_id, menu_type, path, component, redirect, icon, is_external, is_cache, visible, status, sort_order, perm_code, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 201, 库房管理, warehouse:warehouse, 200, 2, warehouse, warehouse/warehouse, null, OfficeBuilding, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 202, 区域管理, warehouse:area, 200, 2, area, warehouse/area, null, Grid, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 203, 存放柜管理, warehouse:cabinet, 200, 2, cabinet, warehouse/cabinet, null, Files, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 204, 库位管理, warehouse:bin, 200, 2, bin, warehouse/bin, null, Collection, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 205, 库房可视化, warehouse:visual, 200, 2, visual, warehouse/visual, null, Picture, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 301, 物品列表, item:list, 300, 2, list, item/list, null, List, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 302, 类目管理, item:category, 300, 2, category, item/category, null, Menu, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 303, 标签管理, item:tag, 300, 2, tag, item/tag, null, PriceTag, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 304, 电子标签, item:label, 300, 2, label, label, null, Ticket, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 305, 库存管理, item:stock, 300, 2, stock, stock, null, Goods, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 306, 机器备件, item:machine-spare, 300, 2, machine-spare, item/machineSpare/index, null, Connection, 0, 0, 1, 1, 6, null, 0, 2026-05-21 17:21:52, , 2026-05-21 17:21:52, 
+<==        Row: 401, 入库管理, business:inbound, 400, 2, inbound, business/inbound, null, Bottom, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 402, 出库/领用, business:outbound, 400, 2, outbound, business/outbound, null, Top, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 403, 归还管理, business:return, 400, 2, return, business/return, null, RefreshLeft, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 404, 报废管理, business:scrap, 400, 2, scrap, business/scrap, null, Delete, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 405, 调拨管理, business:transfer, 400, 2, transfer, business/transfer, null, Sort, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 501, 待审批, approval:pending, 500, 2, pending, approval/pending, null, Bell, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 502, 审批配置, approval:config, 500, 2, config, approval/config, null, Operation, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 503, 审批记录, approval:history, 500, 2, history, approval/history, null, Document, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 601, 库存报表, report:stock, 600, 2, stock, report/stock, null, PieChart, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 602, 入库报表, report:inbound, 600, 2, inbound, report/inbound, null, TrendCharts, 0, 0, 1, 1, 2, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 603, 出库报表, report:outbound, 600, 2, outbound, report/outbound, null, DataLine, 0, 0, 1, 1, 3, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 604, 借还报表, report:borrow-return, 600, 2, borrow-return, report/borrow-return, null, Connection, 0, 0, 1, 1, 4, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 605, 报废报表, report:scrap, 600, 2, scrap, report/scrap, null, Histogram, 0, 0, 1, 1, 5, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 606, 调拨报表, report:transfer, 600, 2, transfer, report/transfer, null, Guide, 0, 0, 1, 1, 6, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 607, 预警报表, report:alert, 600, 2, alert, report/alert, null, Warning, 0, 0, 1, 1, 7, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 608, 费用核算, report:cost, 600, 2, cost, report/cost, null, Money, 0, 0, 1, 1, 8, null, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 701, 库存预警, monitor:stock-alert, 700, 2, stock-alert, monitor/stock-alert, null, Warning, 0, 0, 1, 1, 1, null, 0, 2026-05-14 10:55:27, , 2026-05-22 15:13:26, 
+<==        Row: 1041, 权限新增, system:perm:add, 104, 3, null, null, null, null, 0, 0, 1, 1, 1, system:perm:add, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 1042, 权限编辑, system:perm:edit, 104, 3, null, null, null, null, 0, 0, 1, 1, 2, system:perm:edit, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 8011, 操作日志查询, system:oper-log:list, 801, 3, null, null, null, null, 0, 0, 1, 1, 1, system:oper-log:list, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==      Total: 31
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@68af8412]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@631c5f43] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@54254703 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (user_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@631c5f43]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@a1d9738] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@12152049 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: SELECT id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by FROM sys_role WHERE del_flag = 0 AND (id IN (?) AND status = ?)
+==> Parameters: 1(Long), 1(Integer)
+<==    Columns: id, role_name, role_code, role_desc, data_scope, status, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 系统管理员, admin, 拥有系统全部权限, 1, 1, 0, 2026-05-14 10:53:15, , 2026-05-14 10:53:15, 
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@a1d9738]
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+JDBC Connection [HikariProxyConnection@956766314 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will be managed by Spring
+==>  Preparing: SELECT id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by FROM sys_user_role WHERE del_flag = 0 AND (role_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, role_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: SELECT id, role_id, perm_id, del_flag, create_time, create_by, update_time, update_by FROM sys_role_permission WHERE del_flag = 0 AND (role_id = ?)
+==> Parameters: 1(Long)
+<==    Columns: id, role_id, perm_id, del_flag, create_time, create_by, update_time, update_by
+<==        Row: 1, 1, 10, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 2, 1, 12, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 3, 1, 11, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 4, 1, 13, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 5, 1, 6, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 6, 1, 8, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 7, 1, 7, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 8, 1, 9, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 9, 1, 1, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 10, 1, 3, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 11, 1, 2, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 12, 1, 4, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 13, 1, 5, 0, 2026-05-14 10:55:27, , 2026-05-14 10:55:27, 
+<==        Row: 14, 1, 14, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 15, 1, 15, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 16, 1, 16, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 17, 1, 17, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 18, 1, 18, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 19, 1, 19, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 20, 1, 20, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 21, 1, 21, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 22, 1, 22, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 23, 1, 23, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 24, 1, 24, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 25, 1, 25, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 26, 1, 26, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 27, 1, 27, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 28, 1, 28, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 29, 1, 29, 0, 2026-06-01 09:05:20, , 2026-06-01 09:05:20, 
+<==        Row: 320001, 1, 20001, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320002, 1, 20002, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320003, 1, 20003, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320004, 1, 20004, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320005, 1, 20005, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320006, 1, 20006, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320007, 1, 20007, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320008, 1, 20008, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320009, 1, 20009, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320010, 1, 20010, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320011, 1, 20011, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320012, 1, 20012, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320013, 1, 20013, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320014, 1, 20014, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320015, 1, 20015, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320016, 1, 20016, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320017, 1, 20017, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320018, 1, 20018, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320019, 1, 20019, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320020, 1, 20020, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320021, 1, 20021, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320022, 1, 20022, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320023, 1, 20023, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320024, 1, 20024, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320025, 1, 20025, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320026, 1, 20026, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320027, 1, 20027, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320028, 1, 20028, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320029, 1, 20029, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320030, 1, 20030, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320031, 1, 20031, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320032, 1, 20032, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320033, 1, 20033, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320034, 1, 20034, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320035, 1, 20035, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320036, 1, 20036, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320037, 1, 20037, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320038, 1, 20038, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320039, 1, 20039, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320040, 1, 20040, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320041, 1, 20041, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320042, 1, 20042, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320043, 1, 20043, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320044, 1, 20044, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320045, 1, 20045, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320046, 1, 20046, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320047, 1, 20047, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320048, 1, 20048, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320049, 1, 20049, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320050, 1, 20050, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320051, 1, 20051, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320052, 1, 20052, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320053, 1, 20053, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320054, 1, 20054, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320055, 1, 20055, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320056, 1, 20056, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320057, 1, 20057, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320058, 1, 20058, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320059, 1, 20059, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320060, 1, 20060, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320061, 1, 20061, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320062, 1, 20062, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320063, 1, 20063, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320064, 1, 20064, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320065, 1, 20065, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320066, 1, 20066, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320067, 1, 20067, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320068, 1, 20068, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320069, 1, 20069, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320070, 1, 20070, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320071, 1, 20071, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320072, 1, 20072, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320073, 1, 20073, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320074, 1, 20074, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320075, 1, 20075, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320076, 1, 20076, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320077, 1, 20077, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320078, 1, 20078, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320079, 1, 20079, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320080, 1, 20080, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320081, 1, 20081, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320082, 1, 20082, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320083, 1, 20083, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320084, 1, 20084, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320085, 1, 20085, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320086, 1, 20086, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320087, 1, 20087, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320088, 1, 20088, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320089, 1, 20089, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320090, 1, 20090, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320091, 1, 20091, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320092, 1, 20092, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320093, 1, 20093, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320094, 1, 20094, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320095, 1, 20095, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320096, 1, 20096, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==        Row: 320097, 1, 20097, 0, 2026-06-01 10:25:35, , 2026-06-01 10:25:35, 
+<==      Total: 126
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.130613400(LocalDateTime), 1(String), 1(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.138774200(LocalDateTime), 1(String), 2(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.140780900(LocalDateTime), 1(String), 3(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.141784500(LocalDateTime), 1(String), 4(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.143790500(LocalDateTime), 1(String), 5(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.144795(LocalDateTime), 1(String), 6(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.146801400(LocalDateTime), 1(String), 7(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.147804600(LocalDateTime), 1(String), 8(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.149812300(LocalDateTime), 1(String), 9(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.151818900(LocalDateTime), 1(String), 10(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.152822800(LocalDateTime), 1(String), 11(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.153826200(LocalDateTime), 1(String), 12(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.155832700(LocalDateTime), 1(String), 13(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.156836700(LocalDateTime), 1(String), 14(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.157839900(LocalDateTime), 1(String), 15(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.159846900(LocalDateTime), 1(String), 16(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.161361600(LocalDateTime), 1(String), 17(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.162356(LocalDateTime), 1(String), 18(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.164362800(LocalDateTime), 1(String), 19(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.165366300(LocalDateTime), 1(String), 20(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.166369600(LocalDateTime), 1(String), 21(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.168377100(LocalDateTime), 1(String), 22(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.169393400(LocalDateTime), 1(String), 23(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.170383(LocalDateTime), 1(String), 24(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.171386700(LocalDateTime), 1(String), 25(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.172389900(LocalDateTime), 1(String), 26(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.174397(LocalDateTime), 1(String), 27(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.175400400(LocalDateTime), 1(String), 28(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.176404200(LocalDateTime), 1(String), 29(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.177407300(LocalDateTime), 1(String), 320001(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.178410800(LocalDateTime), 1(String), 320002(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.179413700(LocalDateTime), 1(String), 320003(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.181421400(LocalDateTime), 1(String), 320004(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.183428400(LocalDateTime), 1(String), 320005(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.184430900(LocalDateTime), 1(String), 320006(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.186438700(LocalDateTime), 1(String), 320007(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.188445800(LocalDateTime), 1(String), 320008(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.190511100(LocalDateTime), 1(String), 320009(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.191514200(LocalDateTime), 1(String), 320010(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.192517900(LocalDateTime), 1(String), 320011(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.193521600(LocalDateTime), 1(String), 320012(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.195527700(LocalDateTime), 1(String), 320013(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.196532(LocalDateTime), 1(String), 320014(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.197863200(LocalDateTime), 1(String), 320015(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.198858400(LocalDateTime), 1(String), 320016(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.199861800(LocalDateTime), 1(String), 320017(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.200865500(LocalDateTime), 1(String), 320018(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.201869200(LocalDateTime), 1(String), 320019(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.202872400(LocalDateTime), 1(String), 320020(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.204879200(LocalDateTime), 1(String), 320021(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.205882600(LocalDateTime), 1(String), 320022(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.206886300(LocalDateTime), 1(String), 320023(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.206886300(LocalDateTime), 1(String), 320024(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.208222400(LocalDateTime), 1(String), 320025(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.210204200(LocalDateTime), 1(String), 320026(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.211208400(LocalDateTime), 1(String), 320027(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.212211600(LocalDateTime), 1(String), 320028(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.214218500(LocalDateTime), 1(String), 320029(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.215222300(LocalDateTime), 1(String), 320030(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.216225900(LocalDateTime), 1(String), 320031(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.217229(LocalDateTime), 1(String), 320032(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.218232500(LocalDateTime), 1(String), 320033(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.218752700(LocalDateTime), 1(String), 320034(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.220281(LocalDateTime), 1(String), 320035(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.221271800(LocalDateTime), 1(String), 320036(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.222274600(LocalDateTime), 1(String), 320037(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.224282(LocalDateTime), 1(String), 320038(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.225285700(LocalDateTime), 1(String), 320039(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.226288700(LocalDateTime), 1(String), 320040(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.228295700(LocalDateTime), 1(String), 320041(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.229298900(LocalDateTime), 1(String), 320042(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.230546600(LocalDateTime), 1(String), 320043(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.231527100(LocalDateTime), 1(String), 320044(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.232530600(LocalDateTime), 1(String), 320045(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.233533700(LocalDateTime), 1(String), 320046(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.234537400(LocalDateTime), 1(String), 320047(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.235540800(LocalDateTime), 1(String), 320048(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.237548100(LocalDateTime), 1(String), 320049(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.238551300(LocalDateTime), 1(String), 320050(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.239554200(LocalDateTime), 1(String), 320051(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.240557900(LocalDateTime), 1(String), 320052(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.241561300(LocalDateTime), 1(String), 320053(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.242565500(LocalDateTime), 1(String), 320054(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.243568900(LocalDateTime), 1(String), 320055(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.245575900(LocalDateTime), 1(String), 320056(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.246579100(LocalDateTime), 1(String), 320057(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.247582600(LocalDateTime), 1(String), 320058(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.248586600(LocalDateTime), 1(String), 320059(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.249610(LocalDateTime), 1(String), 320060(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.250639500(LocalDateTime), 1(String), 320061(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.251627800(LocalDateTime), 1(String), 320062(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.252630800(LocalDateTime), 1(String), 320063(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.253635100(LocalDateTime), 1(String), 320064(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.254638500(LocalDateTime), 1(String), 320065(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.255641700(LocalDateTime), 1(String), 320066(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.258271300(LocalDateTime), 1(String), 320067(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.260266800(LocalDateTime), 1(String), 320068(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.261431400(LocalDateTime), 1(String), 320069(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.262426200(LocalDateTime), 1(String), 320070(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.263429700(LocalDateTime), 1(String), 320071(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.264433(LocalDateTime), 1(String), 320072(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.265436300(LocalDateTime), 1(String), 320073(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.266440100(LocalDateTime), 1(String), 320074(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.267443600(LocalDateTime), 1(String), 320075(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.268447100(LocalDateTime), 1(String), 320076(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.269656800(LocalDateTime), 1(String), 320077(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.270649700(LocalDateTime), 1(String), 320078(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.272656300(LocalDateTime), 1(String), 320079(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.273659700(LocalDateTime), 1(String), 320080(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.275667100(LocalDateTime), 1(String), 320081(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.277673500(LocalDateTime), 1(String), 320082(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.278678100(LocalDateTime), 1(String), 320083(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.279715200(LocalDateTime), 1(String), 320084(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.280693800(LocalDateTime), 1(String), 320085(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.281698600(LocalDateTime), 1(String), 320086(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.282682800(LocalDateTime), 1(String), 320087(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.284689300(LocalDateTime), 1(String), 320088(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.285692400(LocalDateTime), 1(String), 320089(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.286695900(LocalDateTime), 1(String), 320090(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.287699700(LocalDateTime), 1(String), 320091(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.288703500(LocalDateTime), 1(String), 320092(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.290709800(LocalDateTime), 1(String), 320093(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.291714(LocalDateTime), 1(String), 320094(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.292717700(LocalDateTime), 1(String), 320095(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.293720300(LocalDateTime), 1(String), 320096(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: UPDATE sys_role_permission SET update_time = ?, update_by = ? WHERE id = ? AND del_flag = 0
+==> Parameters: 2026-06-01T11:06:43.294723800(LocalDateTime), 1(String), 320097(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5] from current transaction
+==>  Preparing: INSERT INTO sys_role_permission ( id, role_id, perm_id, create_time, create_by, update_time, update_by ) VALUES ( ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 2061283271178686466(Long), 1(Long), 20076(Long), 2026-06-01T11:06:43.298738300(LocalDateTime), 1(String), 2026-06-01T11:06:43.298738300(LocalDateTime), 1(String)
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@141768d5]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@dcc112] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@170175074 wrapping com.mysql.cj.jdbc.ConnectionImpl@30383591] will not be managed by Spring
+==>  Preparing: INSERT INTO sys_oper_log ( id, `module`, `type`, `desc`, operator_id, operator_name, request_url, request_method, request_params, oper_ip, `status`, error_msg, cost_time, oper_time, create_time, create_by, update_time, update_by ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 2061283271614894082(Long), system(String), UPDATE(String), 分配角色权限(String), 1(Long), admin(String), /api/system/roles/1/permissions(String), PUT(String), {"permIds":["20076","20077","20083","20082","20079","20078","20085","20084","20075","20080","20081","20074","20073","20071","20072","20086","20087","20088","20089","20090","20091","20092","20093","20094","20095","20096","20042","20043","20044","20045","20046","20097","20047","20048","20049","20050","20051","20001","20002","20003","20004","20005","20006","20007","20008","20009","20010","20011","20012","20013","20014","20015","20016","20017","20018","20019","20020","20021","20022","20023","20024","20025","20026","20027","20028","20029","20030","20031","20032","20033","20034","20035","20036","20037","20038","20039","20040","20041","20052","20053","20054","20055","20056","20057","20058","20059","20060","20061","20062","20063","20064","20065","20066","20067","20068","20069","20070","14","15","28"],"id":"1"}(String), 0:0:0:0:0:0:0:1(String), FAIL(String), 
+### Error updating database.  Cause: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '1-20076-0' for key 'uk_role_perm'
+### The error may exist in com/wms/system/mapper/SysRolePermissionMapper.java (best guess)
+### The error may involve com.wms.system.mapper.SysRolePermissionMapper.insert-Inline
+### The error occurred while setting parameters
+### SQL: INSERT INTO sys_role_permission  ( id, role_id, perm_id,  create_time, create_by, update_time, update_by )  VALUES (  ?, (String), 294(Long), 2026-06-01T11:06:43.397355200(LocalDateTime), 2026-06-01T11:06:43.401369400(LocalDateTime), system(String), 2026-06-01T11:06:43.401369400(LocalDateTime), system(String)
+2026-06-01T11:06:43.400+08:00 ERROR 25124 --- [wms-server] [nio-8080-exec-6] c.w.c.exception.GlobalExceptionHandler   : 系统异常
+
+org.springframework.dao.DuplicateKeyException: 
+### Error updating database.  Cause: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '1-20076-0' for key 'uk_role_perm'
+### The error may exist in com/wms/system/mapper/SysRolePermissionMapper.java (best guess)
+### The error may involve com.wms.system.mapper.SysRolePermissionMapper.insert-Inline
+### The error occurred while setting parameters
+### SQL: INSERT INTO sys_role_permission  ( id, role_id, perm_id,  create_time, create_by, update_time, update_by )  VALUES (  ?, ?, ?,  ?, ?, ?, ?  )
+### Cause: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '1-20076-0' for key 'uk_role_perm'
+; Duplicate entry '1-20076-0' for key 'uk_role_perm'
+	at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:254) ~[spring-jdbc-6.1.6.jar:6.1.6]
+	at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:107) ~[spring-jdbc-6.1.6.jar:6.1.6]
+	at org.mybatis.spring.MyBatisExceptionTranslator.translateExceptionIfPossible(MyBatisExceptionTranslator.java:92) ~[mybatis-spring-3.0.3.jar:3.0.3]
+	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:439) ~[mybatis-spring-3.0.3.jar:3.0.3]
+	at jdk.proxy2/jdk.proxy2.$Proxy97.insert(Unknown Source) ~[na:na]
+	at org.mybatis.spring.SqlSessionTemplate.insert(SqlSessionTemplate.java:272) ~[mybatis-spring-3.0.3.jar:3.0.3]
+	at com.baomidou.mybatisplus.core.override.MybatisMapperMethod.execute(MybatisMapperMethod.java:59) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
+	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy$PlainMethodInvoker.invoke(MybatisMapperProxy.java:149) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
+	at com.baomidou.mybatisplus.core.override.MybatisMapperProxy.invoke(MybatisMapperProxy.java:90) ~[mybatis-plus-core-3.5.6.jar:3.5.6]
+	at jdk.proxy2/jdk.proxy2.$Proxy103.insert(Unknown Source) ~[na:na]
+	at com.wms.system.service.impl.SysRoleServiceImpl.assignRolePermissions(SysRoleServiceImpl.java:359) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.6.jar:6.1.6]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392) ~[spring-tx-6.1.6.jar:6.1.6]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.6.jar:6.1.6]
+	at com.wms.system.service.impl.SysRoleServiceImpl$$SpringCGLIB$$0.assignRolePermissions(<generated>) ~[classes/:na]
+	at com.wms.system.controller.SysRoleController.assignRolePermissions(SysRoleController.java:141) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.validation.beanvalidation.MethodValidationInterceptor.invoke(MethodValidationInterceptor.java:174) ~[spring-context-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:89) ~[spring-aop-6.1.6.jar:6.1.6]
+	at com.wms.system.aspect.OperLogAspect.around(OperLogAspect.java:90) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:637) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethod(AbstractAspectJAdvice.java:627) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.aspectj.AspectJAroundAdvice.invoke(AspectJAroundAdvice.java:71) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:173) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke(AuthorizationManagerBeforeMethodInterceptor.java:198) ~[spring-security-core-6.2.4.jar:6.2.4]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720) ~[spring-aop-6.1.6.jar:6.1.6]
+	at com.wms.system.controller.SysRoleController$$SpringCGLIB$$0.assignRolePermissions(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188) ~[spring-web-6.1.6.jar:6.1.6]
 	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.1.6.jar:6.1.6]
 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926) ~[spring-webmvc-6.1.6.jar:6.1.6]
 	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831) ~[spring-webmvc-6.1.6.jar:6.1.6]
@@ -45,7 +1608,7 @@ org.springframework.http.converter.HttpMessageNotReadableException: JSON parse e
 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
 	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.2.4.jar:6.2.4]
 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
-	at com.wms.auth.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:62) ~[classes/:na]
+	at com.wms.auth.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:66) ~[classes/:na]
 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
 	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
 	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.2.4.jar:6.2.4]
@@ -106,18 +1669,43 @@ org.springframework.http.converter.HttpMessageNotReadableException: JSON parse e
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
 	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "id" (class com.wms.system.domain.dto.SysMenuDto), not marked as ignorable (14 known properties: "parentId", "menuName", "menuCode", "sortOrder", "visible", "isExternal", "isCache", "menuType", "redirect", "component", "path", "status", "icon", "permCode"])
- at [Source: (org.springframework.util.StreamUtils$NonClosingInputStream); line: 1, column: 8] (through reference chain: com.wms.system.domain.dto.SysMenuDto["id"])
-	at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1138) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2224) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1719) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownVanilla(BeanDeserializerBase.java:1697) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:320) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:323) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:2105) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at com.fasterxml.jackson.databind.ObjectReader.readValue(ObjectReader.java:1481) ~[jackson-databind-2.15.4.jar:2.15.4]
-	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.readJavaType(AbstractJackson2HttpMessageConverter.java:395) ~[spring-web-6.1.6.jar:6.1.6]
-	... 104 common frames omitted
+Caused by: java.sql.SQLIntegrityConstraintViolationException: Duplicate entry '1-20076-0' for key 'uk_role_perm'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:118) ~[mysql-connector-j-8.3.0.jar:8.3.0]
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122) ~[mysql-connector-j-8.3.0.jar:8.3.0]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:912) ~[mysql-connector-j-8.3.0.jar:8.3.0]
+	at com.mysql.cj.jdbc.ClientPreparedStatement.execute(ClientPreparedStatement.java:354) ~[mysql-connector-j-8.3.0.jar:8.3.0]
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.execute(ProxyPreparedStatement.java:44) ~[HikariCP-5.0.1.jar:na]
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute(HikariProxyPreparedStatement.java) ~[HikariCP-5.0.1.jar:na]
+	at jdk.internal.reflect.GeneratedMethodAccessor62.invoke(Unknown Source) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.apache.ibatis.logging.jdbc.PreparedStatementLogger.invoke(PreparedStatementLogger.java:58) ~[mybatis-3.5.16.jar:3.5.16]
+	at jdk.proxy3/jdk.proxy3.$Proxy209.execute(Unknown Source) ~[na:na]
+	at org.apache.ibatis.executor.statement.PreparedStatementHandler.update(PreparedStatementHandler.java:48) ~[mybatis-3.5.16.jar:3.5.16]
+	at org.apache.ibatis.executor.statement.RoutingStatementHandler.update(RoutingStatementHandler.java:75) ~[mybatis-3.5.16.jar:3.5.16]
+	at jdk.internal.reflect.GeneratedMethodAccessor109.invoke(Unknown Source) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:61) ~[mybatis-3.5.16.jar:3.5.16]
+	at jdk.proxy2/jdk.proxy2.$Proxy207.update(Unknown Source) ~[na:na]
+	at org.apache.ibatis.executor.SimpleExecutor.doUpdate(SimpleExecutor.java:50) ~[mybatis-3.5.16.jar:3.5.16]
+	at org.apache.ibatis.executor.BaseExecutor.update(BaseExecutor.java:117) ~[mybatis-3.5.16.jar:3.5.16]
+	at org.apache.ibatis.executor.CachingExecutor.update(CachingExecutor.java:76) ~[mybatis-3.5.16.jar:3.5.16]
+	at jdk.internal.reflect.GeneratedMethodAccessor100.invoke(Unknown Source) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.apache.ibatis.plugin.Invocation.proceed(Invocation.java:61) ~[mybatis-3.5.16.jar:3.5.16]
+	at com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor.intercept(MybatisPlusInterceptor.java:106) ~[mybatis-plus-extension-3.5.6.jar:3.5.6]
+	at org.apache.ibatis.plugin.Plugin.invoke(Plugin.java:59) ~[mybatis-3.5.16.jar:3.5.16]
+	at jdk.proxy2/jdk.proxy2.$Proxy206.update(Unknown Source) ~[na:na]
+	at org.apache.ibatis.session.defaults.DefaultSqlSession.update(DefaultSqlSession.java:197) ~[mybatis-3.5.16.jar:3.5.16]
+	at org.apache.ibatis.session.defaults.DefaultSqlSession.insert(DefaultSqlSession.java:184) ~[mybatis-3.5.16.jar:3.5.16]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
+	at org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:425) ~[mybatis-spring-3.0.3.jar:3.0.3]
+	... 156 common frames omitted
 
+<==    Updates: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@dcc112]

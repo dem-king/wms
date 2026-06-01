@@ -172,32 +172,34 @@ export interface SysDeptDto {
 export interface SysConfigVo {
   /** 配置ID */
   id: EntityId
-  /** 配置名称 */
-  configName: string
   /** 配置键 */
   configKey: string
   /** 配置值 */
   configValue: string
-  /** 配置组 */
+  /** 配置名称 */
+  configName: string
+  /** 配置分组 */
   configGroup: string
-  /** 描述 */
-  description: string
+  /** 配置描述 */
+  configDesc: string
   /** 创建时间 */
   createTime: string
+  /** 更新时间 */
+  updateTime: string
 }
 
 /** 系统配置新增/编辑DTO */
 export interface SysConfigDto {
-  /** 配置名称 */
-  configName: string
   /** 配置键 */
   configKey: string
   /** 配置值 */
   configValue: string
-  /** 配置组 */
-  configGroup: string
-  /** 描述 */
-  description: string
+  /** 配置名称 */
+  configName?: string
+  /** 配置分组 */
+  configGroup?: string
+  /** 配置描述 */
+  configDesc?: string
 }
 
 /** 供应商管理 */

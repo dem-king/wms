@@ -7,6 +7,7 @@ import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.mapper.WmsReturnOrderMapper;
 import com.wms.common.util.SecurityUtil;
+import com.wms.report.domain.constant.ReportConstants;
 import com.wms.report.domain.dto.AlertReportQueryDto;
 import com.wms.report.domain.dto.ReportQueryDto;
 import com.wms.report.domain.dto.dashboard.DashboardConfigDto;
@@ -173,15 +174,23 @@ public class DashboardServiceImpl implements DashboardService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         List<MonitorStockAlert> dbAlerts = stockAlertMapper.selectList(new LambdaQueryWrapper<MonitorStockAlert>()
-                .eq(MonitorStockAlert::getStatus, "0")
+                .eq(MonitorStockAlert::getStatus, "PENDING")
                 .orderByDesc(MonitorStockAlert::getCreateTime)
                 .last("LIMIT 5"));
 
         for (MonitorStockAlert alert : dbAlerts) {
             DashboardDataVo.AlertItemVo item = new DashboardDataVo.AlertItemVo();
             item.setId(alert.getId().toString());
-            item.setType("stock_low");
-            item.setTitle("库存不足预警");
+            item.setType(alert.getAlertType() != null ? alert.getAlertType().toLowerCase() : "stock_low");
+            if (ReportConstants.ALERT_TYPE_STOCK_LOW.equals(alert.getAlertType())) {
+                item.setTitle("库存不足预警");
+            } else if (ReportConstants.ALERT_TYPE_STOCK_HIGH.equals(alert.getAlertType())) {
+                item.setTitle("库存超储预警");
+            } else if (ReportConstants.ALERT_TYPE_REPLENISH.equals(alert.getAlertType())) {
+                item.setTitle("消耗品补货预警");
+            } else {
+                item.setTitle("库存预警");
+            }
             item.setContent("物品[" + alert.getItemName() + "]当前库存" + alert.getCurrentQuantity() + "，触发阈值" + alert.getThresholdValue());
             item.setLevel("STOCK_LOW".equals(alert.getAlertType()) ? "warning" : "danger");
             item.setCreateTime(alert.getCreateTime() != null ? alert.getCreateTime().format(formatter) : "");

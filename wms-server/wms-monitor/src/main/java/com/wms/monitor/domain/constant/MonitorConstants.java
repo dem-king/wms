@@ -15,6 +15,9 @@ public final class MonitorConstants {
     /** 预警类型：库存超储 */
     public static final String ALERT_TYPE_STOCK_HIGH = "STOCK_HIGH";
 
+    /** 预警类型：消耗品需补货 */
+    public static final String ALERT_TYPE_REPLENISH = "REPLENISH";
+
     /** 预警状态：未处理 */
     public static final String ALERT_STATUS_PENDING = "PENDING";
 

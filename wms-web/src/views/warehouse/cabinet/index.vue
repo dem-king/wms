@@ -15,7 +15,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" :disabled="!selectedAreaId" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('warehouse:cabinet:add')" type="primary" plain :icon="Plus" :disabled="!selectedAreaId" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -35,8 +35,8 @@
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该存放柜吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'warehouse:cabinet:edit', onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'warehouse:cabinet:delete', confirmText: '确定删除该存放柜吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
@@ -101,6 +101,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetPage, addCabinet, updateCabinet, deleteCabinet } from '@/api/warehouse/cabinet'
@@ -111,6 +112,8 @@ const warehouseList = ref<WmsWarehouseVo[]>([])
 const areaList = ref<WmsAreaVo[]>([])
 const selectedWarehouseId = ref<EntityId>()
 const selectedAreaId = ref<EntityId>()
+const userStore = useUserStore()
+
 const loading = ref(false)
 const tableData = ref<WmsCabinetVo[]>([])
 const total = ref(0)

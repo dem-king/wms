@@ -38,7 +38,7 @@ public class LabelController {
      */
     @Operation(summary = "标签分页列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:list')")
     @DataScope
     public R<Page<ElectronicLabelVo>> page(
             @RequestParam(defaultValue = "1") Long current,
@@ -55,7 +55,7 @@ public class LabelController {
      */
     @Operation(summary = "标签详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:list')")
     @DataScope
     public R<ElectronicLabelVo> getById(@PathVariable Long id) {
         return R.ok(electronicLabelService.getById(id));
@@ -66,7 +66,7 @@ public class LabelController {
      */
     @Operation(summary = "批量生成标签")
     @PostMapping("/generate")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:generate')")
     @OperLog(module = "item", type = "新增", desc = "批量生成电子标签")
     public R<List<ElectronicLabelVo>> generate(@Valid @RequestBody LabelGenerateDto dto) {
         return R.ok(electronicLabelService.generate(dto));
@@ -77,7 +77,7 @@ public class LabelController {
      */
     @Operation(summary = "标签绑定物品")
     @PutMapping("/{id}/bind")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:bind')")
     @OperLog(module = "item", type = "更新", desc = "标签绑定物品")
     public R<ElectronicLabelVo> bind(@PathVariable Long id, @Valid @RequestBody LabelBindDto dto) {
         return R.ok(electronicLabelService.bind(id, dto));
@@ -88,7 +88,7 @@ public class LabelController {
      */
     @Operation(summary = "更新标签状态")
     @PutMapping("/{id}/status")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:status')")
     @OperLog(module = "item", type = "更新", desc = "更新标签状态")
     public R<ElectronicLabelVo> updateStatus(@PathVariable Long id, @Valid @RequestBody LabelStatusDto dto) {
         return R.ok(electronicLabelService.updateStatus(id, dto));
@@ -99,7 +99,7 @@ public class LabelController {
      */
     @Operation(summary = "批量打印标签")
     @PostMapping("/print")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:print')")
     @OperLog(module = "item", type = "更新", desc = "批量打印标签")
     public R<Void> batchPrint(@RequestBody List<Long> labelIds) {
         electronicLabelService.batchPrint(labelIds);
@@ -111,7 +111,7 @@ public class LabelController {
      */
     @Operation(summary = "扫码查询标签信息")
     @GetMapping("/scan/{code}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:list')")
     @DataScope
     public R<ElectronicLabelVo> scan(@PathVariable String code) {
         return R.ok(electronicLabelService.scan(code));
@@ -122,7 +122,7 @@ public class LabelController {
      */
     @Operation(summary = "查询长期闲置标签")
     @GetMapping("/idle")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('item:label:list')")
     @DataScope
     public R<List<ElectronicLabelVo>> listIdle() {
         return R.ok(electronicLabelService.listIdle());

@@ -17,7 +17,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('business:scrap:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -37,9 +37,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-              { label: '编辑', type: 'primary', icon: Edit, visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
-              { label: '提交', type: 'warning', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
-              { label: '删除', type: 'danger', icon: Delete, visible: row.status === 'DRAFT', confirmText: '确定删除该报废单吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:scrap:edit', visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', permission: 'business:scrap:submit', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'business:scrap:delete', visible: row.status === 'DRAFT', confirmText: '确定删除该报废单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -86,6 +86,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import { getScrapOrders, getScrapOrder, submitScrapOrder, deleteScrapOrder } from '@/api/business/scrap'
 import type { ScrapOrderVo, OrderStatus } from '@/types/business'
 import ScrapForm from './components/ScrapForm.vue'
@@ -98,6 +99,8 @@ const statusOptions = [
   { label: '已完成', value: 'COMPLETED' },
   { label: '已驳回', value: 'REJECTED' },
 ]
+
+const userStore = useUserStore()
 
 const loading = ref(false)
 const tableData = ref<ScrapOrderVo[]>([])

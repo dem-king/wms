@@ -31,7 +31,7 @@ public class OverdueReturnController {
      */
     @Operation(summary = "逾期归还记录分页查询")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('monitor:overdue-return:list')")
     @DataScope
     public R<PageResult<OverdueReturnVo>> page(PageParam pageParam,
                                                @RequestParam(required = false) String alertLevel,

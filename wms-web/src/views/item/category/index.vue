@@ -5,7 +5,7 @@
         <template #header>
           <div class="card-header">
             <span>主类目</span>
-            <el-button type="primary" text :icon="Plus" @click="handleAddCategory">新增</el-button>
+            <el-button v-if="userStore.hasPermission('item:category:add')" type="primary" text :icon="Plus" @click="handleAddCategory">新增</el-button>
           </div>
         </template>
         <div class="category-tree-container">
@@ -22,8 +22,8 @@
               <div class="tree-node">
                 <span>{{ node.label }}</span>
                 <span class="tree-actions">
-                  <el-button text :icon="Edit" size="small" @click.stop="handleEditCategory(data)" />
-                  <el-button text :icon="Delete" size="small" type="danger" @click.stop="handleDeleteCategory(data)" />
+                  <el-button v-if="userStore.hasPermission('item:category:edit')" text :icon="Edit" size="small" @click.stop="handleEditCategory(data)" />
+                  <el-button v-if="userStore.hasPermission('item:category:delete')" text :icon="Delete" size="small" type="danger" @click.stop="handleDeleteCategory(data)" />
                 </span>
               </div>
             </template>
@@ -47,7 +47,7 @@
         <template #header>
           <div class="card-header">
             <span>{{ currentCategory ? `${currentCategory.categoryName} - 细分类目` : '请选择主类目' }}</span>
-            <el-button v-if="currentCategory" type="primary" text :icon="Plus" @click="handleAddSub">新增</el-button>
+            <el-button v-if="currentCategory && userStore.hasPermission('item:category:add')" type="primary" text :icon="Plus" @click="handleAddSub">新增</el-button>
           </div>
         </template>
 
@@ -63,8 +63,8 @@
                 <template #default="{ row }">
                   <TableActionGroup
                     :actions="[
-                      { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEditSub(row) },
-                      { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该细分类目吗？', onClick: () => handleDeleteSub(row.id) },
+                      { label: '编辑', type: 'primary', icon: Edit, permission: 'item:category:edit', onClick: () => handleEditSub(row) },
+                      { label: '删除', type: 'danger', icon: Delete, permission: 'item:category:delete', confirmText: '确定删除该细分类目吗？', onClick: () => handleDeleteSub(row.id) },
                     ]"
                   />
                 </template>
@@ -144,6 +144,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { useUserStore } from '@/store/modules/user'
 import {
   addCategory,
   addSubCategory,
@@ -159,6 +160,7 @@ import { normalizePageTotal } from '@/utils/pagination'
 
 const DEFAULT_CATEGORY_COLOR = '#409EFF'
 
+const userStore = useUserStore()
 const categoryTree = ref<WmsCategoryVo[]>([])
 const categoryTotal = ref(0)
 const currentCategory = ref<WmsCategoryVo | null>(null)
