@@ -1,13 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
+import { useUserStore } from '@/store/modules/user'
 import type { TableActionItem } from './types'
 
 const props = defineProps<{
   actions: TableActionItem[]
 }>()
 
-const visibleActions = computed(() => props.actions.filter((action) => action.visible !== false))
+const userStore = useUserStore()
+
+const visibleActions = computed(() =>
+  props.actions.filter((action) => action.visible !== false && hasActionPermission(action)),
+)
+
+function hasActionPermission(action: TableActionItem) {
+  if (!action.permission) {
+    return true
+  }
+  const permissions = Array.isArray(action.permission) ? action.permission : [action.permission]
+  return permissions.some((permission) => userStore.hasPermission(permission))
+}
 
 function getActionKey(action: TableActionItem, index: number) {
   return action.key ?? `${action.label}-${index}`

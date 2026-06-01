@@ -23,7 +23,15 @@ export function getRoleMenus(roleId: EntityId) {
 }
 
 export function assignRoleMenus(roleId: EntityId, menuIds: EntityId[]) {
-  return put<void>(`/system/roles/${roleId}/menus`, { menuIds })
+  return put<void>(`/system/roles/${roleId}/menus`, menuIds)
+}
+
+export function getRolePermissions(roleId: EntityId) {
+  return get<EntityId[]>(`/system/roles/${roleId}/permissions`)
+}
+
+export function assignRolePermissions(roleId: EntityId, permIds: EntityId[]) {
+  return put<void>(`/system/roles/${roleId}/permissions`, permIds)
 }
 
 export function getAllRoles() {

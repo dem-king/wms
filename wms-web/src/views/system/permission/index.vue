@@ -15,7 +15,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('system:perm:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -40,8 +40,8 @@
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该权限吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:perm:edit', onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'system:perm:delete', confirmText: '确定删除该权限吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
@@ -111,10 +111,12 @@ import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getPermissionList, addPermission, updatePermission, deletePermission } from '@/api/system/permission'
 import { getMenuTree } from '@/api/system/menu'
+import { useUserStore } from '@/store/modules/user'
 import type { EntityId, SysPermissionVo } from '@/types/system'
 import type { MenuTreeNode } from '@/types/auth'
 import { normalizePageTotal } from '@/utils/pagination'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const tableData = ref<SysPermissionVo[]>([])
 const total = ref(0)
@@ -152,9 +154,8 @@ async function handleQuery() {
   loading.value = true
   try {
     const res = await getPermissionList(queryParams)
-    const permissions = Array.isArray(res.data) ? res.data : res.data.records
-    tableData.value = permissions
-    total.value = Array.isArray(res.data) ? permissions.length : normalizePageTotal(res.data.total)
+    tableData.value = res.data.records
+    total.value = normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }

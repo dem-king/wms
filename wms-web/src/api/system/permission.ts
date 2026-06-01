@@ -2,7 +2,7 @@ import { get, post, put, del } from '../request'
 import type { EntityId, SysPermissionVo, SysPermissionDto, PageResult, PageParams } from '@/types/system'
 
 export function getPermissionList(params?: PageParams & { permName?: string; permCode?: string }) {
-  return get<PageResult<SysPermissionVo> | SysPermissionVo[]>('/system/permissions', params as unknown as Record<string, unknown>)
+  return get<PageResult<SysPermissionVo>>('/system/permissions', params as unknown as Record<string, unknown>)
 }
 
 export function getPermission(id: EntityId) {

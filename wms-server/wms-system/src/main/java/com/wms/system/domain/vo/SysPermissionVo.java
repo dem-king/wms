@@ -36,6 +36,10 @@ public class SysPermissionVo {
     @Schema(description = "关联菜单ID")
     private Long menuId;
 
+    /** Related menu name */
+    @Schema(description = "鍏宠仈鑿滃崟鍚嶇О")
+    private String menuName;
+
     /** 状态(0-禁用 1-启用) */
     @Schema(description = "状态(0-禁用 1-启用)")
     private Integer status;

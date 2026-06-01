@@ -21,7 +21,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('system:user:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -35,7 +35,7 @@
         <el-table-column prop="email" label="邮箱" min-width="150" />
         <el-table-column prop="status" label="状态" min-width="80">
           <template #default="{ row }">
-            <el-switch :model-value="row.status === 1" @change="val => handleStatusChange(row, Boolean(val))" />
+            <el-switch :model-value="row.status === 1" :disabled="!userStore.hasPermission('system:user:edit')" @change="val => handleStatusChange(row, Boolean(val))" />
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" min-width="160" />
@@ -43,9 +43,9 @@
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '重置密码', type: 'warning', icon: Key, onClick: () => handleResetPwd(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该用户吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:user:edit', onClick: () => handleEdit(row) },
+                { label: '重置密码', type: 'warning', icon: Key, permission: 'system:user:resetPwd', onClick: () => handleResetPwd(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'system:user:delete', confirmText: '确定删除该用户吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
@@ -77,11 +77,13 @@ import { Search, Refresh, Plus, Edit, Delete, Key } from '@element-plus/icons-vu
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getUserList, deleteUser, resetUserPwd, changeUserStatus } from '@/api/system/user'
 import { getDeptTree } from '@/api/system/dept'
+import { useUserStore } from '@/store/modules/user'
 import type { EntityId, SysDeptVo, SysUserVo } from '@/types/system'
 import { normalizePageTotal } from '@/utils/pagination'
 import UserForm from './components/UserForm.vue'
 
 const loading = ref(false)
+const userStore = useUserStore()
 const tableData = ref<SysUserVo[]>([])
 const total = ref(0)
 

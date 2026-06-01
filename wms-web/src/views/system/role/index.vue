@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Search, Refresh, Plus, Edit, Delete, Menu } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Edit, Delete, Menu, Lock } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getRoleList, deleteRole } from '@/api/system/role'
+import { useUserStore } from '@/store/modules/user'
 import type { EntityId, SysRoleVo } from '@/types/system'
 import { normalizePageTotal } from '@/utils/pagination'
 import RoleForm from './components/RoleForm.vue'
 import RoleMenu from './components/RoleMenu.vue'
+import RolePermission from './components/RolePermission.vue'
 
 const dataScopeMap: Record<number, string> = {
   1: '全部数据',
@@ -18,6 +20,7 @@ const dataScopeMap: Record<number, string> = {
 }
 
 const loading = ref(false)
+const userStore = useUserStore()
 const tableData = ref<SysRoleVo[]>([])
 const total = ref(0)
 
@@ -31,6 +34,7 @@ const queryParams = reactive({
 
 const formVisible = ref(false)
 const menuVisible = ref(false)
+const permissionVisible = ref(false)
 const isEdit = ref(false)
 const currentRow = ref<SysRoleVo | null>(null)
 
@@ -68,6 +72,11 @@ function handleAssignMenu(row: SysRoleVo) {
   menuVisible.value = true
 }
 
+function handleAssignPermission(row: SysRoleVo) {
+  currentRow.value = row
+  permissionVisible.value = true
+}
+
 async function handleDelete(id: EntityId) {
   await deleteRole(id)
   ElMessage.success('删除成功')
@@ -100,7 +109,7 @@ onMounted(handleQuery)
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="userStore.hasPermission('system:role:add')" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -121,13 +130,14 @@ onMounted(handleQuery)
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="240">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="300">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '菜单', type: 'success', icon: Menu, onClick: () => handleAssignMenu(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确认删除该角色？', onClick: () => handleDelete(row.id) }
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:role:edit', onClick: () => handleEdit(row) },
+                { label: '菜单', type: 'success', icon: Menu, permission: 'system:role:edit', onClick: () => handleAssignMenu(row) },
+                { label: '权限', type: 'warning', icon: Lock, permission: 'system:role:edit', onClick: () => handleAssignPermission(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'system:role:delete', confirmText: '确认删除该角色？', onClick: () => handleDelete(row.id) }
               ]"
             />
           </template>
@@ -150,6 +160,12 @@ onMounted(handleQuery)
 
     <RoleForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
     <RoleMenu v-model:visible="menuVisible" :role-id="currentRow?.id" :role-name="currentRow?.roleName" @success="handleQuery" />
+    <RolePermission
+      v-model:visible="permissionVisible"
+      :role-id="currentRow?.id"
+      :role-name="currentRow?.roleName"
+      @success="handleQuery"
+    />
   </div>
 </template>
 

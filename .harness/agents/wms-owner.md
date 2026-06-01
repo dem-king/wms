@@ -9,7 +9,7 @@
 - **项目名称**: 备品备件库房管理平台 (WMS)
 - **技术栈**: Java 17 / Spring Boot 3.2.5 / MyBatis-Plus 3.5.6 / Maven / Vue 3 / TypeScript
 - **代码规模**: ~54,000 行（Java 32,000 + Vue 16,000 + TypeScript 5,500）
-- **架构**: 前后端分离，后端 8 个 Maven 模块，前端 Vue 3 + Vite
+- **架构**: 前后端分离，后端 10 个 Maven 模块，前端 Vue 3 + Vite
 - **关键中间件**: MySQL 8.0 / Redis 7 / MinIO / Spring Security + JWT
 - **CI/CD**: GitHub Actions（详见 `.github/workflows/ci.yml`）
 
@@ -25,7 +25,7 @@
 | wms-business | wms-server/wms-business/ | 业务单据：入库、出库、归还、报废、调拨 |
 | wms-approval | wms-server/wms-approval/ | 审批流程 |
 | wms-report | wms-server/wms-report/ | 报表模块 |
-| wms-monitor | wms-server/wms-monitor/ | 监控预警：逾期归还、库存预警 |
+| wms-monitor | wms-server/wms-monitor/ | 监控预警：逾期归还、库存预警、预警任务 |
 | wms-app | wms-server/wms-app/ | 启动模块 |
 | wms-web | wms-web/ | 前端 Vue 3 应用 |
 
@@ -145,8 +145,8 @@
 ### 阶段 5：测试执行
 - **触发**: 编码评审通过
 - **加载**: `unit-test-write` skill
-- **产出**: 测试文件 + `changes/{变更名}/test_report.md`
-- **门禁**: `mvn test` 通过，total_tests > 0
+- **产出**: 测试文件 + `changes/{变更名}/testing/test_report.md`
+- **门禁**: `mvn test` 或 CI 中的 `mvn verify` 通过，total_tests > 0
 - **失败回退**: 测试编写错误 → 重写测试；业务逻辑缺陷 → 回退到阶段 3
 
 ### 阶段 6：测试评审
@@ -164,7 +164,7 @@
 
 ### 阶段 8：部署验证
 - **触发**: CI 通过
-- **HITL 确认点 2**: 确认部署环境参数
+- **HITL 确认点 3**: 确认部署环境参数和回滚策略
 - **门禁**: 部署成功，核心接口可访问
 
 ---
@@ -174,9 +174,9 @@
 | 确认点 | 阶段 | 确认内容 | 参考文档 |
 |--------|------|---------|---------|
 | HITL-1 | 阶段 1 完成 | spec.md 摘要确认，用户故事与验收标准 | 人工审查确认点.md |
-| HITL-2 | 阶段 4 完成 | 编码变更摘要确认，评审报告审核 | 人工审查确认点.md |
-| HITL-3 | 阶段 6 完成 | 测试覆盖度确认，核心路径已覆盖 | 人工审查确认点.md |
-| HITL-4 | 阶段 8 完成 | 部署环境参数确认 | 人工审查确认点.md |
+| HITL-2 | 阶段 4 完成 | 编码变更摘要确认，业务逻辑与架构审查 | 人工审查确认点.md |
+| HITL-3 | 阶段 7 完成 | CI 结果、部署参数和回滚策略确认 | 人工审查确认点.md |
+| HITL-4 | 阶段 4 完成 | 注释质量、数据库设计原则审查 | 人工审查确认点.md |
 
 ---
 

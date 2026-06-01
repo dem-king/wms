@@ -27,6 +27,7 @@ import com.wms.system.domain.constant.SysLogConstants;
 import com.wms.system.domain.vo.MenuTreeVo;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
+import com.wms.system.service.SysRoleService;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthAuditService authAuditService;
     private final SysUserService sysUserService;
     private final SysMenuService sysMenuService;
+    private final SysRoleService sysRoleService;
     private final AuthProperties authProperties;
     private final StorageStrategy storageStrategy;
 
@@ -102,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
         List<String> roles = Collections.emptyList();
         List<String> permissions;
         try {
+            roles = sysRoleService.getRoleCodesByUserId(user.getId());
             permissions = authorizeService.getUserPermissions(user.getId());
         } catch (Exception e) {
             log.warn("获取用户权限降级,userId={}: {}", user.getId(), e.getMessage());
@@ -181,9 +184,7 @@ public class AuthServiceImpl implements AuthService {
 
         SysUserVo user = sysUserService.getById(userId);
         List<String> permissions = authorizeService.getUserPermissions(userId);
-        List<String> roles = sysUserService.getUserRoles(userId).stream()
-                .map(String::valueOf)
-                .toList();
+        List<String> roles = sysRoleService.getRoleCodesByUserId(userId);
         SysLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
 
         AuthProfileVo profile = new AuthProfileVo();
@@ -209,9 +210,7 @@ public class AuthServiceImpl implements AuthService {
                 dto.getAvatar()
         );
         List<String> permissions = authorizeService.getUserPermissions(userId);
-        List<String> roles = sysUserService.getUserRoles(userId).stream()
-                .map(String::valueOf)
-                .toList();
+        List<String> roles = sysRoleService.getRoleCodesByUserId(userId);
         SysLoginLog lastLoginLog = authAuditService.getLatestSuccessLoginLog(userId);
 
         AuthProfileVo profile = new AuthProfileVo();

@@ -2,6 +2,8 @@ package com.wms.system.controller;
 
 import com.wms.common.annotation.DataScope;
 import com.wms.common.annotation.OperLog;
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.system.domain.dto.SysPermissionDto;
 import com.wms.system.domain.vo.SysPermissionVo;
@@ -13,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 权限管理控制器
@@ -36,8 +36,10 @@ public class SysPermissionController {
     @GetMapping
     @PreAuthorize("hasAuthority('system:perm:list')")
     @DataScope
-    public R<List<SysPermissionVo>> list() {
-        return R.ok(sysPermissionService.listAll());
+    public R<PageResult<SysPermissionVo>> list(@Valid PageParam pageParam,
+                                               @RequestParam(required = false) String permName,
+                                               @RequestParam(required = false) String permCode) {
+        return R.ok(sysPermissionService.page(pageParam, permName, permCode));
     }
 
     /**

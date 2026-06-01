@@ -2,7 +2,7 @@
 
 ## 触发条件
 
-编码评审通过（阶段3）后，进入测试执行阶段时自动加载本 Skill。
+编码评审通过（阶段4）后，进入测试执行阶段时自动加载本 Skill。
 
 ## 核心原则：改动驱动测试（Change-driven Testing）
 
@@ -180,4 +180,4 @@ void testCreate() { } // 过于笼统
 ## 输出路径
 
 - 测试文件 → `wms-server/{模块}/src/test/java/com/wms/{模块}/service/impl/XxxServiceImplTest.java`
-- 测试报告 → `.harness/changes/{变更名}/test_report.md`
+- 测试报告 → `.harness/changes/{变更名}/testing/test_report.md`

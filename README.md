@@ -159,12 +159,15 @@ WMS_code/
 ### 模块依赖关系
 
 ```
-wms-app → wms-auth → wms-system → wms-common
-       → wms-business → wms-item → wms-common
-                      → wms-warehouse → wms-common
-                      → wms-approval → wms-common
-       → wms-report → wms-common
-       → wms-monitor → wms-common
+wms-app → wms-common
+       → wms-auth → wms-system → wms-common
+       → wms-system → wms-common
+       → wms-warehouse → wms-common
+       → wms-item → wms-warehouse → wms-common
+       → wms-business → wms-item / wms-warehouse / wms-system / wms-common
+       → wms-approval → wms-business / wms-system / wms-common
+       → wms-report → wms-business / wms-item / wms-warehouse / wms-system / wms-common
+       → wms-monitor → wms-business / wms-item / wms-warehouse / wms-common
 ```
 
 ---
@@ -191,29 +194,46 @@ wms-app → wms-auth → wms-system → wms-common
 ```
 .harness/
 ├── agents/
-│   └── wms-owner.md          ← 应用 Owner Agent（7 阶段工作流 + 核心约束）
+│   └── wms-owner.md          ← 应用 Owner Agent（9 阶段工作流 + 核心约束）
 ├── rules/
 │   ├── 工程结构.md            ← 架构分层与模块依赖约束
 │   ├── 编码约束.md            ← 代码硬性规则（红线）
 │   ├── 质量门禁.md            ← PR 提交前检查项
 │   └── 人工审查确认点.md       ← HITL 人工介入节点
 ├── skills/
+│   ├── request-analysis/     ← 需求分析技能包
 │   ├── coding-skill/         ← 编码实现技能包
 │   ├── expert-reviewer/      ← 专家评审技能包
+│   ├── unit-test-write/      ← 单元测试技能包
 │   └── project-analysis/     ← 项目分析技能包
 ├── changes/                  ← 变更记录归档目录
 └── mcp/
     └── mcp-config.md         ← MySQL/Redis/Git 工具配置
 ```
 
-### 7 阶段开发流水线
+### 9 阶段开发流水线
 
 ```
-阶段 0: 项目分析 → 阶段 1: 需求分析 → 阶段 2: 编码实现
-                → 阶段 3: 编码评审 → 阶段 4: 测试执行
-                → 阶段 5: CI 验证   → 阶段 6: 部署验证
-                       ↑                    ↑
-                [HITL确认点1]        [HITL确认点2]
+阶段 0: 项目分析 → 阶段 1: 需求分析 → 阶段 2: 需求评审
+                → 阶段 3: 编码实现 → 阶段 4: 编码评审
+                → 阶段 5: 测试执行 → 阶段 6: 测试评审
+                → 阶段 7: CI 验证  → 阶段 8: 部署验证
+                       ↑                  ↑                  ↑
+                    HITL-1          HITL-2 + HITL-4        HITL-3
+```
+
+本地规则检查：
+
+```bash
+./scripts/check-rules.sh
+./scripts/check-rules.sh --strict
+```
+
+Windows 可使用 PowerShell 入口代理 Git Bash 或已安装 Linux 发行版的 WSL：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-rules.ps1
+powershell -ExecutionPolicy Bypass -File scripts/check-rules.ps1 --strict
 ```
 
 ---
@@ -276,7 +296,7 @@ npm run dev
 A: 参考 [AGENTS.md](AGENTS.md) 第七节建表规则，确保包含公共字段、主键用雪花ID、不用 AUTO_INCREMENT。
 
 **Q: 新增一个业务接口的完整流程？**
-A: 参考 `.harness/agents/wms-owner.md` 的 7 阶段流水线：需求分析 → 方案设计 → 编码 → 评审 → 测试 → CI → 部署。
+A: 参考 `.harness/agents/wms-owner.md` 的 9 阶段流水线：项目分析 → 需求分析 → 需求评审 → 编码 → 编码评审 → 测试 → 测试评审 → CI → 部署。
 
 **Q: 库存不足应该怎么处理？**
 A: 抛出 `BizException("库存不足: itemId=" + itemId)`，禁止 `stock.setQuantity(0)`。

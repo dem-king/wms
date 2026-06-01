@@ -47,7 +47,7 @@
   "git": {
     "command": "mcp-git",
     "args": [
-      "--repository", "d:/Codes/WMS_code"
+      "--repository", "D:/Codes/WMS_code"
     ]
   }
 }

@@ -21,15 +21,21 @@ fix-入库单号并发-20260518/
 ```
 {变更目录}/
 ├── summary.md                    # 全流程追溯摘要
-├── spec.md                       # 需求分析文档
-├── tasks.md                      # 任务拆分清单
-├── coding_report.md              # 编码报告
+├── request_analysis/
+│   ├── spec.md                   # 需求分析文档
+│   └── tasks.md                  # 任务拆分清单
+├── coding/
+│   └── coding_report.md          # 编码报告
 ├── review/
 │   ├── code_review_v1.md         # 编码评审（版本递增）
-│   └── code_review_v2.md
-├── test_report.md                # 测试报告
-├── ci_result.md                  # CI 运行结果
-└── deployment.md                 # 部署验证报告
+│   ├── code_review_v2.md
+│   └── test_review_v1.md
+├── testing/
+│   └── test_report.md            # 测试报告
+├── ci/
+│   └── ci_result.md              # CI 运行结果
+└── deployment/
+    └── deployment.md             # 部署验证报告
 ```
 
 ## summary.md 模板
@@ -45,10 +51,13 @@ fix-入库单号并发-20260518/
 
 | 阶段 | 状态 | 耗时 | 备注 |
 |------|------|------|------|
+| 项目分析 | ✅ 完成 | | |
 | 需求分析 | ✅ 完成 | | |
+| 需求评审 | ✅ 通过 (v1) | | |
 | 编码实现 | ✅ 完成 | | |
 | 编码评审 | ✅ 通过 (v1) | | |
 | 测试执行 | ✅ 通过 | N tests |
+| 测试评审 | ✅ 通过 (v1) | | |
 | CI 验证 | ✅ 通过 | | |
 | 部署验证 | ✅ 完成 | | |
 

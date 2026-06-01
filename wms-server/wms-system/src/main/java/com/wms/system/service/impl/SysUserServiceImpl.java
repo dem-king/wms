@@ -7,6 +7,7 @@ import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.event.PermissionCacheEvictEvent;
 import com.wms.system.domain.dto.SysUserDto;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysUser;
@@ -17,6 +18,7 @@ import com.wms.system.mapper.SysUserMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysRoleMapper sysRoleMapper;
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /** 默认重置密码，从配置文件读取 */
     @Value("${wms.default-password}")
@@ -354,6 +357,7 @@ public class SysUserServiceImpl implements SysUserService {
                 sysUserRoleMapper.insert(userRole);
             }
         }
+        applicationEventPublisher.publishEvent(new PermissionCacheEvictEvent(Set.of(id)));
     }
 
     /**

@@ -6,6 +6,7 @@ import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DataScopeConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.event.PermissionCacheEvictEvent;
 import com.wms.system.domain.dto.SysRoleDto;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysRoleDept;
@@ -20,6 +21,7 @@ import com.wms.system.mapper.SysRolePermissionMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.service.SysRoleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +47,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMenuMapper sysRoleMenuMapper;
     private final SysRolePermissionMapper sysRolePermissionMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 查询所有角色列表
@@ -200,6 +205,10 @@ public class SysRoleServiceImpl implements SysRoleService {
                 new LambdaQueryWrapper<SysUserRole>()
                         .eq(SysUserRole::getRoleId, id)
         );
+        Set<Long> affectedUserIds = userRoles.stream()
+                .map(SysUserRole::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         List<SysUserRole> updateUserRoleList = new ArrayList<>();
         for (SysUserRole userRole : userRoles) {
             SysUserRole updateUserRole = new SysUserRole();
@@ -243,6 +252,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (!updatePermList.isEmpty()) {
             Db.updateBatchById(updatePermList);
         }
+        publishPermissionCacheEvictEvent(affectedUserIds);
     }
 
     /**
@@ -326,6 +336,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignRolePermissions(Long id, List<Long> permIds) {
+        Set<Long> affectedUserIds = findUserIdsByRoleId(id);
         // 先逻辑删除旧的角色权限关联
         List<SysRolePermission> oldRolePerms = sysRolePermissionMapper.selectList(
                 new LambdaQueryWrapper<SysRolePermission>()
@@ -355,6 +366,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                 Db.saveBatch(rolePermList);
             }
         }
+        publishPermissionCacheEvictEvent(affectedUserIds);
     }
 
     /**
@@ -517,5 +529,25 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (!updateList.isEmpty()) {
             Db.updateBatchById(updateList);
         }
+    }
+
+    private Set<Long> findUserIdsByRoleId(Long roleId) {
+        if (roleId == null) {
+            return Set.of();
+        }
+        return sysUserRoleMapper.selectList(
+                        new LambdaQueryWrapper<SysUserRole>()
+                                .eq(SysUserRole::getRoleId, roleId)
+                ).stream()
+                .map(SysUserRole::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private void publishPermissionCacheEvictEvent(Set<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return;
+        }
+        applicationEventPublisher.publishEvent(new PermissionCacheEvictEvent(userIds));
     }
 }

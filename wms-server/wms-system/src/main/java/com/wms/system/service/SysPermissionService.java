@@ -1,7 +1,8 @@
 package com.wms.system.service;
 
+import com.wms.common.domain.PageParam;
+import com.wms.common.domain.PageResult;
 import com.wms.system.domain.dto.SysPermissionDto;
-import com.wms.system.domain.entity.SysPermission;
 import com.wms.system.domain.vo.SysPermissionVo;
 
 import java.util.List;
@@ -19,6 +20,16 @@ public interface SysPermissionService {
      * @return 权限编码列表
      */
     List<String> getPermCodesByUserId(Long userId);
+
+    /**
+     * 鍒嗛〉鏌ヨ鏉冮檺鍒楄〃
+     *
+     * @param pageParam 鍒嗛〉鍙傛暟
+     * @param permName 鏉冮檺鍚嶇О
+     * @param permCode 鏉冮檺缂栫爜
+     * @return 鏉冮檺鍒嗛〉缁撴灉
+     */
+    PageResult<SysPermissionVo> page(PageParam pageParam, String permName, String permCode);
 
     /**
      * 获取所有权限列表

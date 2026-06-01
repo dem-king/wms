@@ -1204,7 +1204,21 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (1031, '菜单新增', 'system:menu:add', 103, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:menu:add', 0),
 (1032, '菜单编辑', 'system:menu:edit', 103, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:menu:edit', 0),
 (1033, '菜单删除', 'system:menu:delete', 103, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:menu:delete', 0),
-(1034, '菜单查询', 'system:menu:list', 103, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:menu:list', 0);
+(1034, '菜单查询', 'system:menu:list', 103, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:menu:list', 0),
+(1041, '权限新增', 'system:perm:add', 104, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:perm:add', 0),
+(1042, '权限编辑', 'system:perm:edit', 104, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:perm:edit', 0),
+(1043, '权限删除', 'system:perm:delete', 104, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:perm:delete', 0),
+(1044, '权限查询', 'system:perm:list', 104, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:perm:list', 0),
+(1051, '部门新增', 'system:dept:add', 105, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:dept:add', 0),
+(1052, '部门编辑', 'system:dept:edit', 105, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:dept:edit', 0),
+(1053, '部门删除', 'system:dept:delete', 105, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:dept:delete', 0),
+(1054, '部门查询', 'system:dept:list', 105, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:dept:list', 0),
+(1061, '配置编辑', 'system:config:edit', 106, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:config:edit', 0),
+(1062, '配置查询', 'system:config:list', 106, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:config:list', 0),
+(1071, '供应商新增', 'system:supplier:add', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:supplier:add', 0),
+(1072, '供应商编辑', 'system:supplier:edit', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:supplier:edit', 0),
+(1073, '供应商删除', 'system:supplier:delete', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:supplier:delete', 0),
+(1074, '供应商查询', 'system:supplier:list', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:supplier:list', 0);
 
 -- 库房结构目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -1276,7 +1290,9 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
 (801, '操作日志', 'log:operation', 800, 2, 'operation', 'log/operation', NULL, 'Document', 0, 0, 1, 1, 1, NULL, 0),
-(802, '登录日志', 'log:login', 800, 2, 'login', 'log/login', NULL, 'User', 0, 0, 1, 1, 2, NULL, 0);
+(802, '登录日志', 'log:login', 800, 2, 'login', 'log/login', NULL, 'User', 0, 0, 1, 1, 2, NULL, 0),
+(8011, '操作日志查询', 'system:oper-log:list', 801, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:oper-log:list', 0),
+(8021, '登录日志查询', 'system:login-log:list', 802, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:login-log:list', 0);
 
 
 -- ==================== 二、角色-菜单关联（管理员角色ID=1，拥有全部菜单） ====================
@@ -1300,7 +1316,23 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
 (10, '菜单新增', 'system:menu:add', 1, 0, 1031, 1, 0),
 (11, '菜单编辑', 'system:menu:edit', 1, 0, 1032, 1, 0),
 (12, '菜单删除', 'system:menu:delete', 1, 0, 1033, 1, 0),
-(13, '菜单查询', 'system:menu:list', 1, 0, 1034, 1, 0);
+(13, '菜单查询', 'system:menu:list', 1, 0, 1034, 1, 0),
+(14, '权限新增', 'system:perm:add', 2, 0, 1041, 1, 0),
+(15, '权限编辑', 'system:perm:edit', 2, 0, 1042, 1, 0),
+(16, '权限删除', 'system:perm:delete', 2, 0, 1043, 1, 0),
+(17, '权限查询', 'system:perm:list', 2, 0, 1044, 1, 0),
+(18, '部门新增', 'system:dept:add', 2, 0, 1051, 1, 0),
+(19, '部门编辑', 'system:dept:edit', 2, 0, 1052, 1, 0),
+(20, '部门删除', 'system:dept:delete', 2, 0, 1053, 1, 0),
+(21, '部门查询', 'system:dept:list', 2, 0, 1054, 1, 0),
+(22, '配置编辑', 'system:config:edit', 2, 0, 1061, 1, 0),
+(23, '配置查询', 'system:config:list', 2, 0, 1062, 1, 0),
+(24, '供应商新增', 'system:supplier:add', 2, 0, 1071, 1, 0),
+(25, '供应商编辑', 'system:supplier:edit', 2, 0, 1072, 1, 0),
+(26, '供应商删除', 'system:supplier:delete', 2, 0, 1073, 1, 0),
+(27, '供应商查询', 'system:supplier:list', 2, 0, 1074, 1, 0),
+(28, '操作日志查询', 'system:oper-log:list', 2, 0, 8011, 1, 0),
+(29, '登录日志查询', 'system:login-log:list', 2, 0, 8021, 1, 0);
 
 
 -- ==================== 四、角色-权限关联（管理员角色ID=1，拥有全部权限） ====================

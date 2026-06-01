@@ -12,7 +12,7 @@
 
 打开 `.harness/agents/wms-owner.md`，理解：
 - 项目背景和技术栈
-- 模块结构（8 个 Maven 模块 + 1 个前端）
+- 模块结构（10 个 Maven 模块 + 1 个前端）
 - 配置中枢索引（Rules / Skills / Wiki / MCP 在哪里）
 
 ### Step 2: 阅读核心规则
@@ -41,7 +41,9 @@
 | 入库/出库 | wms-business (Inbound/Outbound) |
 | 归还/报废/调拨 | wms-business (Return/Scrap/Transfer) |
 | 用户/角色/菜单/权限 | wms-system + wms-auth |
-| 审批 | wms-approval (预留) |
+| 审批 | wms-approval |
+| 报表/统计/导出 | wms-report |
+| 监控/预警 | wms-monitor |
 
 ### Step 5: 检查已有代码
 

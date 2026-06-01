@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd()">新增</el-button>
+        <el-button v-if="userStore.hasPermission('system:menu:add')" type="primary" plain :icon="Plus" @click="handleAdd()">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button :icon="Sort" plain @click="toggleExpand">展开/折叠</el-button>
@@ -42,9 +42,9 @@
         <template #default="{ row }">
           <TableActionGroup
             :actions="[
-              { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-              { label: '新增', type: 'success', icon: Plus, visible: row.menuType !== 3, onClick: () => handleAdd(row.id) },
-              { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该菜单吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'system:menu:edit', onClick: () => handleEdit(row) },
+              { label: '新增', type: 'success', icon: Plus, permission: 'system:menu:add', visible: row.menuType !== 3, onClick: () => handleAdd(row.id) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'system:menu:delete', confirmText: '确定删除该菜单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -114,10 +114,12 @@ import { ElMessage } from 'element-plus'
 import { Plus, Edit, Delete, Sort } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { getMenu, getMenuList, addMenu, updateMenu, deleteMenu, getMenuTree } from '@/api/system/menu'
+import { useUserStore } from '@/store/modules/user'
 import type { EntityId, MenuTreeNode } from '@/types/auth'
 import { buildMenuSubmitPayload } from './submit-payload'
 import { getExpandedRowKeysByMode, toggleExpandMode } from './tree-expand'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const menuTree = ref<MenuTreeNode[]>([])
 const menuTreeForSelect = ref<MenuTreeNode[]>([])

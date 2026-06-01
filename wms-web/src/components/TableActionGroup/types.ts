@@ -9,6 +9,7 @@ export interface TableActionItem {
   icon?: Component
   type?: TableActionButtonType
   visible?: boolean
+  permission?: string | string[]
   disabled?: boolean
   confirmText?: string
   confirmTitle?: string

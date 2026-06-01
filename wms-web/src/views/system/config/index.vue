@@ -15,7 +15,7 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
+        <el-button v-if="false" type="primary" plain :icon="Plus" @click="handleAdd">新增</el-button>
       </el-col>
     </el-row>
 
@@ -30,8 +30,8 @@
           <template #default="{ row }">
             <TableActionGroup
               :actions="[
-                { label: '编辑', type: 'primary', icon: Edit, onClick: () => handleEdit(row) },
-                { label: '删除', type: 'danger', icon: Delete, confirmText: '确定删除该配置吗？', onClick: () => handleDelete(row.id) },
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:config:edit', onClick: () => handleEdit(row) },
+                { label: '删除', type: 'danger', icon: Delete, visible: false, confirmText: '确定删除该配置吗？', onClick: () => handleDelete(row.id) },
               ]"
             />
           </template>
