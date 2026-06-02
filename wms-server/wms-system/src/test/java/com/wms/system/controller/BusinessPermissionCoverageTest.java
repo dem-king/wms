@@ -6,7 +6,11 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,6 +23,7 @@ class BusinessPermissionCoverageTest {
 
     private static final List<String> TARGET_CONTROLLERS = List.of(
             "../wms-warehouse/src/main/java/com/wms/warehouse/controller/WarehouseController.java",
+            "../wms-warehouse/src/main/java/com/wms/warehouse/controller/LayoutElementController.java",
             "../wms-warehouse/src/main/java/com/wms/warehouse/controller/AreaController.java",
             "../wms-warehouse/src/main/java/com/wms/warehouse/controller/CabinetController.java",
             "../wms-warehouse/src/main/java/com/wms/warehouse/controller/BinController.java",
@@ -48,6 +53,9 @@ class BusinessPermissionCoverageTest {
             "../wms-report/src/main/java/com/wms/report/controller/ReportExportController.java"
     );
 
+    private static final Path DATABASE_INIT_SQL = Path.of("../../database/wms_complete_init.sql");
+    private static final Pattern AUTHORITY_PATTERN = Pattern.compile("hasAuthority\\('([^']+)'\\)");
+
     @Test
     @DisplayName("业务菜单接口不应只使用登录态或ADMIN角色校验")
     void businessControllersShouldUseConcretePermissionCodes() throws IOException {
@@ -56,6 +64,26 @@ class BusinessPermissionCoverageTest {
                 .toList();
 
         assertEquals(List.of(), weakControllers);
+    }
+
+    @Test
+    @DisplayName("业务接口权限码应在初始化SQL中有种子数据")
+    void businessControllerAuthorityCodesShouldBeSeededInDatabaseInitSql() throws IOException {
+        String initSql = Files.readString(DATABASE_INIT_SQL);
+        Set<String> missingAuthorityCodes = new LinkedHashSet<>();
+
+        for (String controller : TARGET_CONTROLLERS) {
+            String source = Files.readString(Path.of(controller));
+            Matcher matcher = AUTHORITY_PATTERN.matcher(source);
+            while (matcher.find()) {
+                String authorityCode = matcher.group(1);
+                if (!initSql.contains("'" + authorityCode + "'")) {
+                    missingAuthorityCodes.add(authorityCode);
+                }
+            }
+        }
+
+        assertEquals(Set.of(), missingAuthorityCodes);
     }
 
     private static boolean containsWeakPermission(String sourcePath) {
