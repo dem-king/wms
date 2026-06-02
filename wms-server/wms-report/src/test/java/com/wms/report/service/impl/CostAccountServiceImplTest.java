@@ -8,6 +8,7 @@ import com.wms.report.mapper.ReportOutboundDailyMapper;
 import com.wms.report.mapper.ReportScrapDailyMapper;
 import com.wms.report.mapper.ReportTransferDailyMapper;
 import com.wms.system.domain.entity.SysConfig;
+import com.wms.system.manager.SysConfigManager;
 import com.wms.system.mapper.SysConfigMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,9 @@ class CostAccountServiceImplTest {
     private SysConfigMapper sysConfigMapper;
 
     @Mock
+    private SysConfigManager configManager;
+
+    @Mock
     private ReportInboundDailyMapper inboundMapper;
 
     @Mock
@@ -55,16 +59,17 @@ class CostAccountServiceImplTest {
     @BeforeEach
     void setUp() {
         costAccountService = new CostAccountServiceImpl(
-                sysConfigMapper, inboundMapper, outboundMapper, scrapMapper, transferMapper, redisTemplate);
+                sysConfigMapper, configManager, inboundMapper, outboundMapper, scrapMapper, transferMapper,
+                redisTemplate);
     }
 
     @Test
     @DisplayName("读取费用核算配置时应返回 enabled 状态")
     void shouldReturnEnabledWhenGetConfig() {
-        when(sysConfigMapper.selectOne(any()))
-                .thenReturn(createConfig(ReportConstants.COST_CONFIG_ENABLED_KEY, "true"))
-                .thenReturn(createConfig(ReportConstants.COST_CONFIG_YEAR_KEY, "2026"))
-                .thenReturn(createConfig(ReportConstants.COST_CONFIG_PERIOD_KEY, ReportConstants.COST_PERIOD_MONTHLY));
+        when(configManager.getValue(ReportConstants.COST_CONFIG_ENABLED_KEY)).thenReturn("true");
+        when(configManager.getValue(ReportConstants.COST_CONFIG_YEAR_KEY)).thenReturn("2026");
+        when(configManager.getValue(ReportConstants.COST_CONFIG_PERIOD_KEY))
+                .thenReturn(ReportConstants.COST_PERIOD_MONTHLY);
 
         CostAccountVo result = costAccountService.getConfig();
 
@@ -92,6 +97,9 @@ class CostAccountServiceImplTest {
         assertEquals(2026, result.getYear());
         assertEquals(ReportConstants.COST_PERIOD_QUARTERLY, result.getPeriod());
         verify(sysConfigMapper, times(3)).updateById(any(SysConfig.class));
+        verify(configManager).evictCache(ReportConstants.COST_CONFIG_ENABLED_KEY);
+        verify(configManager).evictCache(ReportConstants.COST_CONFIG_YEAR_KEY);
+        verify(configManager).evictCache(ReportConstants.COST_CONFIG_PERIOD_KEY);
         verify(redisTemplate).delete(ReportConstants.COST_CACHE_PREFIX + "*");
     }
 

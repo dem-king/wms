@@ -2,7 +2,7 @@ import { get, post, put, del } from '../request'
 import type { EntityId, SysConfigVo, SysConfigDto, PageResult, PageParams } from '@/types/system'
 
 export function getConfigPage(params?: PageParams & { configKey?: string; configGroup?: string }) {
-  return get<PageResult<SysConfigVo>>('/system/configs', params as unknown as Record<string, unknown>)
+  return get<PageResult<SysConfigVo> | SysConfigVo[]>('/system/configs', params as unknown as Record<string, unknown>)
 }
 
 export function getConfigByKey(configKey: string) {

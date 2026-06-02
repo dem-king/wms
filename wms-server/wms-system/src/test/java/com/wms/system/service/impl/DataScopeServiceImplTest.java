@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("DataScopeServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class DataScopeServiceImplTest {
 
     @BeforeAll

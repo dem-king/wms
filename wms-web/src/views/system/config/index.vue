@@ -186,8 +186,9 @@ async function handleQuery() {
   loading.value = true
   try {
     const res = await getConfigPage(queryParams)
-    tableData.value = res.data.records
-    total.value = normalizePageTotal(res.data.total)
+    const configs = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = configs
+    total.value = Array.isArray(res.data) ? configs.length : normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }

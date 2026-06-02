@@ -55,7 +55,7 @@
           </div>
           <div class="stat-info">
             <div class="stat-value stat-value--text">{{ formattedLoginTime }}</div>
-            <div class="stat-label">最近登录时间</div>
+            <div class="stat-label">登录信息</div>
           </div>
         </el-card>
       </div>

@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("AreaServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class AreaServiceImplTest {
 
     @Mock

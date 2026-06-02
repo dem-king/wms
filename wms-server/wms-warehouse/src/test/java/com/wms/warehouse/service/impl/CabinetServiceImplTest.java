@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("CabinetServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CabinetServiceImplTest {
 
     @Mock

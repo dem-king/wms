@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("BinServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class BinServiceImplTest {
 
     @Mock

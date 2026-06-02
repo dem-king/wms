@@ -444,10 +444,11 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     /**
-     * 校验当前用户是否为业务单据所属库房管理员。
+     * 校验审批节点是否存在可见审批人。
      *
-     * @param order         审批单
-     * @param currentUserId 当前用户ID
+     * @param nodes 审批节点列表
+     * @param bizId 业务单据ID
+     * @param bizType 业务类型
      */
     private void validateVisibleApprovers(List<WmsApprovalNode> nodes, Long bizId, Integer bizType) {
         for (WmsApprovalNode node : nodes) {

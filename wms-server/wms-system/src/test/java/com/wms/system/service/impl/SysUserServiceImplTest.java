@@ -9,8 +9,11 @@ import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysPermissionMapper;
+import com.wms.system.mapper.SysRolePermissionMapper;
 import com.wms.system.mapper.SysUserMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
+import com.wms.system.manager.SysConfigManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -35,6 +39,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("SysUserServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SysUserServiceImplTest {
 
     @Mock
@@ -45,6 +50,18 @@ class SysUserServiceImplTest {
 
     @Mock
     private SysRoleMapper sysRoleMapper;
+
+    @Mock
+    private SysRolePermissionMapper sysRolePermissionMapper;
+
+    @Mock
+    private SysPermissionMapper sysPermissionMapper;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
+    private SysConfigManager configManager;
 
     @InjectMocks
     private SysUserServiceImpl sysUserService;
@@ -93,13 +110,15 @@ class SysUserServiceImplTest {
         when(sysUserMapper.selectCount(any())).thenReturn(0L);
         when(sysUserMapper.updateById(any(SysUser.class))).thenReturn(1);
         when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(oldRole));
-        when(sysUserRoleMapper.updateById(any(SysUserRole.class))).thenReturn(1);
+        when(sysUserRoleMapper.update(any(SysUserRole.class), any(UpdateWrapper.class))).thenReturn(1);
         when(sysUserRoleMapper.insert(any(SysUserRole.class))).thenReturn(1);
         when(sysRoleMapper.selectBatchIds(any())).thenReturn(List.of(role(2L, "role-2"), role(3L, "role-3")));
 
         sysUserService.update(userId, dto);
 
-        verify(sysUserRoleMapper).updateById(any(SysUserRole.class));
+        ArgumentCaptor<UpdateWrapper<SysUserRole>> wrapperCaptor = ArgumentCaptor.forClass(UpdateWrapper.class);
+        verify(sysUserRoleMapper).update(any(SysUserRole.class), wrapperCaptor.capture());
+        assertEquals(DelFlagConstants.DELETED, wrapperCaptor.getValue().getParamNameValuePairs().get("MPGENVAL1"));
         verify(sysUserRoleMapper).insert(any(SysUserRole.class));
     }
 

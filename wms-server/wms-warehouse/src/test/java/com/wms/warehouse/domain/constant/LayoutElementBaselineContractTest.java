@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("LayoutElement Task1 基线契约测试")
 class LayoutElementBaselineContractTest {
 
+    private static final String COMPLETE_INIT_SQL = "wms_complete_init.sql";
+
     @Test
     @DisplayName("应提供布局元素类型与形状类型常量基线")
     void shouldProvideLayoutElementConstantsBaseline() throws Exception {
@@ -45,9 +47,7 @@ class LayoutElementBaselineContractTest {
     @DisplayName("DDL 与初始化脚本应包含布局底图数据库基线")
     void shouldContainLayoutBlueprintBaselineInSqlScripts() throws IOException {
         Path repoRoot = findRepositoryRoot();
-        assertSqlBaseline(repoRoot.resolve("database").resolve("wms_ddl.sql"));
-        assertSqlBaseline(repoRoot.resolve("database").resolve("wms_full_init.sql"));
-        assertIncrementSqlBaseline(repoRoot.resolve("database").resolve("2026-05-22_warehouse_layout_blueprint.sql"));
+        assertSqlBaseline(repoRoot.resolve("database").resolve(COMPLETE_INIT_SQL));
     }
 
     private void assertConstant(Class<?> constantsClass, String fieldName, String expectedValue) throws Exception {
@@ -122,7 +122,7 @@ class LayoutElementBaselineContractTest {
     private Path findRepositoryRoot() {
         Path current = Path.of("").toAbsolutePath().normalize();
         while (current != null) {
-            if (Files.exists(current.resolve("database").resolve("wms_ddl.sql"))) {
+            if (Files.exists(current.resolve("database").resolve(COMPLETE_INIT_SQL))) {
                 return current;
             }
             current = current.getParent();

@@ -44,7 +44,7 @@ async function handleQuery() {
     const res = await getRoleList(queryParams)
     const roles = Array.isArray(res.data) ? res.data : res.data.records
     tableData.value = roles
-    total.value = normalizePageTotal(Array.isArray(res.data) ? roles.length : res.data.total)
+    total.value = Array.isArray(res.data) ? roles.length : normalizePageTotal(res.data.total)
   } finally {
     loading.value = false
   }
@@ -130,7 +130,7 @@ onMounted(handleQuery)
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="300">
+        <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="240">
           <template #default="{ row }">
             <TableActionGroup
               :actions="[

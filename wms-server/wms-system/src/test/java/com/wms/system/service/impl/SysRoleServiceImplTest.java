@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("SysRoleServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SysRoleServiceImplTest {
 
     @BeforeAll

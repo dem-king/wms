@@ -351,12 +351,25 @@ function resetBatchForm() {
 }
 
 /**
- * 页面初始化：仅加载库房列表
- * 区域和存放柜列表按需加载，消除N+1请求问题
+ * 页面初始化：加载库房列表，并默认选中第一个库房，级联加载区域和存放柜
  */
 onMounted(async () => {
   const res = await getWarehouseList()
   warehouseList.value = res.data
+  if (warehouseList.value.length > 0) {
+    selectedWarehouseId.value = warehouseList.value[0].id
+    const areaRes = await getAreaList(selectedWarehouseId.value)
+    areaList.value = areaRes.data
+    if (areaList.value.length > 0) {
+      selectedAreaId.value = areaList.value[0].id
+      const cabinetRes = await getCabinetList(selectedAreaId.value)
+      cabinetList.value = cabinetRes.data
+      if (cabinetList.value.length > 0) {
+        selectedCabinetId.value = cabinetList.value[0].id
+        await handleQuery(selectedCabinetId.value)
+      }
+    }
+  }
 })
 </script>
 

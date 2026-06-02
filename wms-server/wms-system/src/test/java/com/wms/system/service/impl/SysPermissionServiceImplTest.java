@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("SysPermissionServiceImpl 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SysPermissionServiceImplTest {
 
     @BeforeAll

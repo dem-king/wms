@@ -26,6 +26,7 @@ import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import com.wms.system.manager.SysConfigManager;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +53,9 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysPermissionMapper sysPermissionMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final SysConfigManager configManager;
+
+    @Value("${wms.default-password}")
+    private String defaultPassword;
 
     /**
      * 根据用户名查询用户实体(含密码哈希)
@@ -211,8 +215,8 @@ public class SysUserServiceImpl implements SysUserService {
         // 密码使用BCrypt加密存储
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         // 从数据库配置读取默认密码，支持动态修改
-        String defaultPassword = configManager.getValue("wms.security.default-password", "Wms@2024");
-        String password = dto.getPassword() != null ? dto.getPassword() : defaultPassword;
+        String configuredDefaultPassword = configManager.getValue("wms.security.default-password", defaultPassword);
+        String password = dto.getPassword() != null ? dto.getPassword() : configuredDefaultPassword;
         user.setPassword(encoder.encode(password));
         // 新增用户默认启用
         if (user.getStatus() == null) {
@@ -295,10 +299,10 @@ public class SysUserServiceImpl implements SysUserService {
         // 使用BCrypt加密默认密码
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         // 从数据库配置读取默认密码，支持动态修改
-        String defaultPassword = configManager.getValue("wms.security.default-password", "Wms@2024");
+        String configuredDefaultPassword = configManager.getValue("wms.security.default-password", defaultPassword);
         SysUser updateUser = new SysUser();
         updateUser.setId(id);
-        updateUser.setPassword(encoder.encode(defaultPassword));
+        updateUser.setPassword(encoder.encode(configuredDefaultPassword));
         sysUserMapper.updateById(updateUser);
     }
 

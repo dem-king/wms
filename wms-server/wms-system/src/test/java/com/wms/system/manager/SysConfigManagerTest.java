@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SysConfigManager 测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SysConfigManagerTest {
 
     @Mock

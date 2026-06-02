@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("WarehouseServiceImpl 删除逻辑测试")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class WarehouseServiceImplDeleteTest {
 
     @Mock
