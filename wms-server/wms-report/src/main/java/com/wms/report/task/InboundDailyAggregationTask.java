@@ -1,8 +1,8 @@
 package com.wms.report.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.business.domain.entity.WmsInboundDetail;
 import com.wms.business.domain.entity.WmsInboundOrder;
 import com.wms.business.mapper.WmsInboundDetailMapper;
@@ -138,7 +138,7 @@ public class InboundDailyAggregationTask {
                     updateRecord.setDelFlag(DelFlagConstants.DELETED);
                     updateRecords.add(updateRecord);
                 }
-                Db.updateBatchById(updateRecords);
+                LogicDeleteHelper.markDeletedEntities(reportInboundDailyMapper, ReportInboundDaily.class, updateRecords);
             }
 
             for (ReportInboundDaily agg : aggMap.values()) {

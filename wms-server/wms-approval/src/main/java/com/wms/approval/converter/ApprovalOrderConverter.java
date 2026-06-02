@@ -26,6 +26,7 @@ public class ApprovalOrderConverter {
         vo.setId(entity.getId());
         vo.setBizId(entity.getBizId());
         vo.setBizType(entity.getBizType());
+        vo.setConfigId(entity.getConfigId());
         vo.setStatus(entity.getStatus());
         vo.setApplicantId(entity.getApplicantId());
         vo.setCurrentStep(entity.getCurrentStep());

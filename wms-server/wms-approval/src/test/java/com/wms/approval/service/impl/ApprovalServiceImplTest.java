@@ -29,7 +29,10 @@ import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.event.ApprovalResultEvent;
 import com.wms.common.exception.BizException;
 import com.wms.system.domain.entity.SysUser;
+import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.mapper.SysUserMapper;
+import com.wms.warehouse.domain.entity.WmsWarehouse;
+import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -107,6 +110,12 @@ class ApprovalServiceImplTest {
     @Mock
     private SysUserMapper sysUserMapper;
 
+    @Mock
+    private SysUserRoleMapper sysUserRoleMapper;
+
+    @Mock
+    private WmsWarehouseMapper wmsWarehouseMapper;
+
     @InjectMocks
     private ApprovalServiceImpl approvalService;
 
@@ -165,13 +174,14 @@ class ApprovalServiceImplTest {
     @Test
     @DisplayName("匹配角色节点时应允许审批通过")
     void shouldAllowApproveWhenCurrentUserHasRequiredRole() {
-        setCurrentUserWithRoles(3001L, "role-approver", List.of("3001"));
+        setCurrentUser(3001L, "role-approver");
         WmsApprovalOrder order = buildApprovingOrder(8005L, 9005L, 1, 1001L, 1, 2);
         WmsApprovalConfig config = buildConfig(504L, order.getBizType());
         WmsApprovalNode currentNode = buildRoleNode(config.getId(), 1, 3001L);
         when(wmsApprovalOrderMapper.selectById(8005L)).thenReturn(order);
         when(wmsApprovalConfigMapper.selectOne(any())).thenReturn(config);
         when(wmsApprovalNodeMapper.selectOne(any())).thenReturn(currentNode);
+        when(sysUserRoleMapper.selectCount(any())).thenReturn(1L);
 
         approvalService.approve(8005L, buildActionDto("角色通过"));
 
@@ -181,15 +191,35 @@ class ApprovalServiceImplTest {
     }
 
     @Test
+    @DisplayName("审批时应使用审批单绑定的配置而不是当前业务类型启用配置")
+    void shouldValidateApproverAgainstOrderConfigId() {
+        setCurrentUser(2001L, "original-approver");
+        WmsApprovalOrder order = buildApprovingOrder(8010L, 9010L, 1, 1001L, 1, 1);
+        order.setConfigId(7001L);
+        WmsApprovalConfig originalConfig = buildConfig(7001L, order.getBizType());
+        WmsApprovalNode originalNode = buildUserNode(originalConfig.getId(), 1, 2001L);
+        when(wmsApprovalOrderMapper.selectById(8010L)).thenReturn(order);
+        when(wmsApprovalConfigMapper.selectById(7001L)).thenReturn(originalConfig);
+        when(wmsApprovalNodeMapper.selectOne(any())).thenReturn(originalNode);
+
+        approvalService.approve(8010L, buildActionDto("按原配置审批"));
+
+        verify(wmsApprovalConfigMapper, never()).selectOne(any());
+        verify(wmsApprovalRecordMapper).insert(any(WmsApprovalRecord.class));
+        verify(wmsApprovalOrderMapper).updateById(any(WmsApprovalOrder.class));
+    }
+
+    @Test
     @DisplayName("角色不匹配时审批应拒绝")
     void shouldRejectApproveWhenCurrentUserMissingRequiredRole() {
-        setCurrentUserWithRoles(3002L, "other-role-user", List.of("3002"));
+        setCurrentUser(3002L, "other-role-user");
         WmsApprovalOrder order = buildApprovingOrder(8006L, 9006L, 1, 1001L, 1, 2);
         WmsApprovalConfig config = buildConfig(505L, order.getBizType());
         WmsApprovalNode currentNode = buildRoleNode(config.getId(), 1, 3001L);
         when(wmsApprovalOrderMapper.selectById(8006L)).thenReturn(order);
         when(wmsApprovalConfigMapper.selectOne(any())).thenReturn(config);
         when(wmsApprovalNodeMapper.selectOne(any())).thenReturn(currentNode);
+        when(sysUserRoleMapper.selectCount(any())).thenReturn(0L);
 
         BizException exception = assertThrows(BizException.class,
                 () -> approvalService.approve(8006L, buildActionDto("角色越权")));
@@ -201,8 +231,8 @@ class ApprovalServiceImplTest {
     }
 
     @Test
-    @DisplayName("库房管理员节点未接入时应按 fail-closed 拒绝审批")
-    void shouldFailClosedWhenWarehouseAdminApproverTypeNotSupported() {
+    @DisplayName("库房管理员节点无法解析业务单据时应按 fail-closed 拒绝审批")
+    void shouldFailClosedWhenWarehouseAdminBizOrderMissing() {
         setCurrentUser(4001L, "warehouse-admin");
         WmsApprovalOrder order = buildApprovingOrder(8007L, 9007L, 2, 1001L, 1, 2);
         WmsApprovalConfig config = buildConfig(506L, order.getBizType());
@@ -214,10 +244,36 @@ class ApprovalServiceImplTest {
         BizException exception = assertThrows(BizException.class,
                 () -> approvalService.approve(8007L, buildActionDto("管理员审批")));
 
-        assertEquals("库房管理员审批节点暂未支持，已拒绝当前审批请求", exception.getMessage());
+        assertEquals("出库单不存在", exception.getMessage());
         verify(wmsApprovalRecordMapper, never()).insert(any());
         verify(wmsApprovalOrderMapper, never()).updateById(any());
         verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    @DisplayName("当前用户是业务单据所属库房管理员时应允许审批通过")
+    void shouldAllowWarehouseManagerToApproveWarehouseAdminNode() {
+        setCurrentUser(4001L, "warehouse-admin");
+        WmsApprovalOrder order = buildApprovingOrder(8011L, 9011L, 1, 1001L, 1, 2);
+        WmsApprovalConfig config = buildConfig(7011L, order.getBizType());
+        WmsApprovalNode currentNode = buildWarehouseAdminNode(config.getId(), 1);
+        WmsInboundOrder inboundOrder = new WmsInboundOrder();
+        inboundOrder.setId(order.getBizId());
+        inboundOrder.setWarehouseId(6001L);
+        WmsWarehouse warehouse = new WmsWarehouse();
+        warehouse.setId(6001L);
+        warehouse.setManagerId(4001L);
+        when(wmsApprovalOrderMapper.selectById(8011L)).thenReturn(order);
+        when(wmsApprovalConfigMapper.selectOne(any())).thenReturn(config);
+        when(wmsApprovalNodeMapper.selectOne(any())).thenReturn(currentNode);
+        when(wmsInboundOrderMapper.selectById(order.getBizId())).thenReturn(inboundOrder);
+        when(wmsWarehouseMapper.selectById(6001L)).thenReturn(warehouse);
+
+        approvalService.approve(8011L, buildActionDto("库房管理员审批"));
+
+        verify(wmsApprovalRecordMapper).insert(any(WmsApprovalRecord.class));
+        verify(wmsApprovalOrderMapper).updateById(any(WmsApprovalOrder.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test

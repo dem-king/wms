@@ -13,7 +13,7 @@ import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import com.wms.system.manager.SysConfigManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +35,7 @@ public class StockAlertScanTask {
     private final WmsItemMapper wmsItemMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final MonitorStockAlertMapper monitorStockAlertMapper;
-
-    /** 全局库存预警下限阈值，物品未配置stockLowerLimit时使用 */
-    @Value("${wms.business.low-stock-threshold:10}")
-    private int globalLowStockThreshold;
+    private final SysConfigManager configManager;
 
     /**
      * 库存预警扫描定时任务
@@ -50,6 +47,8 @@ public class StockAlertScanTask {
     @Transactional(rollbackFor = Exception.class)
     public void scan() {
         log.info("库存预警扫描开始");
+        // 每次扫描时从数据库读取最新阈值，支持动态修改
+        int globalLowStockThreshold = configManager.getIntValue("wms.business.low-stock-threshold", 10);
         LocalDateTime now = LocalDateTime.now();
 
         // 查询所有库存记录

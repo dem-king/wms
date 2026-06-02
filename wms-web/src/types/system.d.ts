@@ -202,6 +202,41 @@ export interface SysConfigDto {
   configDesc?: string
 }
 
+/** 站内信读取状态 */
+export type MessageReadStatus = 0 | 1
+
+/** 站内信消息视图对象 */
+export interface SysMessageVo {
+  /** 消息ID */
+  id: EntityId
+  /** 接收人ID */
+  receiverId: EntityId
+  /** 消息标题 */
+  title: string
+  /** 消息内容 */
+  content: string
+  /** 消息类型 */
+  messageType: string
+  /** 消息级别 */
+  messageLevel: string
+  /** 业务去重键 */
+  businessKey: string
+  /** 目标跳转地址 */
+  targetUrl: string
+  /** 读取状态(0-未读 1-已读) */
+  readStatus: MessageReadStatus
+  /** 读取时间 */
+  readTime?: string
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 站内信查询参数 */
+export interface SysMessageQuery extends PageParams {
+  /** 读取状态(0-未读 1-已读) */
+  readStatus?: MessageReadStatus
+}
+
 /** 供应商管理 */
 
 /** 供应商视图对象 */

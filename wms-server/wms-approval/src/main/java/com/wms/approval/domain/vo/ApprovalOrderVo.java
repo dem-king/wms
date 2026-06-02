@@ -34,6 +34,10 @@ public class ApprovalOrderVo {
     @Schema(description = "业务类型")
     private Integer bizType;
 
+    /** 审批配置ID */
+    @Schema(description = "审批配置ID")
+    private Long configId;
+
     /** 审批状态 */
     @Schema(description = "审批状态")
     private Integer status;

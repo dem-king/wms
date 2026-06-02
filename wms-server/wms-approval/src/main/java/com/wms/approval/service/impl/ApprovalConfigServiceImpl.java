@@ -14,9 +14,11 @@ import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.service.ApprovalConfigService;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,9 +124,12 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApprovalConfigVo createConfig(ApprovalConfigDto dto) {
+        Integer enabled = dto.getEnabled() != null ? dto.getEnabled() : BizConstants.STATUS_ENABLED;
+        validateEnabledConfigUnique(dto.getBizType(), null, enabled);
+
         WmsApprovalConfig config = new WmsApprovalConfig();
         config.setBizType(dto.getBizType());
-        config.setEnabled(dto.getEnabled() != null ? dto.getEnabled() : BizConstants.STATUS_ENABLED);
+        config.setEnabled(enabled);
         config.setAutoApprove(dto.getAutoApprove() != null ? dto.getAutoApprove() : BizConstants.STATUS_DISABLED);
         config.setConfigName(dto.getConfigName());
         config.setRemark(dto.getRemark());
@@ -186,21 +191,11 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         if (dto.getTimeoutAction() != null) {
             config.setTimeoutAction(dto.getTimeoutAction());
         }
+        validateEnabledConfigUnique(config.getBizType(), id, config.getEnabled());
         wmsApprovalConfigMapper.updateById(config);
 
-        // 逻辑删除原有节点
-        List<WmsApprovalNode> oldNodes = wmsApprovalNodeMapper.selectList(
-                new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
-        List<WmsApprovalNode> updateNodes = new ArrayList<>();
-        for (WmsApprovalNode oldNode : oldNodes) {
-            WmsApprovalNode updateNode = new WmsApprovalNode();
-            updateNode.setId(oldNode.getId());
-            updateNode.setDelFlag(DelFlagConstants.DELETED);
-            updateNodes.add(updateNode);
-        }
-        if (!updateNodes.isEmpty()) {
-            Db.updateBatchById(updateNodes);
-        }
+        // 显式更新 @TableLogic 字段，避免通用批量更新链路忽略 delFlag 导致旧节点累积。
+        wmsApprovalNodeMapper.updateDelFlagByConfigId(id, DelFlagConstants.DELETED, SecurityUtil.getCurrentUsername());
 
         // 保存新的审批节点配置
         if (dto.getNodes() != null) {
@@ -237,24 +232,33 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         if (config.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("审批配置已删除");
         }
-        // 逻辑删除配置
-        WmsApprovalConfig updateEntity = new WmsApprovalConfig();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        wmsApprovalConfigMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsApprovalConfigMapper, WmsApprovalConfig.class, id);
 
-        // 逻辑删除关联节点
-        List<WmsApprovalNode> nodes = wmsApprovalNodeMapper.selectList(
-                new LambdaQueryWrapper<WmsApprovalNode>().eq(WmsApprovalNode::getConfigId, id));
-        List<WmsApprovalNode> updateNodeList = new ArrayList<>();
-        for (WmsApprovalNode node : nodes) {
-            WmsApprovalNode updateNode = new WmsApprovalNode();
-            updateNode.setId(node.getId());
-            updateNode.setDelFlag(DelFlagConstants.DELETED);
-            updateNodeList.add(updateNode);
+        // 显式逻辑删除关联节点，避免 @TableLogic 字段在通用更新链路中被忽略。
+        wmsApprovalNodeMapper.updateDelFlagByConfigId(id, DelFlagConstants.DELETED, SecurityUtil.getCurrentUsername());
+    }
+
+    /**
+     * 校验同一业务类型仅允许存在一个启用中的审批配置。
+     *
+     * @param bizType         业务类型
+     * @param excludeConfigId 更新时需要排除的当前配置ID
+     * @param enabled         当前配置启用状态
+     */
+    private void validateEnabledConfigUnique(Integer bizType, Long excludeConfigId, Integer enabled) {
+        if (enabled == null || enabled != BizConstants.STATUS_ENABLED) {
+            return;
         }
-        if (!updateNodeList.isEmpty()) {
-            Db.updateBatchById(updateNodeList);
+        LambdaQueryWrapper<WmsApprovalConfig> wrapper = new LambdaQueryWrapper<WmsApprovalConfig>()
+                .eq(WmsApprovalConfig::getBizType, bizType)
+                .eq(WmsApprovalConfig::getEnabled, BizConstants.STATUS_ENABLED);
+        if (excludeConfigId != null) {
+            wrapper.ne(WmsApprovalConfig::getId, excludeConfigId);
+        }
+        Long existingCount = wmsApprovalConfigMapper.selectCount(wrapper);
+        if (existingCount != null && existingCount > 0) {
+            throw new BizException("该业务类型已存在启用的审批配置");
         }
     }
 }

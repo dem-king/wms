@@ -12,6 +12,7 @@ import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
 import com.wms.business.service.TransferService;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
@@ -263,7 +264,7 @@ public class TransferServiceImpl implements TransferService {
             updateDetails.add(oldDetail);
         }
         if (!updateDetails.isEmpty()) {
-            Db.updateBatchById(updateDetails);
+            LogicDeleteHelper.markDeletedEntities(wmsTransferDetailMapper, WmsTransferDetail.class, updateDetails);
         }
 
         // 保存新明细
@@ -299,9 +300,8 @@ public class TransferServiceImpl implements TransferService {
             throw new BizException("仅草稿状态的调拨单可以删除");
         }
 
-        // 逻辑删除主表
-        order.setDelFlag(DelFlagConstants.DELETED);
-        wmsTransferOrderMapper.updateById(order);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsTransferOrderMapper, WmsTransferOrder.class, id);
 
         // 逻辑删除明细
         List<WmsTransferDetail> details = wmsTransferDetailMapper.selectList(
@@ -313,7 +313,7 @@ public class TransferServiceImpl implements TransferService {
             updateDetailList.add(detail);
         }
         if (!updateDetailList.isEmpty()) {
-            Db.updateBatchById(updateDetailList);
+            LogicDeleteHelper.markDeletedEntities(wmsTransferDetailMapper, WmsTransferDetail.class, updateDetailList);
         }
     }
 

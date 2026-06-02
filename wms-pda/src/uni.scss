@@ -1,0 +1,72 @@
+/**
+ * WMS-PDA 全局SCSS变量
+ * 所有页面和组件均可引用这些变量
+ */
+
+// ==================== 主题色 ====================
+$color-primary: #1890ff;           // 主色-蓝
+$color-primary-light: #40a9ff;     // 主色-浅蓝
+$color-primary-dark: #096dd9;      // 主色-深蓝
+$color-success: #52c41a;           // 成功-绿
+$color-warning: #faad14;           // 警告-橙
+$color-error: #f5222d;             // 错误-红
+$color-info: #1890ff;              // 信息-蓝
+
+// ==================== 文字色 ====================
+$text-color-primary: #333333;      // 主要文字
+$text-color-regular: #666666;      // 常规文字
+$text-color-secondary: #999999;    // 次要文字
+$text-color-placeholder: #cccccc;  // 占位文字
+$text-color-inverse: #ffffff;      // 反色文字
+
+// ==================== 背景色 ====================
+$bg-color-page: #f5f5f5;           // 页面背景
+$bg-color-card: #ffffff;           // 卡片背景
+$bg-color-grey: #f0f0f0;           // 灰色背景
+$bg-color-hover: #f7f7f7;          // 悬停背景
+
+// ==================== 边框色 ====================
+$border-color-base: #e8e8e8;       // 基础边框
+$border-color-light: #f0f0f0;      // 浅色边框
+$border-color-dark: #d9d9d9;       // 深色边框
+
+// ==================== 间距 ====================
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+$spacing-xxl: 64rpx;
+
+// ==================== 字号 ====================
+$font-size-xs: 20rpx;
+$font-size-sm: 24rpx;
+$font-size-md: 28rpx;
+$font-size-lg: 32rpx;
+$font-size-xl: 36rpx;
+$font-size-xxl: 40rpx;
+
+// ==================== 圆角 ====================
+$border-radius-sm: 4rpx;
+$border-radius-md: 8rpx;
+$border-radius-lg: 16rpx;
+$border-radius-round: 999rpx;
+
+// ==================== 阴影 ====================
+$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+
+// ==================== 状态标签色 ====================
+$status-draft: #999999;            // 草稿-灰
+$status-pending: #faad14;          // 待审核-橙
+$status-approved: #1890ff;         // 已审核-蓝
+$status-completed: #52c41a;        // 已完成-绿
+$status-rejected: #f5222d;         // 已驳回-红
+
+// 标签状态色
+$label-in-stock: #52c41a;          // 在库-绿
+$label-in-use: #1890ff;            // 正在使用-蓝
+$label-returned: #999999;          // 已归还-灰
+$label-scrapped: #f5222d;          // 报废-红
+$label-idle: #faad14;              // 闲置-橙

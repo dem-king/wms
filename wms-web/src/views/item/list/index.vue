@@ -46,8 +46,8 @@
         <template #default="{ row }">
           <el-image
             v-if="row.images && row.images.length > 0"
-            :src="row.images[0].imageUrl"
-            :preview-src-list="row.images.map((img: any) => img.imageUrl)"
+            :src="resolveFileUrl(row.images[0].imageUrl)"
+            :preview-src-list="row.images.map((img: any) => resolveFileUrl(img.imageUrl))"
             :preview-teleported="true"
             fit="cover"
             style="width: 40px; height: 40px; border-radius: 4px"
@@ -225,7 +225,7 @@
         <el-form-item label="物品图片">
           <div class="image-upload-area">
             <div v-for="(img, index) in form.imageList" :key="img.id || index" class="image-item">
-              <el-image :src="img.imageUrl" fit="cover" style="width: 100px; height: 100px; border-radius: 4px" />
+              <el-image :src="resolveFileUrl(img.imageUrl)" fit="cover" style="width: 100px; height: 100px; border-radius: 4px" />
               <div class="image-actions">
                 <el-button type="danger" :icon="Delete" circle size="small" @click="handleRemoveImage(index)" />
               </div>
@@ -273,6 +273,7 @@ import type { EntityId, WmsItemVo, WmsItemDto, WmsCategoryVo, WmsSubCategoryVo, 
 import type { SysSupplierVo } from '@/types/system'
 import { useFileUpload } from '@/hooks/useFileUpload'
 import { normalizePageTotal } from '@/utils/pagination'
+import { resolveFileUrl } from '@/utils/file-url'
 import { buildItemSubmitPayload } from './submit-payload'
 import {
   extractBinIds,

@@ -102,6 +102,7 @@
         >
           <el-icon><RefreshRight /></el-icon>
         </HeaderActionButton>
+        <NotificationBell />
         <ThemeToggle v-if="preferences.widget.themeToggle" />
         <HeaderActionButton
           v-if="preferences.widget.fullscreen"
@@ -145,6 +146,7 @@ import { resolveHeaderMenuAlignment, resolveHorizontalScrollState } from '@/layo
 import { useSplitMenu } from '@/layouts/composables/use-split-menu'
 import ChangePasswordDialog from '@/views/system/password/ChangePasswordDialog.vue'
 import HeaderActionButton from './HeaderActionButton.vue'
+import NotificationBell from './NotificationBell.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import UserDropdown from './UserDropdown.vue'
 import NavbarMenuItem from './NavbarMenuItem.vue'

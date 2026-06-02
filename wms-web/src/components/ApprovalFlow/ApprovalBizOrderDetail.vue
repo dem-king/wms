@@ -2,7 +2,8 @@
 import { computed, watch, ref, shallowRef } from 'vue'
 import { BIZ_TYPE, getBizTypeLabel } from '@/constants/approval'
 import { loadApprovalBizOrder, type ApprovalBizOrder } from './approval-biz-order-detail'
-import type { BizType, EntityId, OrderStatus } from '@/types/business'
+import { orderStatusLabel } from '@/constants/order-status'
+import type { BizType, EntityId } from '@/types/business'
 
 interface Props {
   bizType?: BizType | number | null
@@ -26,14 +27,6 @@ const props = defineProps<Props>()
 const loading = shallowRef(false)
 const errorMessage = shallowRef('')
 const order = ref<ApprovalBizOrder | null>(null)
-
-const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-  DRAFT: '草稿',
-  PENDING_REVIEW: '待审核',
-  APPROVED: '已审核',
-  COMPLETED: '已完成',
-  REJECTED: '已驳回',
-}
 
 const INBOUND_TYPE_LABEL: Record<string, string> = {
   PURCHASE: '采购入库',
@@ -60,7 +53,7 @@ function formatMoney(value: unknown): string {
 }
 
 function formatStatus(value: unknown): string {
-  return ORDER_STATUS_LABEL[value as OrderStatus] || displayValue(value)
+  return orderStatusLabel(value)
 }
 
 function formatCondition(value: unknown): string {

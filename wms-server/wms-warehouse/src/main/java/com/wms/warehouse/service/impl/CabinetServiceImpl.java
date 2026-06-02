@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -223,12 +224,8 @@ public class CabinetServiceImpl implements CabinetService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("存放柜已删除");
         }
-        // 逻辑删除存放柜
-        WmsCabinet updateEntity = new WmsCabinet();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-
-        wmsCabinetMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsCabinetMapper, WmsCabinet.class, id);
     }
 
     /**

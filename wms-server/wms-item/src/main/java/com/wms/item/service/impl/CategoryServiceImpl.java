@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -154,12 +155,8 @@ public class CategoryServiceImpl implements CategoryService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("主类目已删除");
         }
-        // 逻辑删除主类目
-        WmsCategory updateEntity = new WmsCategory();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsCategoryMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsCategoryMapper, WmsCategory.class, id);
         // 逻辑删除其下的细分类目
         List<WmsSubCategory> subCategories = wmsSubCategoryMapper.selectList(
                 new LambdaQueryWrapper<WmsSubCategory>()
@@ -174,7 +171,7 @@ public class CategoryServiceImpl implements CategoryService {
             updateSubList.add(updateSub);
         }
         if (!updateSubList.isEmpty()) {
-            Db.updateBatchById(updateSubList);
+            LogicDeleteHelper.markDeletedEntities(wmsSubCategoryMapper, WmsSubCategory.class, updateSubList);
         }
     }
 
@@ -309,11 +306,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("细分类目已删除");
         }
-        WmsSubCategory updateEntity = new WmsSubCategory();
-        updateEntity.setId(subId);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsSubCategoryMapper.updateById(updateEntity);
+        LogicDeleteHelper.markDeleted(wmsSubCategoryMapper, WmsSubCategory.class, subId);
     }
 
     /**

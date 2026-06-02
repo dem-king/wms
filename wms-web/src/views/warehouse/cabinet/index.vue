@@ -231,6 +231,15 @@ function handleClose() {
 onMounted(async () => {
   const res = await getWarehouseList()
   warehouseList.value = res.data
+  if (res.data.length > 0) {
+    selectedWarehouseId.value = res.data[0].id
+    const areaRes = await getAreaList(res.data[0].id)
+    areaList.value = areaRes.data
+    if (areaRes.data.length > 0) {
+      selectedAreaId.value = areaRes.data[0].id
+      await handleQuery(areaRes.data[0].id)
+    }
+  }
 })
 </script>
 

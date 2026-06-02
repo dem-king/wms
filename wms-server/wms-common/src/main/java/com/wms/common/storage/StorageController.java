@@ -95,7 +95,7 @@ public class StorageController {
      * @param request HTTP请求（用于提取完整对象路径）
      * @return 文件内容
      */
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "文件访问代理")
     @GetMapping("/{bucket}/**")
     public ResponseEntity<Resource> serveFile(@PathVariable String bucket,
@@ -111,13 +111,33 @@ public class StorageController {
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)
                     .replace("+", "%20");
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(resolveMediaType(fileName))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "inline; filename*=UTF-8''" + encodedFileName)
                     .body(resource);
         } catch (BizException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    private MediaType resolveMediaType(String fileName) {
+        String lowercaseFileName = fileName.toLowerCase();
+        if (lowercaseFileName.endsWith(".png")) {
+            return MediaType.IMAGE_PNG;
+        }
+        if (lowercaseFileName.endsWith(".jpg") || lowercaseFileName.endsWith(".jpeg")) {
+            return MediaType.IMAGE_JPEG;
+        }
+        if (lowercaseFileName.endsWith(".gif")) {
+            return MediaType.IMAGE_GIF;
+        }
+        if (lowercaseFileName.endsWith(".webp")) {
+            return MediaType.parseMediaType("image/webp");
+        }
+        if (lowercaseFileName.endsWith(".svg")) {
+            return MediaType.parseMediaType("image/svg+xml");
+        }
+        return MediaType.APPLICATION_OCTET_STREAM;
     }
 
     /**

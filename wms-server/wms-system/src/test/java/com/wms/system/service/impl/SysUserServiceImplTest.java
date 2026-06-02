@@ -1,5 +1,6 @@
 package com.wms.system.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.system.domain.dto.SysUserDto;
@@ -13,6 +14,7 @@ import com.wms.system.mapper.SysUserRoleMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -99,6 +101,23 @@ class SysUserServiceImplTest {
 
         verify(sysUserRoleMapper).updateById(any(SysUserRole.class));
         verify(sysUserRoleMapper).insert(any(SysUserRole.class));
+    }
+
+    @Test
+    @DisplayName("delete user should explicitly set del_flag with update wrapper")
+    void shouldSetDelFlagWithUpdateWrapperWhenDeletingUser() {
+        Long userId = 1003L;
+        SysUser existingUser = buildUser(userId, "wangwu");
+        when(sysUserMapper.selectById(userId)).thenReturn(existingUser);
+
+        sysUserService.delete(userId);
+
+        ArgumentCaptor<SysUser> entityCaptor = ArgumentCaptor.forClass(SysUser.class);
+        ArgumentCaptor<UpdateWrapper<SysUser>> wrapperCaptor = ArgumentCaptor.forClass(UpdateWrapper.class);
+        verify(sysUserMapper).update(entityCaptor.capture(), wrapperCaptor.capture());
+        verify(sysUserMapper, never()).updateById(any(SysUser.class));
+        assertEquals(userId, entityCaptor.getValue().getId());
+        assertEquals(DelFlagConstants.DELETED, wrapperCaptor.getValue().getParamNameValuePairs().get("MPGENVAL1"));
     }
 
     private SysUser buildUser(Long userId, String username) {

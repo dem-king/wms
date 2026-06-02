@@ -65,4 +65,22 @@ public final class ApprovalConstants {
 
     /** 审批超时处理：自动取消 */
     public static final int TIMEOUT_ACTION_CANCEL = 2;
+
+    /** 系统自动处理审批时使用的审批人名称 */
+    public static final String SYSTEM_APPROVER_NAME = "系统";
+
+    /** 审批超时提醒记录意见 */
+    public static final String TIMEOUT_REMIND_OPINION = "审批超时提醒";
+
+    /** 审批超时自动取消记录意见 */
+    public static final String TIMEOUT_CANCEL_OPINION = "审批超时自动取消";
+
+    /** 审批超时站内信标题 */
+    public static final String TIMEOUT_MESSAGE_TITLE = "审批超时提醒";
+
+    /** 审批超时站内信业务键前缀 */
+    public static final String TIMEOUT_MESSAGE_BUSINESS_KEY_PREFIX = "approval-timeout:";
+
+    /** 审批超时站内信目标地址模板 */
+    public static final String TIMEOUT_MESSAGE_TARGET_URL_TEMPLATE = "/approval/pending?approvalId=%d";
 }

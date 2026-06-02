@@ -37,12 +37,13 @@ import com.wms.common.event.ApprovalResultEvent;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.entity.SysUser;
+import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.mapper.SysUserMapper;
+import com.wms.system.mapper.SysUserRoleMapper;
+import com.wms.warehouse.domain.entity.WmsWarehouse;
+import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +81,8 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final WmsScrapOrderMapper wmsScrapOrderMapper;
     private final WmsTransferOrderMapper wmsTransferOrderMapper;
     private final SysUserMapper sysUserMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
+    private final WmsWarehouseMapper wmsWarehouseMapper;
 
     /**
      * 发起审批
@@ -379,6 +382,24 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     /**
+     * 查询审批单绑定的审批配置。
+     * 优先使用发起审批时写入的configId，兼容旧数据时回退到业务类型启用配置。
+     *
+     * @param order 审批单
+     * @return 审批配置
+     */
+    private WmsApprovalConfig getConfigForOrder(WmsApprovalOrder order) {
+        if (order.getConfigId() != null) {
+            WmsApprovalConfig config = wmsApprovalConfigMapper.selectById(order.getConfigId());
+            if (config != null && !Objects.equals(config.getDelFlag(), DelFlagConstants.DELETED)) {
+                return config;
+            }
+            return null;
+        }
+        return getEnabledConfig(order.getBizType());
+    }
+
+    /**
      * 校验当前登录用户是否为当前步骤审批人
      *
      * @param order 审批单
@@ -388,7 +409,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         if (currentUserId == null) {
             throw new BizException("当前登录用户不存在");
         }
-        WmsApprovalConfig config = getEnabledConfig(order.getBizType());
+        WmsApprovalConfig config = getConfigForOrder(order);
         if (config == null) {
             throw new BizException("审批配置不存在");
         }
@@ -412,9 +433,137 @@ public class ApprovalServiceImpl implements ApprovalService {
             return;
         }
         if (Objects.equals(currentNode.getApproverType(), ApprovalConstants.APPROVER_TYPE_WAREHOUSE_ADMIN)) {
-            throw new BizException("库房管理员审批节点暂未支持，已拒绝当前审批请求");
+            validateWarehouseManagerApprover(order, currentUserId);
+            return;
         }
         throw new BizException("当前审批步骤审批人类型不受支持");
+    }
+
+    /**
+     * 校验当前用户是否为业务单据所属库房管理员。
+     *
+     * @param order         审批单
+     * @param currentUserId 当前用户ID
+     */
+    private void validateWarehouseManagerApprover(WmsApprovalOrder order, Long currentUserId) {
+        Long warehouseId = resolveWarehouseId(order);
+        WmsWarehouse warehouse = wmsWarehouseMapper.selectById(warehouseId);
+        if (warehouse == null || Objects.equals(warehouse.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("库房不存在");
+        }
+        if (warehouse.getManagerId() == null) {
+            throw new BizException("库房未配置管理员");
+        }
+        if (!Objects.equals(warehouse.getManagerId(), currentUserId)) {
+            throw new BizException("当前用户不是业务单据所属库房管理员");
+        }
+    }
+
+    /**
+     * 根据审批单业务类型解析所属库房ID。
+     *
+     * @param order 审批单
+     * @return 库房ID
+     */
+    private Long resolveWarehouseId(WmsApprovalOrder order) {
+        BizTypeEnum bizType = BizTypeEnum.of(order.getBizType());
+        if (bizType == null) {
+            throw new BizException("业务类型不受支持");
+        }
+        return switch (bizType) {
+            case INBOUND -> resolveInboundWarehouseId(order.getBizId());
+            case OUTBOUND -> resolveOutboundWarehouseId(order.getBizId());
+            case SCRAP -> resolveScrapWarehouseId(order.getBizId());
+            case TRANSFER -> resolveTransferWarehouseId(order.getBizId());
+            case RETURN -> resolveReturnWarehouseId(order.getBizId());
+        };
+    }
+
+    /**
+     * 解析入库单所属库房ID。
+     *
+     * @param bizId 入库单ID
+     * @return 库房ID
+     */
+    private Long resolveInboundWarehouseId(Long bizId) {
+        WmsInboundOrder inboundOrder = wmsInboundOrderMapper.selectById(bizId);
+        if (inboundOrder == null || Objects.equals(inboundOrder.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("入库单不存在");
+        }
+        return requireWarehouseId(inboundOrder.getWarehouseId(), "入库单未关联库房");
+    }
+
+    /**
+     * 解析出库单所属库房ID。
+     *
+     * @param bizId 出库单ID
+     * @return 库房ID
+     */
+    private Long resolveOutboundWarehouseId(Long bizId) {
+        WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(bizId);
+        if (outboundOrder == null || Objects.equals(outboundOrder.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("出库单不存在");
+        }
+        return requireWarehouseId(outboundOrder.getWarehouseId(), "出库单未关联库房");
+    }
+
+    /**
+     * 解析报废单所属库房ID。
+     *
+     * @param bizId 报废单ID
+     * @return 库房ID
+     */
+    private Long resolveScrapWarehouseId(Long bizId) {
+        WmsScrapOrder scrapOrder = wmsScrapOrderMapper.selectById(bizId);
+        if (scrapOrder == null || Objects.equals(scrapOrder.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("报废单不存在");
+        }
+        return requireWarehouseId(scrapOrder.getWarehouseId(), "报废单未关联库房");
+    }
+
+    /**
+     * 解析调拨单调出库房ID。
+     *
+     * @param bizId 调拨单ID
+     * @return 调出库房ID
+     */
+    private Long resolveTransferWarehouseId(Long bizId) {
+        WmsTransferOrder transferOrder = wmsTransferOrderMapper.selectById(bizId);
+        if (transferOrder == null || Objects.equals(transferOrder.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("调拨单不存在");
+        }
+        return requireWarehouseId(transferOrder.getFromWarehouseId(), "调拨单未关联调出库房");
+    }
+
+    /**
+     * 解析归还单关联出库单所属库房ID。
+     *
+     * @param bizId 归还单ID
+     * @return 出库单所属库房ID
+     */
+    private Long resolveReturnWarehouseId(Long bizId) {
+        WmsReturnOrder returnOrder = wmsReturnOrderMapper.selectById(bizId);
+        if (returnOrder == null || Objects.equals(returnOrder.getDelFlag(), DelFlagConstants.DELETED)) {
+            throw new BizException("归还单不存在");
+        }
+        if (returnOrder.getOutboundOrderId() == null) {
+            throw new BizException("归还单未关联出库单");
+        }
+        return resolveOutboundWarehouseId(returnOrder.getOutboundOrderId());
+    }
+
+    /**
+     * 校验业务单据已关联库房。
+     *
+     * @param warehouseId  库房ID
+     * @param errorMessage 异常信息
+     * @return 库房ID
+     */
+    private Long requireWarehouseId(Long warehouseId, String errorMessage) {
+        if (warehouseId == null) {
+            throw new BizException(errorMessage);
+        }
+        return warehouseId;
     }
 
     /**
@@ -427,14 +576,14 @@ public class ApprovalServiceImpl implements ApprovalService {
         if (roleId == null) {
             return false;
         }
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities() == null) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        if (currentUserId == null) {
             return false;
         }
-        String requiredRole = "ROLE_" + roleId;
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(requiredRole::equals);
+        return sysUserRoleMapper.selectCount(
+                new LambdaQueryWrapper<SysUserRole>()
+                        .eq(SysUserRole::getUserId, currentUserId)
+                        .eq(SysUserRole::getRoleId, roleId)) > 0;
     }
 
     /**

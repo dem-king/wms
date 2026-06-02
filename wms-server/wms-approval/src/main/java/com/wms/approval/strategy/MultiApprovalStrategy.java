@@ -46,6 +46,7 @@ public class MultiApprovalStrategy implements ApprovalStrategy {
         WmsApprovalOrder order = new WmsApprovalOrder();
         order.setBizId(context.getBizId());
         order.setBizType(context.getBizType());
+        order.setConfigId(context.getConfig().getId());
         order.setStatus(ApprovalConstants.STATUS_APPROVING);
         order.setApplicantId(context.getApplicantId());
         // 从第1个节点开始审批

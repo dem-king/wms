@@ -6,6 +6,7 @@ import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.system.domain.dto.SysSupplierDto;
 import com.wms.system.domain.entity.SysSupplier;
 import com.wms.system.domain.vo.SysSupplierVo;
@@ -128,11 +129,7 @@ public class SysSupplierServiceImpl implements SysSupplierService {
             throw new BizException("供应商不存在");
         }
         // 逻辑删除供应商
-        SysSupplier updateSupplier = new SysSupplier();
-        updateSupplier.setId(id);
-        updateSupplier.setDelFlag(DelFlagConstants.DELETED);
-   
-        sysSupplierMapper.updateById(updateSupplier);
+        LogicDeleteHelper.markDeleted(sysSupplierMapper, SysSupplier.class, id);
     }
 
     /**

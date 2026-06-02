@@ -35,6 +35,7 @@ CREATE TABLE wms_approval_order (
     `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
     `biz_id`          BIGINT       NOT NULL COMMENT '业务单据ID',
     `biz_type`        TINYINT      NOT NULL COMMENT '业务类型(1-入库 2-出库 3-报废 4-调拨 5-归还)',
+    `config_id`       BIGINT       DEFAULT NULL COMMENT '审批配置ID',
     `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '审批状态(0-待审批 1-审批中 2-已通过 3-已驳回 4-已撤回)',
     `applicant_id`    BIGINT       DEFAULT NULL COMMENT '申请人ID',
     `current_step`    INT          DEFAULT 1 COMMENT '当前审批节点(从1开始)',
@@ -46,7 +47,8 @@ CREATE TABLE wms_approval_order (
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`),
-    KEY `idx_biz` (`biz_id`, `biz_type`)
+    KEY `idx_biz` (`biz_id`, `biz_type`),
+    KEY `idx_config_step` (`config_id`, `current_step`)
 ) COMMENT='审批单表';
 
 -- 审批记录表

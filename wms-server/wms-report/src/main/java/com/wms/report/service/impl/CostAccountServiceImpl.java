@@ -15,6 +15,7 @@ import com.wms.report.mapper.ReportScrapDailyMapper;
 import com.wms.report.mapper.ReportTransferDailyMapper;
 import com.wms.report.service.CostAccountService;
 import com.wms.system.domain.entity.SysConfig;
+import com.wms.system.manager.SysConfigManager;
 import com.wms.system.mapper.SysConfigMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import java.util.List;
 public class CostAccountServiceImpl implements CostAccountService {
 
     private final SysConfigMapper sysConfigMapper;
+    private final SysConfigManager configManager;
     private final ReportInboundDailyMapper inboundMapper;
     private final ReportOutboundDailyMapper outboundMapper;
     private final ReportScrapDailyMapper scrapMapper;
@@ -203,13 +205,10 @@ public class CostAccountServiceImpl implements CostAccountService {
     }
 
     /**
-     * 读取配置值
+     * 读取配置值（通过SysConfigManager，带Redis缓存）
      */
     private String getConfigValue(String key) {
-        SysConfig config = sysConfigMapper.selectOne(
-                new LambdaQueryWrapper<SysConfig>().eq(SysConfig::getConfigKey, key)
-        );
-        return config != null ? config.getConfigValue() : null;
+        return configManager.getValue(key);
     }
 
     /**
@@ -222,6 +221,7 @@ public class CostAccountServiceImpl implements CostAccountService {
 
     /**
      * 更新配置值
+     * 更新数据库并清除Redis缓存，保证下次读取获取最新值
      */
     private void updateConfigValue(String key, String value) {
         SysConfig config = sysConfigMapper.selectOne(
@@ -232,6 +232,8 @@ public class CostAccountServiceImpl implements CostAccountService {
         }
         config.setConfigValue(value);
         sysConfigMapper.updateById(config);
+        // 清除Redis缓存，保证下次读取获取最新值
+        configManager.evictCache(key);
     }
 
     /**

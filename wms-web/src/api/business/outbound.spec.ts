@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 const requestMocks = vi.hoisted(() => ({
-  get: vi.fn(() => Promise.resolve({ data: undefined })),
-  post: vi.fn(() => Promise.resolve({ data: undefined })),
-  put: vi.fn(() => Promise.resolve({ data: undefined })),
-  del: vi.fn(() => Promise.resolve({ data: undefined })),
+  get: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  post: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  put: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  del: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
 }))
 
 vi.mock('../request', () => requestMocks)
@@ -26,7 +26,7 @@ describe('outbound api', () => {
     expect(requestMocks.get).toHaveBeenCalledWith('/outbound', {
       page: 3,
       size: 10,
-      status: 3,
+      status: 5,
       orderNo: 'CK20260521002',
     })
   })

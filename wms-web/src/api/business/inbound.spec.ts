@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requestMocks = vi.hoisted(() => ({
-  get: vi.fn(() => Promise.resolve({ data: undefined })),
-  post: vi.fn(() => Promise.resolve({ data: undefined })),
-  put: vi.fn(() => Promise.resolve({ data: undefined })),
-  del: vi.fn(() => Promise.resolve({ data: undefined })),
+  get: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  post: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  put: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
+  del: vi.fn((): Promise<{ data: unknown }> => Promise.resolve({ data: undefined })),
 }))
 
 vi.mock('../request', () => requestMocks)
@@ -20,6 +20,10 @@ import {
 } from './inbound'
 
 describe('inbound api', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('maps list requests to the backend inbound path and numeric status', () => {
     getInboundOrders({ page: 2, size: 50, status: 'PENDING_REVIEW', orderNo: 'RK20260521001' })
 
@@ -29,6 +33,33 @@ describe('inbound api', () => {
       status: 1,
       orderNo: 'RK20260521001',
     })
+  })
+
+  it('normalizes backend completed status without falling back to draft', async () => {
+    requestMocks.get.mockResolvedValueOnce({
+      data: {
+        records: [
+          {
+            id: '10',
+            orderNo: 'RK2025010001',
+            warehouseId: '1',
+            warehouseName: '主库房',
+            supplierId: '2',
+            supplierName: '供应商',
+            orderType: 1,
+            status: 5,
+            totalAmount: 2500,
+            remark: '',
+            createTime: '2026-05-21T15:48:40',
+          },
+        ],
+        total: 1,
+      },
+    })
+
+    const res = await getInboundOrders()
+
+    expect(res.data.records[0].status).toBe('COMPLETED')
   })
 
   it('maps form payloads to the backend inbound dto fields', () => {

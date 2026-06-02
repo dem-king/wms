@@ -8,6 +8,7 @@ import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.event.PermissionCacheEvictEvent;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.system.converter.SysPermissionConverter;
 import com.wms.system.domain.dto.SysPermissionDto;
 import com.wms.system.domain.entity.SysMenu;
@@ -200,13 +201,9 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         if (existing == null || existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("权限不存在");
         }
-        // 逻辑删除权限
         Set<Long> affectedUserIds = findAffectedUserIdsByPermissionIds(List.of(id));
-        SysPermission updatePerm = new SysPermission();
-        updatePerm.setId(id);
-        updatePerm.setDelFlag(DelFlagConstants.DELETED);
-   
-        sysPermissionMapper.updateById(updatePerm);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(sysPermissionMapper, SysPermission.class, id);
         publishPermissionCacheEvictEvent(affectedUserIds);
     }
 

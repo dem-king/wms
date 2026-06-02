@@ -3,7 +3,7 @@
     <el-image
       v-for="(img, index) in images"
       :key="img.id || img.imageUrl || index"
-      :src="resolveUrl(img.imageUrl)"
+      :src="resolveFileUrl(img.imageUrl)"
       :preview-src-list="previewList"
       :initial-index="index"
       fit="cover"
@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Picture } from '@element-plus/icons-vue'
+import { resolveFileUrl } from '@/utils/file-url'
 
 export interface ImageItem {
   id?: number
@@ -34,31 +35,7 @@ const props = defineProps<{
   images: ImageItem[]
 }>()
 
-/**
- * 解析图片URL
- * 如果是相对路径（以/开头），拼接API base URL
- * 如果是完整URL（http/https开头），直接使用
- */
-function resolveUrl(url: string): string {
-  if (!url) return ''
-  if (
-    url.startsWith('http://')
-    || url.startsWith('https://')
-    || url.startsWith('data:')
-    || url.startsWith('blob:')
-  ) {
-    return url
-  }
-  if (url.startsWith('/api')) {
-    return url
-  }
-  if (url.startsWith('/')) {
-    return `/api${url}`
-  }
-  return `/api/${url}`
-}
-
-const previewList = computed(() => props.images.map(img => resolveUrl(img.imageUrl)))
+const previewList = computed(() => props.images.map(img => resolveFileUrl(img.imageUrl)))
 </script>
 
 <style scoped>

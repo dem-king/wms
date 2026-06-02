@@ -33,6 +33,12 @@ const staticRoutes: RouteRecordRaw[] = [
         meta: { title: '个人中心', hidden: true }
       },
       {
+        path: 'system/message',
+        name: 'SystemMessage',
+        component: () => import('@/views/system/message/index.vue'),
+        meta: { title: '消息中心', hidden: true }
+      },
+      {
         path: 'report/inbound',
         name: 'ReportInbound',
         component: () => import('@/views/report/inbound/index.vue'),

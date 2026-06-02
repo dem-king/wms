@@ -24,6 +24,10 @@ public class WmsApprovalOrder extends BaseEntity {
     @Schema(description = "业务类型(1-入库 2-出库 3-报废 4-调拨 5-归还)")
     private Integer bizType;
 
+    /** 审批配置ID */
+    @Schema(description = "审批配置ID")
+    private Long configId;
+
     /** 审批状态(0-待审批 1-审批中 2-已通过 3-已驳回 4-已撤回) */
     @Schema(description = "审批状态(0-待审批 1-审批中 2-已通过 3-已驳回 4-已撤回)")
     private Integer status;

@@ -14,6 +14,7 @@ import com.wms.business.mapper.WmsReturnDetailMapper;
 import com.wms.business.mapper.WmsReturnOrderMapper;
 import com.wms.business.service.ReturnService;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
@@ -206,7 +207,7 @@ public class ReturnServiceImpl implements ReturnService {
             updateDetails.add(updateDetail);
         }
         if (!updateDetails.isEmpty()) {
-            Db.updateBatchById(updateDetails);
+            LogicDeleteHelper.markDeletedEntities(wmsReturnDetailMapper, WmsReturnDetail.class, updateDetails);
         }
 
         // 保存新明细(含异常登记信息)
@@ -242,11 +243,8 @@ public class ReturnServiceImpl implements ReturnService {
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的归还单可以删除");
         }
-        // 逻辑删除主表
-        WmsReturnOrder updateEntity = new WmsReturnOrder();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        wmsReturnOrderMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsReturnOrderMapper, WmsReturnOrder.class, id);
 
         // 逻辑删除明细
         List<WmsReturnDetail> details = wmsReturnDetailMapper.selectList(
@@ -260,7 +258,7 @@ public class ReturnServiceImpl implements ReturnService {
             updateDetailList.add(updateDetail);
         }
         if (!updateDetailList.isEmpty()) {
-            Db.updateBatchById(updateDetailList);
+            LogicDeleteHelper.markDeletedEntities(wmsReturnDetailMapper, WmsReturnDetail.class, updateDetailList);
         }
     }
 

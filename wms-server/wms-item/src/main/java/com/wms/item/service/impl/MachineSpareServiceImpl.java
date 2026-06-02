@@ -3,6 +3,7 @@ package com.wms.item.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -163,11 +164,8 @@ public class MachineSpareServiceImpl implements MachineSpareService {
         if (entity.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("机床备件关联已删除");
         }
-        // 逻辑删除
-        WmsMachineSpare updateEntity = new WmsMachineSpare();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        wmsMachineSpareMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsMachineSpareMapper, WmsMachineSpare.class, id);
     }
 
     /**

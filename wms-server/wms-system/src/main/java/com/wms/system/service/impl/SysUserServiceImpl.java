@@ -8,6 +8,7 @@ import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.event.PermissionCacheEvictEvent;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.system.domain.dto.SysUserDto;
 import com.wms.system.domain.entity.SysRole;
 import com.wms.system.domain.entity.SysUser;
@@ -19,7 +20,7 @@ import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.beans.factory.annotation.Value;
+import com.wms.system.manager.SysConfigManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,10 +44,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
-
-    /** 默认重置密码，从配置文件读取 */
-    @Value("${wms.default-password}")
-    private String defaultPassword;
+    private final SysConfigManager configManager;
 
     /**
      * 根据用户名查询用户实体(含密码哈希)
@@ -190,6 +188,8 @@ public class SysUserServiceImpl implements SysUserService {
         copyDtoToEntity(dto, user);
         // 密码使用BCrypt加密存储
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        // 从数据库配置读取默认密码，支持动态修改
+        String defaultPassword = configManager.getValue("wms.security.default-password", "Wms@2024");
         String password = dto.getPassword() != null ? dto.getPassword() : defaultPassword;
         user.setPassword(encoder.encode(password));
         // 新增用户默认启用
@@ -251,12 +251,8 @@ public class SysUserServiceImpl implements SysUserService {
         if (user.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("用户已删除");
         }
-        // 逻辑删除用户
-        SysUser updateUser = new SysUser();
-        updateUser.setId(id);
-        updateUser.setDelFlag(DelFlagConstants.DELETED);
-  
-        sysUserMapper.updateById(updateUser);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(sysUserMapper, SysUser.class, id);
     }
 
     /**
@@ -276,6 +272,8 @@ public class SysUserServiceImpl implements SysUserService {
         }
         // 使用BCrypt加密默认密码
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        // 从数据库配置读取默认密码，支持动态修改
+        String defaultPassword = configManager.getValue("wms.security.default-password", "Wms@2024");
         SysUser updateUser = new SysUser();
         updateUser.setId(id);
         updateUser.setPassword(encoder.encode(defaultPassword));
@@ -340,13 +338,17 @@ public class SysUserServiceImpl implements SysUserService {
                 .collect(Collectors.toSet());
 
         // 仅逻辑删除被移除的角色，避免“删后重插同一角色”触发唯一索引冲突。
+        List<SysUserRole> removedRoles = new java.util.ArrayList<>();
         for (SysUserRole oldRole : oldUserRoles) {
             if (!targetRoleIds.contains(oldRole.getRoleId())) {
                 SysUserRole updateRole = new SysUserRole();
                 updateRole.setId(oldRole.getId());
                 updateRole.setDelFlag(DelFlagConstants.DELETED);
-                sysUserRoleMapper.updateById(updateRole);
+                removedRoles.add(updateRole);
             }
+        }
+        if (!removedRoles.isEmpty()) {
+            LogicDeleteHelper.markDeletedEntities(sysUserRoleMapper, SysUserRole.class, removedRoles);
         }
 
         for (Long roleId : targetRoleIds) {

@@ -12,6 +12,7 @@ import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.service.OutboundService;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
@@ -238,7 +239,7 @@ public class OutboundServiceImpl implements OutboundService {
             updateDetails.add(updateDetail);
         }
         if (!updateDetails.isEmpty()) {
-            Db.updateBatchById(updateDetails);
+            LogicDeleteHelper.markDeletedEntities(wmsOutboundDetailMapper, WmsOutboundDetail.class, updateDetails);
         }
         List<WmsOutboundDetail> newDetailList = new ArrayList<>();
         for (OutboundOrderDto.OutboundDetailDto detailDto : dto.getDetails()) {
@@ -305,12 +306,8 @@ public class OutboundServiceImpl implements OutboundService {
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的出库单可以删除");
         }
-        // 逻辑删除出库单
-        WmsOutboundOrder updateEntity = new WmsOutboundOrder();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsOutboundOrderMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsOutboundOrderMapper, WmsOutboundOrder.class, id);
         // 逻辑删除出库明细
         List<WmsOutboundDetail> details = wmsOutboundDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsOutboundDetail>()
@@ -324,7 +321,7 @@ public class OutboundServiceImpl implements OutboundService {
             updateDetailList.add(updateDetail);
         }
         if (!updateDetailList.isEmpty()) {
-            Db.updateBatchById(updateDetailList);
+            LogicDeleteHelper.markDeletedEntities(wmsOutboundDetailMapper, WmsOutboundDetail.class, updateDetailList);
         }
     }
 

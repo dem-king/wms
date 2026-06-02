@@ -238,6 +238,29 @@ CREATE TABLE `sys_config` (
     UNIQUE KEY `uk_config_key` (`config_key`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
+-- 10.1 站内信消息表
+DROP TABLE IF EXISTS `sys_message`;
+CREATE TABLE `sys_message` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `receiver_id`     BIGINT       NOT NULL COMMENT '接收人ID',
+    `title`           VARCHAR(128) NOT NULL COMMENT '消息标题',
+    `content`         VARCHAR(512) NOT NULL COMMENT '消息内容',
+    `message_type`    VARCHAR(64)  NOT NULL COMMENT '消息类型',
+    `message_level`   VARCHAR(32)  NOT NULL DEFAULT 'INFO' COMMENT '消息级别(INFO-普通 WARNING-警告)',
+    `business_key`    VARCHAR(128) NOT NULL COMMENT '业务去重键',
+    `target_url`      VARCHAR(256) DEFAULT '' COMMENT '目标跳转地址',
+    `read_status`     TINYINT      NOT NULL DEFAULT 0 COMMENT '读取状态(0-未读 1-已读)',
+    `read_time`       DATETIME     DEFAULT NULL COMMENT '读取时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_receiver_type_business` (`receiver_id`, `message_type`, `business_key`),
+    KEY `idx_receiver_read_time` (`receiver_id`, `read_status`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站内信消息表';
+
 -- 二、库房结构模块
 
 -- 11. 库房表
@@ -823,6 +846,7 @@ CREATE TABLE `wms_approval_order` (
     `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
     `biz_id`          BIGINT       NOT NULL COMMENT '业务单据ID',
     `biz_type`        TINYINT      NOT NULL COMMENT '业务类型(1-入库 2-出库 3-报废 4-调拨 5-归还)',
+    `config_id`       BIGINT       DEFAULT NULL COMMENT '审批配置ID',
     `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '审批状态(0-待审批 1-审批中 2-已通过 3-已驳回 4-已撤回)',
     `applicant_id`    BIGINT       DEFAULT NULL COMMENT '申请人ID',
     `current_step`    INT          DEFAULT 1 COMMENT '当前审批节点(从1开始)',
@@ -834,7 +858,8 @@ CREATE TABLE `wms_approval_order` (
     `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`),
-    KEY `idx_biz` (`biz_id`, `biz_type`)
+    KEY `idx_biz` (`biz_id`, `biz_type`),
+    KEY `idx_config_step` (`config_id`, `current_step`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批单表';
 
 -- 审批记录表
@@ -1182,7 +1207,8 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (104, '权限管理', 'system:permission', 100, 2, 'permission', 'system/permission', NULL, 'Lock', 0, 0, 1, 1, 4, NULL, 0),
 (105, '部门管理', 'system:dept', 100, 2, 'dept', 'system/dept', NULL, 'OfficeBuilding', 0, 0, 1, 1, 5, NULL, 0),
 (106, '系统配置', 'system:config', 100, 2, 'config', 'system/config', NULL, 'Operation', 0, 0, 1, 1, 6, NULL, 0),
-(107, '供应商管理', 'system:supplier', 100, 2, 'supplier', 'system/supplier', NULL, 'Van', 0, 0, 1, 1, 7, NULL, 0);
+(107, '供应商管理', 'system:supplier', 100, 2, 'supplier', 'system/supplier', NULL, 'Van', 0, 0, 1, 1, 7, NULL, 0),
+(108, '消息中心', 'system:message', 100, 2, 'message', 'system/message', NULL, 'Bell', 0, 0, 1, 1, 8, NULL, 0);
 
 -- 用户管理按钮权限
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -1218,7 +1244,9 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (1071, '供应商新增', 'system:supplier:add', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:supplier:add', 0),
 (1072, '供应商编辑', 'system:supplier:edit', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:supplier:edit', 0),
 (1073, '供应商删除', 'system:supplier:delete', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:supplier:delete', 0),
-(1074, '供应商查询', 'system:supplier:list', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:supplier:list', 0);
+(1074, '供应商查询', 'system:supplier:list', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:supplier:list', 0),
+(1081, '消息查询', 'system:message:list', 108, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:message:list', 0),
+(1082, '消息已读', 'system:message:read', 108, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:message:read', 0);
 
 -- 库房结构目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -1332,7 +1360,9 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
 (26, '供应商删除', 'system:supplier:delete', 2, 0, 1073, 1, 0),
 (27, '供应商查询', 'system:supplier:list', 2, 0, 1074, 1, 0),
 (28, '操作日志查询', 'system:oper-log:list', 2, 0, 8011, 1, 0),
-(29, '登录日志查询', 'system:login-log:list', 2, 0, 8021, 1, 0);
+(29, '登录日志查询', 'system:login-log:list', 2, 0, 8021, 1, 0),
+(30, '消息查询', 'system:message:list', 2, 0, 1081, 1, 0),
+(31, '消息已读', 'system:message:read', 2, 0, 1082, 1, 0);
 
 
 -- ==================== 四、角色-权限关联（管理员角色ID=1，拥有全部权限） ====================

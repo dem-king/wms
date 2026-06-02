@@ -25,7 +25,8 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (104, '权限管理', 'system:permission', 100, 2, 'permission', 'system/permission', NULL, 'Lock', 0, 0, 1, 1, 4, NULL, 0),
 (105, '部门管理', 'system:dept', 100, 2, 'dept', 'system/dept', NULL, 'OfficeBuilding', 0, 0, 1, 1, 5, NULL, 0),
 (106, '系统配置', 'system:config', 100, 2, 'config', 'system/config', NULL, 'Operation', 0, 0, 1, 1, 6, NULL, 0),
-(107, '供应商管理', 'system:supplier', 100, 2, 'supplier', 'system/supplier', NULL, 'Van', 0, 0, 1, 1, 7, NULL, 0);
+(107, '供应商管理', 'system:supplier', 100, 2, 'supplier', 'system/supplier', NULL, 'Van', 0, 0, 1, 1, 7, NULL, 0),
+(108, '消息中心', 'system:message', 100, 2, 'message', 'system/message', NULL, 'Bell', 0, 0, 1, 1, 8, NULL, 0);
 
 -- 用户管理按钮权限
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -61,7 +62,9 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (1071, '供应商新增', 'system:supplier:add', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:supplier:add', 0),
 (1072, '供应商编辑', 'system:supplier:edit', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:supplier:edit', 0),
 (1073, '供应商删除', 'system:supplier:delete', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 3, 'system:supplier:delete', 0),
-(1074, '供应商查询', 'system:supplier:list', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:supplier:list', 0);
+(1074, '供应商查询', 'system:supplier:list', 107, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 4, 'system:supplier:list', 0),
+(1081, '消息查询', 'system:message:list', 108, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 1, 'system:message:list', 0),
+(1082, '消息已读', 'system:message:read', 108, 3, NULL, NULL, NULL, NULL, 0, 0, 1, 1, 2, 'system:message:read', 0);
 
 -- 库房结构目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -175,7 +178,9 @@ INSERT INTO `sys_permission` (`id`, `perm_name`, `perm_code`, `perm_type`, `pare
 (26, '供应商删除', 'system:supplier:delete', 2, 0, 1073, 1, 0),
 (27, '供应商查询', 'system:supplier:list', 2, 0, 1074, 1, 0),
 (28, '操作日志查询', 'system:oper-log:list', 2, 0, 8011, 1, 0),
-(29, '登录日志查询', 'system:login-log:list', 2, 0, 8021, 1, 0);
+(29, '登录日志查询', 'system:login-log:list', 2, 0, 8021, 1, 0),
+(30, '消息查询', 'system:message:list', 2, 0, 1081, 1, 0),
+(31, '消息已读', 'system:message:read', 2, 0, 1082, 1, 0);
 
 
 -- ==================== 四、角色-权限关联（管理员角色ID=1，拥有全部权限） ====================

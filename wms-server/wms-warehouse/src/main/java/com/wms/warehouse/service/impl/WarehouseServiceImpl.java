@@ -7,6 +7,7 @@ import com.wms.common.domain.PageResult;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.exception.BizException;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.WarehouseDto;
@@ -147,12 +148,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房已删除");
         }
-        // 逻辑删除库房
-        WmsWarehouse updateEntity = new WmsWarehouse();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsWarehouseMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsWarehouseMapper, WmsWarehouse.class, id);
     }
 
     /**

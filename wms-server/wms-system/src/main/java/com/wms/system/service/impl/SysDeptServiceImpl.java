@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.system.domain.dto.SysDeptDto;
 import com.wms.system.domain.entity.SysDepartment;
 import com.wms.system.domain.vo.SysDeptVo;
@@ -116,11 +117,7 @@ public class SysDeptServiceImpl implements SysDeptService {
             throw new BizException("存在子部门，无法删除");
         }
         // 逻辑删除部门
-        SysDepartment updateDept = new SysDepartment();
-        updateDept.setId(id);
-        updateDept.setDelFlag(DelFlagConstants.DELETED);
-    
-        sysDepartmentMapper.updateById(updateDept);
+        LogicDeleteHelper.markDeleted(sysDepartmentMapper, SysDepartment.class, id);
     }
 
     /**

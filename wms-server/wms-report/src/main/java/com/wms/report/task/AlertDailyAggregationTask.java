@@ -2,6 +2,7 @@ package com.wms.report.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.report.domain.constant.ReportConstants;
 import com.wms.report.domain.entity.MonitorStockAlert;
 import com.wms.report.domain.entity.ReportAlertDaily;
@@ -97,9 +98,8 @@ public class AlertDailyAggregationTask {
             List<ReportAlertDaily> oldRecords = reportAlertDailyMapper.selectList(
                     new LambdaQueryWrapper<ReportAlertDaily>()
                             .eq(ReportAlertDaily::getStatDate, statDate));
-            for (ReportAlertDaily old : oldRecords) {
-                old.setDelFlag(DelFlagConstants.DELETED);
-                reportAlertDailyMapper.updateById(old);
+            if (!oldRecords.isEmpty()) {
+                LogicDeleteHelper.markDeletedEntities(reportAlertDailyMapper, ReportAlertDaily.class, oldRecords);
             }
 
             for (ReportAlertDaily agg : aggMap.values()) {

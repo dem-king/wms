@@ -3,16 +3,20 @@ package com.wms.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.common.event.ConfigChangeEvent;
 import com.wms.common.exception.BizException;
 import com.wms.system.converter.SysConfigConverter;
+import com.wms.system.manager.SysConfigManager;
 import com.wms.system.domain.dto.SysConfigDto;
 import com.wms.system.domain.entity.SysConfig;
 import com.wms.system.domain.vo.SysConfigVo;
 import com.wms.system.mapper.SysConfigMapper;
 import com.wms.system.service.SysConfigService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,8 @@ public class SysConfigServiceImpl implements SysConfigService {
 
     private final SysConfigMapper sysConfigMapper;
     private final SysConfigConverter sysConfigConverter;
+    private final SysConfigManager sysConfigManager;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 分页查询配置列表
@@ -105,6 +111,8 @@ public class SysConfigServiceImpl implements SysConfigService {
         entity.setConfigGroup(dto.getConfigGroup() != null ? dto.getConfigGroup() : "default");
         entity.setConfigDesc(dto.getConfigDesc());
         sysConfigMapper.insert(entity);
+        // 新增配置后清除可能存在的旧缓存
+        sysConfigManager.evictCache(entity.getConfigKey());
         return sysConfigConverter.toVo(entity);
     }
 
@@ -127,6 +135,8 @@ public class SysConfigServiceImpl implements SysConfigService {
             throw new BizException("配置项已删除");
         }
         // 编辑时不修改configKey
+        // 记录修改前的值，用于配置变更事件
+        String oldConfigValue = existing.getConfigValue();
         if (dto.getConfigValue() != null) {
             existing.setConfigValue(dto.getConfigValue());
         }
@@ -141,6 +151,11 @@ public class SysConfigServiceImpl implements SysConfigService {
         }
         existing.setId(id);
         sysConfigMapper.updateById(existing);
+        // 清除Redis缓存，保证下次读取获取最新值
+        sysConfigManager.evictCache(existing.getConfigKey());
+        // 发布配置变更事件，通知各模块刷新本地属性
+        applicationEventPublisher.publishEvent(
+                new ConfigChangeEvent(this, existing.getConfigKey(), oldConfigValue, existing.getConfigValue()));
         return sysConfigConverter.toVo(existing);
     }
 
@@ -159,10 +174,9 @@ public class SysConfigServiceImpl implements SysConfigService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("配置项已删除");
         }
-        // 逻辑删除
-        SysConfig updateEntity = new SysConfig();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        sysConfigMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(sysConfigMapper, SysConfig.class, id);
+        // 删除配置后清除缓存
+        sysConfigManager.evictCache(existing.getConfigKey());
     }
 }

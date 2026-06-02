@@ -6,6 +6,7 @@ import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DataScopeConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.event.PermissionCacheEvictEvent;
 import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.dto.SysRoleDto;
@@ -197,12 +198,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("角色已删除");
         }
-        // 逻辑删除角色
-        SysRole updateRole = new SysRole();
-        updateRole.setId(id);
-        updateRole.setDelFlag(DelFlagConstants.DELETED);
-
-        sysRoleMapper.updateById(updateRole);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(sysRoleMapper, SysRole.class, id);
         // 清理角色关联的用户角色关联
         List<SysUserRole> userRoles = sysUserRoleMapper.selectList(
                 new LambdaQueryWrapper<SysUserRole>()
@@ -221,7 +218,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             updateUserRoleList.add(updateUserRole);
         }
         if (!updateUserRoleList.isEmpty()) {
-            Db.updateBatchById(updateUserRoleList);
+            LogicDeleteHelper.markDeletedEntities(sysUserRoleMapper, SysUserRole.class, updateUserRoleList);
         }
         // 清理角色关联的角色菜单关联
         List<SysRoleMenu> roleMenus = sysRoleMenuMapper.selectList(
@@ -237,7 +234,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             updateMenuList.add(updateMenu);
         }
         if (!updateMenuList.isEmpty()) {
-            Db.updateBatchById(updateMenuList);
+            LogicDeleteHelper.markDeletedEntities(sysRoleMenuMapper, SysRoleMenu.class, updateMenuList);
         }
         // 清理角色关联的角色权限关联
         List<SysRolePermission> rolePerms = sysRolePermissionMapper.selectList(
@@ -253,7 +250,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             updatePermList.add(updatePerm);
         }
         if (!updatePermList.isEmpty()) {
-            Db.updateBatchById(updatePermList);
+            LogicDeleteHelper.markDeletedEntities(sysRolePermissionMapper, SysRolePermission.class, updatePermList);
         }
         publishPermissionCacheEvictEvent(affectedUserIds);
     }

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 import { ArrowDown, Lock, SwitchButton, User } from '@element-plus/icons-vue'
+import { resolveFileUrl } from '@/utils/file-url'
 
 defineOptions({ name: 'UserDropdown' })
 
@@ -24,12 +25,13 @@ const emit = defineEmits<{
 }>()
 
 const initials = computed(() => props.name.trim().slice(0, 1).toUpperCase() || 'U')
+const avatarUrl = computed(() => resolveFileUrl(props.avatar))
 </script>
 
 <template>
   <el-dropdown trigger="click" popper-class="user-dropdown-popper">
     <button class="user-dropdown-trigger" type="button">
-      <el-avatar v-if="avatar" :size="34" :src="avatar" />
+      <el-avatar v-if="avatarUrl" :size="34" :src="avatarUrl" />
       <div v-else class="user-avatar-fallback">{{ initials }}</div>
       <div class="user-dropdown-meta">
         <span class="user-name">{{ name }}</span>
@@ -41,7 +43,7 @@ const initials = computed(() => props.name.trim().slice(0, 1).toUpperCase() || '
     <template #dropdown>
       <el-dropdown-menu class="user-dropdown-menu">
         <div class="user-card">
-          <el-avatar v-if="avatar" :size="42" :src="avatar" />
+          <el-avatar v-if="avatarUrl" :size="42" :src="avatarUrl" />
           <div v-else class="user-avatar-fallback large">{{ initials }}</div>
           <div class="user-card-text">
             <div class="user-card-name">{{ name }}</div>

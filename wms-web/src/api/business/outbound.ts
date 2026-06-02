@@ -9,6 +9,7 @@ import type {
   OutboundType,
 } from '@/types/business'
 import type { PageResult, PageParams } from '@/types/system'
+import { normalizeOrderStatus, orderStatusToCode } from '@/constants/order-status'
 
 interface OutboundOrderApiDetailVo {
   id: EntityId
@@ -46,22 +47,6 @@ const CODE_TO_OUTBOUND_TYPE: Record<number, OutboundType> = {
   3: 'SCRAP',
 }
 
-const ORDER_STATUS_TO_CODE: Record<OrderStatus, number> = {
-  DRAFT: 0,
-  PENDING_REVIEW: 1,
-  APPROVED: 2,
-  COMPLETED: 3,
-  REJECTED: 4,
-}
-
-const CODE_TO_ORDER_STATUS: Record<number, OrderStatus> = {
-  0: 'DRAFT',
-  1: 'PENDING_REVIEW',
-  2: 'APPROVED',
-  3: 'COMPLETED',
-  4: 'REJECTED',
-}
-
 function normalizeReturnDate(value?: string): string {
   if (!value) {
     return ''
@@ -84,7 +69,7 @@ function normalizeOutboundOrder(data?: Partial<OutboundOrderApiVo>): OutboundOrd
     recipient: data?.receiver || '',
     purpose: data?.purpose || '',
     returnDate: normalizeReturnDate(data?.expectedReturnDate),
-    status: CODE_TO_ORDER_STATUS[Number(data?.status)] || 'DRAFT',
+    status: normalizeOrderStatus(data?.status),
     totalAmount: 0,
     remark: data?.remark || '',
     details: (data?.details || []).map((detail) => ({
@@ -123,7 +108,7 @@ export function getOutboundOrders(params?: PageParams & { orderNo?: string; stat
   const query = params
     ? {
         ...params,
-        status: params.status ? ORDER_STATUS_TO_CODE[params.status as OrderStatus] : undefined,
+        status: orderStatusToCode(params.status),
       }
     : undefined
 

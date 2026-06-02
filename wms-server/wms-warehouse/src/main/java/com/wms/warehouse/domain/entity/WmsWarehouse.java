@@ -33,6 +33,10 @@ public class WmsWarehouse extends BaseEntity {
     @Schema(description = "负责人")
     private String manager;
 
+    /** 管理员用户ID */
+    @Schema(description = "管理员用户ID")
+    private Long managerId;
+
     /** 联系电话 */
     @Schema(description = "联系电话")
     private String phone;

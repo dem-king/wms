@@ -38,7 +38,7 @@
       <el-table-column prop="returnDate" label="归还日期" min-width="120" />
       <el-table-column prop="status" label="状态" min-width="100">
         <template #default="{ row }">
-          <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(row.status)">{{ orderStatusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="totalAmount" label="金额" min-width="100">
@@ -51,9 +51,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:outbound:edit', visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
-              { label: '提交', type: 'warning', permission: 'business:outbound:submit', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
-              { label: '删除', type: 'danger', icon: Delete, permission: 'business:outbound:delete', visible: row.status === 'DRAFT', confirmText: '确定删除该出库单吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:outbound:edit', visible: isDraftOrderStatus(row.status), onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', permission: 'business:outbound:submit', visible: isDraftOrderStatus(row.status), onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'business:outbound:delete', visible: isDraftOrderStatus(row.status), confirmText: '确定删除该出库单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -85,7 +85,7 @@
         <el-descriptions-item label="用途">{{ viewRow.purpose }}</el-descriptions-item>
         <el-descriptions-item label="归还日期">{{ viewRow.returnDate }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="statusTagType(viewRow.status)">{{ statusLabel(viewRow.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(viewRow.status)">{{ orderStatusLabel(viewRow.status) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="金额">{{ viewRow.totalAmount?.toFixed(2) }}</el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">{{ viewRow.remark }}</el-descriptions-item>
@@ -110,17 +110,15 @@ import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-v
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { useUserStore } from '@/store/modules/user'
 import { getOutboundOrders, getOutboundOrder, submitOutboundOrder, deleteOutboundOrder } from '@/api/business/outbound'
-import type { OutboundOrderVo, OrderStatus } from '@/types/business'
+import type { OutboundOrderVo } from '@/types/business'
 import OutboundForm from './components/OutboundForm.vue'
 import { normalizePageTotal } from '@/utils/pagination'
-
-const statusOptions = [
-  { label: '草稿', value: 'DRAFT' },
-  { label: '待审核', value: 'PENDING_REVIEW' },
-  { label: '已审核', value: 'APPROVED' },
-  { label: '已完成', value: 'COMPLETED' },
-  { label: '已驳回', value: 'REJECTED' },
-]
+import {
+  isDraftOrderStatus,
+  orderStatusLabel,
+  orderStatusOptions as statusOptions,
+  orderStatusTagType,
+} from '@/constants/order-status'
 
 const outboundTypeMap: Record<string, string> = {
   BORROW: '领用出库',
@@ -149,18 +147,6 @@ const isEdit = ref(false)
 const currentRow = ref<OutboundOrderVo | null>(null)
 const detailVisible = ref(false)
 const viewRow = ref<OutboundOrderVo | null>(null)
-
-type TagType = 'info' | 'warning' | 'success' | 'danger'
-
-function statusTagType(status: OrderStatus): TagType {
-  const map: Record<OrderStatus, TagType> = { DRAFT: 'info', PENDING_REVIEW: 'warning', APPROVED: 'success', COMPLETED: 'success', REJECTED: 'danger' }
-  return map[status]
-}
-
-function statusLabel(status: OrderStatus) {
-  const map: Record<string, string> = { DRAFT: '草稿', PENDING_REVIEW: '待审核', APPROVED: '已审核', COMPLETED: '已完成', REJECTED: '已驳回' }
-  return map[status] || status
-}
 
 function handleDateChange(val: string[]) {
   queryParams.startTime = val?.[0]

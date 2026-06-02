@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -181,12 +182,8 @@ public class AreaServiceImpl implements AreaService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("区域已删除");
         }
-        // 逻辑删除区域
-        WmsArea updateEntity = new WmsArea();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsAreaMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsAreaMapper, WmsArea.class, id);
     }
 
     /**

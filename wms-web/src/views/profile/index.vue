@@ -6,7 +6,7 @@
         <div class="hero-bg"></div>
         <div class="hero-content">
           <div class="hero-identity">
-            <el-avatar v-if="profileUserInfo?.avatar" :size="80" :src="profileUserInfo.avatar" class="hero-avatar" />
+            <el-avatar v-if="profileAvatarUrl" :size="80" :src="profileAvatarUrl" class="hero-avatar" />
             <div v-else class="hero-avatar hero-avatar--text">{{ displayInitial }}</div>
             <div class="hero-meta">
               <div class="hero-title">账号概览</div>
@@ -108,7 +108,7 @@
         </template>
         <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-position="top" class="profile-edit-form">
           <div class="profile-avatar-editor">
-            <el-avatar v-if="previewAvatarUrl" :size="84" :src="previewAvatarUrl" class="avatar-preview" />
+            <el-avatar v-if="resolvedPreviewAvatarUrl" :size="84" :src="resolvedPreviewAvatarUrl" class="avatar-preview" />
             <div v-else class="hero-avatar hero-avatar--text avatar-preview">{{ displayInitial }}</div>
             <div class="profile-avatar-editor__actions">
               <input
@@ -163,6 +163,7 @@ import { getProfile, updateProfile } from '@/api/system/auth'
 import type { LastLoginInfoVO, ProfileResp, UpdateProfileReq, UserInfoVO } from '@/types/auth'
 import { useUserStore } from '@/store/modules/user'
 import { useFileUpload } from '@/hooks/useFileUpload'
+import { resolveFileUrl } from '@/utils/file-url'
 import ChangePasswordDialog from '@/views/system/password/ChangePasswordDialog.vue'
 import { 
   Check, 
@@ -225,6 +226,8 @@ const lastLoginInfo = computed<LastLoginInfoVO | null>(() => profile.value?.last
 
 const displayName = computed(() => profileUserInfo.value?.realName || profileUserInfo.value?.username || '用户')
 const displayInitial = computed(() => displayName.value.trim().slice(0, 1).toUpperCase() || 'U')
+const profileAvatarUrl = computed(() => resolveFileUrl(profileUserInfo.value?.avatar || ''))
+const resolvedPreviewAvatarUrl = computed(() => resolveFileUrl(previewAvatarUrl.value))
 const tokenStatusLabel = computed(() => (userStore.isLogin() ? '有效' : '失效'))
 const formattedLoginTime = computed(() => formatDateTime(lastLoginInfo.value?.loginTime || null))
 const lastLoginIpText = computed(() => lastLoginInfo.value?.loginIp || '暂无记录')

@@ -13,6 +13,7 @@ import com.wms.business.mapper.WmsScrapOrderMapper;
 import com.wms.business.service.ScrapService;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
@@ -225,7 +226,7 @@ public class ScrapServiceImpl implements ScrapService {
             updateDetails.add(updateDetail);
         }
         if (!updateDetails.isEmpty()) {
-            Db.updateBatchById(updateDetails);
+            LogicDeleteHelper.markDeletedEntities(wmsScrapDetailMapper, WmsScrapDetail.class, updateDetails);
         }
 
         // 保存新明细
@@ -275,11 +276,8 @@ public class ScrapServiceImpl implements ScrapService {
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的报废单可以删除");
         }
-        // 逻辑删除主表
-        WmsScrapOrder updateEntity = new WmsScrapOrder();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        wmsScrapOrderMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsScrapOrderMapper, WmsScrapOrder.class, id);
 
         // 逻辑删除明细
         List<WmsScrapDetail> details = wmsScrapDetailMapper.selectList(
@@ -293,7 +291,7 @@ public class ScrapServiceImpl implements ScrapService {
             updateDetailList.add(updateDetail);
         }
         if (!updateDetailList.isEmpty()) {
-            Db.updateBatchById(updateDetailList);
+            LogicDeleteHelper.markDeletedEntities(wmsScrapDetailMapper, WmsScrapDetail.class, updateDetailList);
         }
     }
 

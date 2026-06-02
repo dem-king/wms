@@ -222,6 +222,29 @@ CREATE TABLE `sys_config` (
     UNIQUE KEY `uk_config_key` (`config_key`, `del_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 
+-- 10.1 站内信消息表
+DROP TABLE IF EXISTS `sys_message`;
+CREATE TABLE `sys_message` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `receiver_id`     BIGINT       NOT NULL COMMENT '接收人ID',
+    `title`           VARCHAR(128) NOT NULL COMMENT '消息标题',
+    `content`         VARCHAR(512) NOT NULL COMMENT '消息内容',
+    `message_type`    VARCHAR(64)  NOT NULL COMMENT '消息类型',
+    `message_level`   VARCHAR(32)  NOT NULL DEFAULT 'INFO' COMMENT '消息级别(INFO-普通 WARNING-警告)',
+    `business_key`    VARCHAR(128) NOT NULL COMMENT '业务去重键',
+    `target_url`      VARCHAR(256) DEFAULT '' COMMENT '目标跳转地址',
+    `read_status`     TINYINT      NOT NULL DEFAULT 0 COMMENT '读取状态(0-未读 1-已读)',
+    `read_time`       DATETIME     DEFAULT NULL COMMENT '读取时间',
+    `del_flag`        TINYINT      DEFAULT 0 COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT '' COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_receiver_type_business` (`receiver_id`, `message_type`, `business_key`),
+    KEY `idx_receiver_read_time` (`receiver_id`, `read_status`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站内信消息表';
+
 -- ============================================================
 -- 二、库房结构模块
 -- ============================================================

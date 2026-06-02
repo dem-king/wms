@@ -5,7 +5,7 @@ import type { EntityId } from './common'
 
 export type { EntityId }
 
-export type OrderStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'COMPLETED' | 'REJECTED'
+export type OrderStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'UNKNOWN'
 
 /** 入库类型枚举 */
 export type InboundType = 'PURCHASE' | 'RETURN' | 'TRANSFER'
@@ -547,6 +547,8 @@ export interface ApprovalOrderVo {
   approvalNo: string
   /** 业务类型 */
   bizType: BizType
+  /** 审批配置ID */
+  configId?: number
   /** 业务单据ID */
   bizId: number
   /** 业务单号 */

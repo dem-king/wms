@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
@@ -342,12 +343,8 @@ public class ItemServiceImpl implements ItemService {
         if (existing.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("物品已删除");
         }
-        // 逻辑删除物品
-        WmsItem updateEntity = new WmsItem();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsItemMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsItemMapper, WmsItem.class, id);
         // 逻辑删除物品标签关联
         List<WmsItemTag> itemTags = wmsItemTagMapper.selectList(
                 new LambdaQueryWrapper<WmsItemTag>()
@@ -362,7 +359,7 @@ public class ItemServiceImpl implements ItemService {
             updateItemTagList.add(updateItemTag);
         }
         if (!updateItemTagList.isEmpty()) {
-            Db.updateBatchById(updateItemTagList);
+            LogicDeleteHelper.markDeletedEntities(wmsItemTagMapper, WmsItemTag.class, updateItemTagList);
         }
         // 逻辑删除物品图片
         List<WmsItemImage> images = wmsItemImageMapper.selectList(
@@ -378,7 +375,7 @@ public class ItemServiceImpl implements ItemService {
             updateImageList.add(updateImage);
         }
         if (!updateImageList.isEmpty()) {
-            Db.updateBatchById(updateImageList);
+            LogicDeleteHelper.markDeletedEntities(wmsItemImageMapper, WmsItemImage.class, updateImageList);
         }
         logicalDeleteItemBins(id);
     }
@@ -498,11 +495,8 @@ public class ItemServiceImpl implements ItemService {
         if (!image.getItemId().equals(itemId)) {
             throw new BizException("图片不属于该物品");
         }
-        WmsItemImage updateEntity = new WmsItemImage();
-        updateEntity.setId(imageId);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        
-        wmsItemImageMapper.updateById(updateEntity);
+        // delFlag 是 @TableLogic 字段，必须显式 SET 才能真正写入删除标记
+        LogicDeleteHelper.markDeleted(wmsItemImageMapper, WmsItemImage.class, imageId);
     }
 
     /**
@@ -610,7 +604,7 @@ public class ItemServiceImpl implements ItemService {
             updateTagList.add(updateTag);
         }
         if (!updateTagList.isEmpty()) {
-            Db.updateBatchById(updateTagList);
+            LogicDeleteHelper.markDeletedEntities(wmsItemTagMapper, WmsItemTag.class, updateTagList);
         }
         // 批量插入新的物品标签关联
         if (tagIds != null && !tagIds.isEmpty()) {
@@ -870,7 +864,7 @@ public class ItemServiceImpl implements ItemService {
             }
         }
         if (!deleteList.isEmpty()) {
-            Db.updateBatchById(deleteList);
+            LogicDeleteHelper.markDeletedEntities(wmsItemBinMapper, WmsItemBin.class, deleteList);
         }
         for (int index = 0; index < binIds.size(); index++) {
             Long binId = binIds.get(index);
@@ -908,7 +902,7 @@ public class ItemServiceImpl implements ItemService {
             updateList.add(update);
         }
         if (!updateList.isEmpty()) {
-            Db.updateBatchById(updateList);
+            LogicDeleteHelper.markDeletedEntities(wmsItemBinMapper, WmsItemBin.class, updateList);
         }
     }
 

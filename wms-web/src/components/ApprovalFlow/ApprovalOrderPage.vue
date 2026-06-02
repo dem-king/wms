@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Search, View } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
@@ -22,6 +22,7 @@ interface Props {
   mode: 'pending' | 'history'
   approvePermission?: string
   rejectPermission?: string
+  focusApprovalId?: number
 }
 
 const props = defineProps<Props>()
@@ -100,15 +101,19 @@ function handleReset() {
   loadTable()
 }
 
-async function handleView(row: ApprovalOrderVo) {
+async function handleViewById(approvalId: number) {
   detailLoading.value = true
   detailVisible.value = true
   try {
-    const res = await getApprovalOrder(row.id)
+    const res = await getApprovalOrder(approvalId)
     viewRow.value = res.data
   } finally {
     detailLoading.value = false
   }
+}
+
+async function handleView(row: ApprovalOrderVo) {
+  await handleViewById(row.id)
 }
 
 function openAction(row: ApprovalOrderVo, type: 'approve' | 'reject') {
@@ -160,6 +165,16 @@ function handleDetailClose() {
 onMounted(() => {
   loadTable()
 })
+
+watch(
+  () => props.focusApprovalId,
+  (approvalId) => {
+    if (props.mode === 'pending' && approvalId) {
+      handleViewById(approvalId)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

@@ -3,6 +3,7 @@ package com.wms.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.util.SecurityUtil;
 import com.wms.system.domain.dto.SysMenuDto;
 import com.wms.system.domain.constant.SysMenuConstants;
@@ -125,11 +126,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             throw new BizException("存在子菜单，无法删除");
         }
         // 逻辑删除菜单
-        SysMenu menu = new SysMenu();
-        menu.setId(id);
-        menu.setDelFlag(DelFlagConstants.DELETED);
-    
-        sysMenuMapper.updateById(menu);
+        LogicDeleteHelper.markDeleted(sysMenuMapper, SysMenu.class, id);
     }
 
     /**

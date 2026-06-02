@@ -28,7 +28,7 @@
       <el-table-column prop="toWarehouseName" label="调入库房" min-width="120" />
       <el-table-column prop="status" label="状态" min-width="100">
         <template #default="{ row }">
-          <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(row.status)">{{ orderStatusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160" />
@@ -37,9 +37,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:transfer:edit', visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
-              { label: '提交', type: 'warning', permission: 'business:transfer:submit', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
-              { label: '删除', type: 'danger', icon: Delete, permission: 'business:transfer:delete', visible: row.status === 'DRAFT', confirmText: '确定删除该调拨单吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:transfer:edit', visible: isDraftOrderStatus(row.status), onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', permission: 'business:transfer:submit', visible: isDraftOrderStatus(row.status), onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'business:transfer:delete', visible: isDraftOrderStatus(row.status), confirmText: '确定删除该调拨单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -68,7 +68,7 @@
         <el-descriptions-item label="调出库房">{{ viewRow.fromWarehouseName }}</el-descriptions-item>
         <el-descriptions-item label="调入库房">{{ viewRow.toWarehouseName }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="statusTagType(viewRow.status)">{{ statusLabel(viewRow.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(viewRow.status)">{{ orderStatusLabel(viewRow.status) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">{{ viewRow.remark }}</el-descriptions-item>
       </el-descriptions>
@@ -88,17 +88,15 @@ import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-v
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { useUserStore } from '@/store/modules/user'
 import { getTransferOrders, getTransferOrder, submitTransferOrder, deleteTransferOrder } from '@/api/business/transfer'
-import type { TransferOrderVo, OrderStatus } from '@/types/business'
+import type { TransferOrderVo } from '@/types/business'
 import TransferForm from './components/TransferForm.vue'
 import { normalizePageTotal } from '@/utils/pagination'
-
-const statusOptions = [
-  { label: '草稿', value: 'DRAFT' },
-  { label: '待审核', value: 'PENDING_REVIEW' },
-  { label: '已审核', value: 'APPROVED' },
-  { label: '已完成', value: 'COMPLETED' },
-  { label: '已驳回', value: 'REJECTED' },
-]
+import {
+  isDraftOrderStatus,
+  orderStatusLabel,
+  orderStatusOptions as statusOptions,
+  orderStatusTagType,
+} from '@/constants/order-status'
 
 const userStore = useUserStore()
 
@@ -118,18 +116,6 @@ const isEdit = ref(false)
 const currentRow = ref<TransferOrderVo | null>(null)
 const detailVisible = ref(false)
 const viewRow = ref<TransferOrderVo | null>(null)
-
-type TagType = 'info' | 'warning' | 'success' | 'danger'
-
-function statusTagType(status: OrderStatus): TagType {
-  const map: Record<OrderStatus, TagType> = { DRAFT: 'info', PENDING_REVIEW: 'warning', APPROVED: 'success', COMPLETED: 'success', REJECTED: 'danger' }
-  return map[status]
-}
-
-function statusLabel(status: OrderStatus) {
-  const map: Record<string, string> = { DRAFT: '草稿', PENDING_REVIEW: '待审核', APPROVED: '已审核', COMPLETED: '已完成', REJECTED: '已驳回' }
-  return map[status] || status
-}
 
 async function handleQuery() {
   loading.value = true

@@ -13,6 +13,7 @@ import com.wms.business.mapper.WmsInboundDetailMapper;
 import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.service.InboundService;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.enums.BizTypeEnum;
@@ -254,7 +255,7 @@ public class InboundServiceImpl implements InboundService {
             updateDetails.add(updateDetail);
         }
         if (!updateDetails.isEmpty()) {
-            Db.updateBatchById(updateDetails);
+            LogicDeleteHelper.markDeletedEntities(wmsInboundDetailMapper, WmsInboundDetail.class, updateDetails);
         }
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<WmsInboundDetail> newDetailList = new ArrayList<>();
@@ -331,10 +332,7 @@ public class InboundServiceImpl implements InboundService {
         if (order.getStatus() != OrderStatusEnum.DRAFT.getCode()) {
             throw new BizException("仅草稿状态的入库单可以删除");
         }
-        WmsInboundOrder updateEntity = new WmsInboundOrder();
-        updateEntity.setId(id);
-        updateEntity.setDelFlag(DelFlagConstants.DELETED);
-        wmsInboundOrderMapper.updateById(updateEntity);
+        LogicDeleteHelper.markDeleted(wmsInboundOrderMapper, WmsInboundOrder.class, id);
 
         List<WmsInboundDetail> details = wmsInboundDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsInboundDetail>()
@@ -347,7 +345,7 @@ public class InboundServiceImpl implements InboundService {
             updateDetailList.add(updateDetail);
         }
         if (!updateDetailList.isEmpty()) {
-            Db.updateBatchById(updateDetailList);
+            LogicDeleteHelper.markDeletedEntities(wmsInboundDetailMapper, WmsInboundDetail.class, updateDetailList);
         }
     }
 

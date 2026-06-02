@@ -28,7 +28,7 @@
       <el-table-column prop="receiver" label="归还人" min-width="100" />
       <el-table-column prop="status" label="状态" min-width="100">
         <template #default="{ row }">
-          <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(row.status)">{{ orderStatusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160" />
@@ -37,9 +37,9 @@
           <TableActionGroup
             :actions="[
               { label: '查看', type: 'primary', icon: View, onClick: () => handleView(row) },
-              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:return:edit', visible: row.status === 'DRAFT', onClick: () => handleEdit(row) },
-              { label: '提交', type: 'warning', permission: 'business:return:submit', visible: row.status === 'DRAFT', onClick: () => handleSubmitOrder(row) },
-              { label: '删除', type: 'danger', icon: Delete, permission: 'business:return:delete', visible: row.status === 'DRAFT', confirmText: '确定删除该归还单吗？', onClick: () => handleDelete(row.id) },
+              { label: '编辑', type: 'primary', icon: Edit, permission: 'business:return:edit', visible: isDraftOrderStatus(row.status), onClick: () => handleEdit(row) },
+              { label: '提交', type: 'warning', permission: 'business:return:submit', visible: isDraftOrderStatus(row.status), onClick: () => handleSubmitOrder(row) },
+              { label: '删除', type: 'danger', icon: Delete, permission: 'business:return:delete', visible: isDraftOrderStatus(row.status), confirmText: '确定删除该归还单吗？', onClick: () => handleDelete(row.id) },
             ]"
           />
         </template>
@@ -68,7 +68,7 @@
         <el-descriptions-item label="关联出库单">{{ viewRow.outboundOrderNo }}</el-descriptions-item>
         <el-descriptions-item label="归还人">{{ viewRow.receiver }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="statusTagType(viewRow.status)">{{ statusLabel(viewRow.status) }}</el-tag>
+          <el-tag :type="orderStatusTagType(viewRow.status)">{{ orderStatusLabel(viewRow.status) }}</el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">{{ viewRow.remark }}</el-descriptions-item>
       </el-descriptions>
@@ -94,17 +94,15 @@ import { Search, Refresh, Plus, Edit, Delete, View } from '@element-plus/icons-v
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { useUserStore } from '@/store/modules/user'
 import { getReturnOrders, getReturnOrder, submitReturnOrder, deleteReturnOrder } from '@/api/business/return'
-import type { ReturnOrderVo, OrderStatus } from '@/types/business'
+import type { ReturnOrderVo } from '@/types/business'
 import ReturnForm from './components/ReturnForm.vue'
 import { normalizePageTotal } from '@/utils/pagination'
-
-const statusOptions = [
-  { label: '草稿', value: 'DRAFT' },
-  { label: '待审核', value: 'PENDING_REVIEW' },
-  { label: '已审核', value: 'APPROVED' },
-  { label: '已完成', value: 'COMPLETED' },
-  { label: '已驳回', value: 'REJECTED' },
-]
+import {
+  isDraftOrderStatus,
+  orderStatusLabel,
+  orderStatusOptions as statusOptions,
+  orderStatusTagType,
+} from '@/constants/order-status'
 
 const userStore = useUserStore()
 
@@ -124,18 +122,6 @@ const isEdit = ref(false)
 const currentRow = ref<ReturnOrderVo | null>(null)
 const detailVisible = ref(false)
 const viewRow = ref<ReturnOrderVo | null>(null)
-
-type TagType = 'info' | 'warning' | 'success' | 'danger'
-
-function statusTagType(status: OrderStatus): TagType {
-  const map: Record<OrderStatus, TagType> = { DRAFT: 'info', PENDING_REVIEW: 'warning', APPROVED: 'success', COMPLETED: 'success', REJECTED: 'danger' }
-  return map[status]
-}
-
-function statusLabel(status: OrderStatus) {
-  const map: Record<string, string> = { DRAFT: '草稿', PENDING_REVIEW: '待审核', APPROVED: '已审核', COMPLETED: '已完成', REJECTED: '已驳回' }
-  return map[status] || status
-}
 
 async function handleQuery() {
   loading.value = true

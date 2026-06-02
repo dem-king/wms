@@ -2,6 +2,7 @@ package com.wms.approval.strategy;
 
 import com.wms.approval.converter.ApprovalOrderConverter;
 import com.wms.approval.domain.constant.ApprovalConstants;
+import com.wms.approval.domain.entity.WmsApprovalConfig;
 import com.wms.approval.domain.entity.WmsApprovalNode;
 import com.wms.approval.domain.entity.WmsApprovalOrder;
 import com.wms.approval.mapper.WmsApprovalOrderMapper;
@@ -38,6 +39,7 @@ class ApprovalStrategyExecutionTest {
                 .bizId(9001L)
                 .bizType(1)
                 .applicantId(1001L)
+                .config(buildConfig(501L))
                 .nodes(List.of(buildNode(1, 2001L)))
                 .build();
 
@@ -46,6 +48,7 @@ class ApprovalStrategyExecutionTest {
         ArgumentCaptor<WmsApprovalOrder> orderCaptor = ArgumentCaptor.forClass(WmsApprovalOrder.class);
         verify(wmsApprovalOrderMapper).insert(orderCaptor.capture());
         assertEquals(ApprovalConstants.STATUS_APPROVING, orderCaptor.getValue().getStatus());
+        assertEquals(501L, orderCaptor.getValue().getConfigId());
         assertEquals(1, orderCaptor.getValue().getCurrentStep());
         assertEquals(1, orderCaptor.getValue().getTotalSteps());
     }
@@ -58,6 +61,7 @@ class ApprovalStrategyExecutionTest {
                 .bizId(9002L)
                 .bizType(2)
                 .applicantId(1002L)
+                .config(buildConfig(502L))
                 .nodes(List.of(buildNode(1, 2001L), buildNode(2, 2002L)))
                 .build();
 
@@ -66,8 +70,15 @@ class ApprovalStrategyExecutionTest {
         ArgumentCaptor<WmsApprovalOrder> orderCaptor = ArgumentCaptor.forClass(WmsApprovalOrder.class);
         verify(wmsApprovalOrderMapper).insert(orderCaptor.capture());
         assertEquals(ApprovalConstants.STATUS_APPROVING, orderCaptor.getValue().getStatus());
+        assertEquals(502L, orderCaptor.getValue().getConfigId());
         assertEquals(1, orderCaptor.getValue().getCurrentStep());
         assertEquals(2, orderCaptor.getValue().getTotalSteps());
+    }
+
+    private WmsApprovalConfig buildConfig(Long id) {
+        WmsApprovalConfig config = new WmsApprovalConfig();
+        config.setId(id);
+        return config;
     }
 
     private WmsApprovalNode buildNode(int stepOrder, Long approverId) {
