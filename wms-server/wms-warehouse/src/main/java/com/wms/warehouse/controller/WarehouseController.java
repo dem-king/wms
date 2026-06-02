@@ -113,7 +113,7 @@ public class WarehouseController {
      */
     @Operation(summary = "获取库房底图")
     @GetMapping("/{id}/background")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @DataScope
     public ResponseEntity<org.springframework.core.io.Resource> getBackground(@PathVariable Long id) {
         WarehouseService.BackgroundInputStream backgroundInputStream = warehouseService.getBackground(id);

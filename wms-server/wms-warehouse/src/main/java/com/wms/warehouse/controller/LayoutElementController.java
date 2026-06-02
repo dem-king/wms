@@ -37,7 +37,7 @@ public class LayoutElementController {
      */
     @Operation(summary = "按库房查询布局元素列表")
     @GetMapping
-    @PreAuthorize("hasAuthority('warehouse:layout-element:list')")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @DataScope
     public R<List<LayoutElementVo>> listByWarehouseId(@RequestParam Long warehouseId,
                                                       @RequestParam(required = false) Long areaId) {
@@ -50,7 +50,7 @@ public class LayoutElementController {
      */
     @Operation(summary = "新增布局元素")
     @PostMapping
-    @PreAuthorize("hasAuthority('warehouse:layout-element:add')")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @OperLog(module = "warehouse", type = "新增", desc = "新增布局元素")
     public R<LayoutElementVo> create(@Valid @RequestBody LayoutElementDto dto) {
         return R.ok(layoutElementService.create(dto));
@@ -62,7 +62,7 @@ public class LayoutElementController {
      */
     @Operation(summary = "更新布局元素")
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('warehouse:layout-element:edit')")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "更新布局元素")
     public R<LayoutElementVo> update(@PathVariable Long id, @Valid @RequestBody LayoutElementDto dto) {
         return R.ok(layoutElementService.update(id, dto));
@@ -73,7 +73,7 @@ public class LayoutElementController {
      */
     @Operation(summary = "删除布局元素")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('warehouse:layout-element:delete')")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @OperLog(module = "warehouse", type = "删除", desc = "删除布局元素")
     public R<Void> delete(@PathVariable Long id) {
         layoutElementService.delete(id);
@@ -86,7 +86,7 @@ public class LayoutElementController {
      */
     @Operation(summary = "批量保存布局元素")
     @PostMapping("/batch-save")
-    @PreAuthorize("hasAuthority('warehouse:layout-element:edit')")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
     @OperLog(module = "warehouse", type = "更新", desc = "批量保存布局元素")
     public R<LayoutElementBatchSaveVo> batchSave(@Valid @RequestBody LayoutElementBatchSaveDto dto) {
         return R.ok(layoutElementService.batchSave(dto));

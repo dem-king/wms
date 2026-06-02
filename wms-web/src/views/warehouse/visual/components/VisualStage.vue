@@ -501,9 +501,10 @@ defineExpose({
         </div>
 
         <v-stage :config="stageConfig" @wheel="handleStageWheel" @mousedown="handleStageMouseDown" @mousemove="handleStageMouseMove" @mouseup="handleStageMouseUp" @mouseleave="handleStageMouseUp">
-          <v-layer :config="stageContentConfig">
+          <v-layer>
+            <v-group :config="stageContentConfig">
             <!-- L0: 底图层 -->
-            <v-layer>
+            <v-group>
               <v-image
                 v-if="backgroundImg.backgroundImage.value && visualModel?.layoutBackgroundVersion"
                 :config="{
@@ -515,10 +516,10 @@ defineExpose({
                   opacity: backgroundImg.opacity.value,
                 }"
               />
-            </v-layer>
+            </v-group>
 
             <!-- L1: 辅助结构层（墙体/通道/预留区） -->
-            <v-layer>
+            <v-group>
               <template v-for="element in auxiliaryElements" :key="`aux-${element.id}`">
                 <v-rect
                   v-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'rect'"
@@ -541,10 +542,10 @@ defineExpose({
                   @click="handleElementClick(element.id)"
                 />
               </template>
-            </v-layer>
+            </v-group>
 
             <!-- L2: 区域层 -->
-            <v-layer>
+            <v-group>
               <template v-for="area in visualAreas" :key="`area-${area.id}`">
                 <!-- 2.5D阴影 -->
                 <v-rect
@@ -570,10 +571,10 @@ defineExpose({
                 <!-- 区域标题 -->
                 <v-text :config="getAreaTitleConfig(area)" @click="emit('select-area', area.id)" />
               </template>
-            </v-layer>
+            </v-group>
 
             <!-- L3: 存放柜/库位层 -->
-            <v-layer>
+            <v-group>
               <template v-for="cabinet in cabinetList" :key="`cabinet-${cabinet.id}`">
                 <v-group
                   :config="getCabinetGroupConfig(cabinet)"
@@ -611,10 +612,10 @@ defineExpose({
                   </template>
                 </v-group>
               </template>
-            </v-layer>
+            </v-group>
 
             <!-- L4: 标注层（设备/文字/尺寸标注） -->
-            <v-layer>
+            <v-group>
               <template v-for="element in annotationElements" :key="`ann-${element.id}`">
                 <v-rect
                   v-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'rect'"
@@ -637,7 +638,8 @@ defineExpose({
                   @click="handleElementClick(element.id)"
                 />
               </template>
-            </v-layer>
+            </v-group>
+            </v-group>
           </v-layer>
         </v-stage>
       </div>
