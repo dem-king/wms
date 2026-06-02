@@ -14,11 +14,22 @@ import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.service.ApprovalConfigService;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.constant.PermissionConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.util.SecurityUtil;
+import com.wms.system.domain.entity.SysRole;
+import com.wms.system.domain.entity.SysPermission;
+import com.wms.system.domain.entity.SysRolePermission;
+import com.wms.system.domain.entity.SysUser;
+import com.wms.system.domain.entity.SysUserRole;
+import com.wms.system.mapper.SysPermissionMapper;
+import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysRolePermissionMapper;
+import com.wms.system.mapper.SysUserMapper;
+import com.wms.system.mapper.SysUserRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +52,11 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     private final WmsApprovalConfigMapper wmsApprovalConfigMapper;
     private final WmsApprovalNodeMapper wmsApprovalNodeMapper;
     private final ApprovalConfigConverter approvalConfigConverter;
+    private final SysUserMapper sysUserMapper;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRolePermissionMapper sysRolePermissionMapper;
+    private final SysPermissionMapper sysPermissionMapper;
 
     /**
      * 分页查询审批配置
@@ -80,7 +96,7 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         result.setRecords(records.stream().map(entity -> {
             ApprovalConfigVo vo = approvalConfigConverter.toVo(entity);
             List<WmsApprovalNode> nodes = finalNodesMap.getOrDefault(entity.getId(), List.of());
-            vo.setNodes(approvalConfigConverter.toNodeVoList(nodes));
+            vo.setNodes(toNodeVoList(nodes));
             return vo;
         }).toList());
         result.setTotal(page.getTotal());
@@ -110,7 +126,7 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
                 new LambdaQueryWrapper<WmsApprovalNode>()
                         .eq(WmsApprovalNode::getConfigId, id)
                         .orderByAsc(WmsApprovalNode::getStepOrder));
-        vo.setNodes(approvalConfigConverter.toNodeVoList(nodes));
+        vo.setNodes(toNodeVoList(nodes));
         return vo;
     }
 
@@ -126,6 +142,7 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
     public ApprovalConfigVo createConfig(ApprovalConfigDto dto) {
         Integer enabled = dto.getEnabled() != null ? dto.getEnabled() : BizConstants.STATUS_ENABLED;
         validateEnabledConfigUnique(dto.getBizType(), null, enabled);
+        validateNodeApprovers(dto.getAutoApprove(), dto.getNodes());
 
         WmsApprovalConfig config = new WmsApprovalConfig();
         config.setBizType(dto.getBizType());
@@ -177,6 +194,7 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         }
 
         config.setBizType(dto.getBizType());
+        validateNodeApprovers(dto.getAutoApprove(), dto.getNodes());
         if (dto.getEnabled() != null) {
             config.setEnabled(dto.getEnabled());
         }
@@ -246,6 +264,57 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
      * @param excludeConfigId 更新时需要排除的当前配置ID
      * @param enabled         当前配置启用状态
      */
+    private List<ApprovalConfigVo.ApprovalNodeVo> toNodeVoList(List<WmsApprovalNode> nodes) {
+        List<ApprovalConfigVo.ApprovalNodeVo> nodeVos = approvalConfigConverter.toNodeVoList(nodes);
+        if (nodeVos.isEmpty()) {
+            return nodeVos;
+        }
+        Set<Long> userIds = nodeVos.stream()
+                .filter(node -> node.getApproverType() == ApprovalConstants.APPROVER_TYPE_USER)
+                .map(ApprovalConfigVo.ApprovalNodeVo::getApproverId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, SysUser> userMap = userIds.isEmpty()
+                ? Map.of()
+                : sysUserMapper.selectBatchIds(userIds).stream()
+                        .filter(SysUser.class::isInstance)
+                        .map(SysUser.class::cast)
+                        .collect(Collectors.toMap(SysUser::getId, Function.identity(), (left, right) -> left));
+        Set<Long> roleIds = nodeVos.stream()
+                .filter(node -> node.getApproverType() == ApprovalConstants.APPROVER_TYPE_ROLE)
+                .map(ApprovalConfigVo.ApprovalNodeVo::getApproverId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, SysRole> roleMap = roleIds.isEmpty()
+                ? Map.of()
+                : sysRoleMapper.selectBatchIds(roleIds).stream()
+                        .filter(SysRole.class::isInstance)
+                        .map(SysRole.class::cast)
+                        .collect(Collectors.toMap(SysRole::getId, Function.identity(), (left, right) -> left));
+        for (ApprovalConfigVo.ApprovalNodeVo nodeVo : nodeVos) {
+            if (nodeVo.getApproverType() == ApprovalConstants.APPROVER_TYPE_USER) {
+                SysUser user = userMap.get(nodeVo.getApproverId());
+                if (user != null) {
+                    nodeVo.setApproverUsername(user.getUsername());
+                    nodeVo.setApproverName(resolveUserDisplayName(user));
+                }
+            }
+            if (nodeVo.getApproverType() == ApprovalConstants.APPROVER_TYPE_ROLE) {
+                SysRole role = roleMap.get(nodeVo.getApproverId());
+                if (role != null) {
+                    nodeVo.setApproverRoleName(role.getRoleName());
+                }
+            }
+        }
+        return nodeVos;
+    }
+
+    private String resolveUserDisplayName(SysUser user) {
+        return user.getRealName() != null && !user.getRealName().isBlank()
+                ? user.getRealName()
+                : user.getUsername();
+    }
+
     private void validateEnabledConfigUnique(Integer bizType, Long excludeConfigId, Integer enabled) {
         if (enabled == null || enabled != BizConstants.STATUS_ENABLED) {
             return;
@@ -259,6 +328,95 @@ public class ApprovalConfigServiceImpl implements ApprovalConfigService {
         Long existingCount = wmsApprovalConfigMapper.selectCount(wrapper);
         if (existingCount != null && existingCount > 0) {
             throw new BizException("该业务类型已存在启用的审批配置");
+        }
+    }
+
+    private void validateNodeApprovers(Integer autoApprove, List<ApprovalConfigDto.ApprovalNodeDto> nodes) {
+        if (autoApprove != null && autoApprove == BizConstants.STATUS_ENABLED) {
+            return;
+        }
+        if (nodes == null || nodes.isEmpty()) {
+            throw new BizException("审批配置必须至少包含一个审批节点");
+        }
+        for (ApprovalConfigDto.ApprovalNodeDto node : nodes) {
+            if (node.getApproverType() == null) {
+                throw new BizException("审批人类型不能为空");
+            }
+            if (node.getApproverId() == null) {
+                throw new BizException("审批人或角色不能为空");
+            }
+            if (node.getApproverType() == ApprovalConstants.APPROVER_TYPE_USER) {
+                validateUserApprover(node.getApproverId());
+                validateUserApprovalPermission(node.getApproverId());
+            } else if (node.getApproverType() == ApprovalConstants.APPROVER_TYPE_ROLE) {
+                validateRoleApprover(node.getApproverId());
+            } else {
+                throw new BizException("审批人类型仅支持指定角色或指定用户");
+            }
+        }
+    }
+
+    private void validateUserApprover(Long userId) {
+        SysUser user = sysUserMapper.selectById(userId);
+        if (user == null || user.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批用户不存在");
+        }
+        if (user.getStatus() == null || user.getStatus() != BizConstants.STATUS_ENABLED) {
+            throw new BizException("审批用户已禁用");
+        }
+    }
+
+    private void validateUserApprovalPermission(Long userId) {
+        if (!hasApprovalPermission(userId)) {
+            throw new BizException("审批用户缺少审批权限");
+        }
+    }
+
+    private boolean hasApprovalPermission(Long userId) {
+        List<Long> roleIds = sysUserRoleMapper.selectList(
+                        new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId))
+                .stream()
+                .map(SysUserRole::getRoleId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+        Set<Long> enabledRoleIds = sysRoleMapper.selectList(
+                        new LambdaQueryWrapper<SysRole>()
+                                .in(SysRole::getId, roleIds)
+                                .eq(SysRole::getStatus, BizConstants.STATUS_ENABLED))
+                .stream()
+                .map(SysRole::getId)
+                .collect(Collectors.toSet());
+        if (enabledRoleIds.isEmpty()) {
+            return false;
+        }
+        Set<Long> permIds = sysRolePermissionMapper.selectList(
+                        new LambdaQueryWrapper<SysRolePermission>().in(SysRolePermission::getRoleId, enabledRoleIds))
+                .stream()
+                .map(SysRolePermission::getPermId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (permIds.isEmpty()) {
+            return false;
+        }
+        return sysPermissionMapper.selectList(
+                        new LambdaQueryWrapper<SysPermission>()
+                                .in(SysPermission::getId, permIds)
+                                .eq(SysPermission::getStatus, BizConstants.STATUS_ENABLED))
+                .stream()
+                .anyMatch(permission -> PermissionConstants.APPROVAL_PENDING_APPROVE.equals(permission.getPermCode()));
+    }
+
+    private void validateRoleApprover(Long roleId) {
+        SysRole role = sysRoleMapper.selectById(roleId);
+        if (role == null || role.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("审批角色不存在");
+        }
+        if (role.getStatus() == null || role.getStatus() != BizConstants.STATUS_ENABLED) {
+            throw new BizException("审批角色已禁用");
         }
     }
 }

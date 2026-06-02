@@ -22,6 +22,8 @@ export interface SysUserVo {
   email: string
   /** 状态(0-禁用 1-启用) */
   status: number
+  /** 是否拥有审批通过权限 */
+  hasApprovalPermission?: boolean
   /** 角色ID列表 */
   roleIds: EntityId[]
   /** 角色名称列表 */

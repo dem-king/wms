@@ -1,0 +1,2655 @@
+﻿
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/Codes/WMS_code/wms-web[39m
+
+ [32m✓[39m src/layouts/composables/__tests__/menu-layout.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/visual/visual-state.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/visual/layout-editor.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+node.exe : [90mstderr[2m | src/views/warehouse/visual/types/layout-element.spec.ts[2m > [22m[2mparsePointData[2m 
+> [22m[2mshould return null for invalid JSON
+At line:1 char:1
++ & "C:\Users\admin\nvm\nodejs/node.exe" "C:\Users\admin\nvm\nodejs/nod ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m...or invalid JSON:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39m[layout-element] 点位数据JSON解析失败: not-json
+
+[90mstderr[2m | src/views/warehouse/visual/visual-layout.spec.ts[2m > [22m[2mwarehouse visual layout - area polygo
+n extension[2m > [22m[2mshould degrade polygonPoints to null when vertices are insufficient
+[22m[39m[visual-layout] 区域多边形顶点不足，降级为矩形渲染
+
+[90mstderr[2m | src/views/warehouse/visual/types/layout-element.spec.ts[2m > [22m[2mparseStyleData[2m > [22m[2m
+should return empty object for invalid JSON
+[22m[39m[layout-element] 样式数据JSON解析失败: bad
+
+[90mstderr[2m | src/views/warehouse/visual/visual-layout.spec.ts[2m > [22m[2mwarehouse visual layout - area polygo
+n extension[2m > [22m[2mshould degrade polygonPoints to null when JSON is invalid
+[22m[39m[visual-layout] 区域多边形顶点数据JSON解析失败，降级为矩形渲染
+
+ [32m✓[39m src/views/warehouse/visual/types/layout-element.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/visual/visual-layout.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [31m❯[39m src/views/profile/index.spec.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 24[2mms[22m[39m
+[31m   [31m×[31m profile entry orchestration[2m > [22mcontains profile sections and data loading markers[90m 20[2mms[22m[31m[39m
+[31m     → expected '<template>\r\n  <div class="profile-p…' to contain '登录信息'[39m
+ [31m❯[39m src/views/__tests__/table-action-column.spec.ts [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 105[2mms[22m[39m
+[31m   [31m×[31m table action columns[2m > [22msets explicit min-width on role and user action columns with three inline actions[90m 7[2mms[22m[31m[39m
+[31m     → expected '<script setup lang="ts">\nimport { on…' to match /<el-table-column\b[^>]*label="操作"[^>]…/[39m
+ [32m✓[39m src/views/__tests__/pagination-layout.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/business/inbound.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/api/business/outbound.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/api/request.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/warehouse/layout-element.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/visual/composables/useCanvasViewport.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstderr[2m | src/views/warehouse/visual/renderers/renderPolygonArea.spec.ts[2m > [22m[2mparsePolygonPoints[2m 
+> [22m[2mshould return null for invalid JSON
+[22m[39m[renderPolygonArea] 多边形顶点数据JSON解析失败: not-json
+
+[90mstderr[2m | src/views/warehouse/visual/renderers/renderPolygonArea.spec.ts[2m > [22m[2mparsePolygonPoints[2m 
+> [22m[2mshould return null when fewer than 3 points
+[22m[39m[renderPolygonArea] 多边形顶点不足，需要至少3个顶点: [{"x":0,"y":0},{"x":100,"y":0}]
+
+[90mstderr[2m | src/views/warehouse/visual/renderers/renderPolygonArea.spec.ts[2m > [22m[2mparsePolygonPoints[2m 
+> [22m[2mshould filter out invalid point objects and return null if not enough valid
+[22m[39m[renderPolygonArea] 有效多边形顶点不足，降级为矩形渲染
+
+ [32m✓[39m src/views/warehouse/visual/renderers/renderPolygonArea.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/utils/auth-refresh.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/layouts/components/NotificationBell.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/business-permission-coverage.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/components/ApprovalFlow/approval-biz-order-detail.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/views/business/order-scan.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/views/label/label-code-display.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/views/system/user/user-list.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/store/modules/permission.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/store/modules/user.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [31m❯[39m src/views/system/system-pagination-layout.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 11[2mms[22m[39m
+[31m   [31m×[31m system pagination layout[2m > [22muses fixed pagination layout and normalized totals on paged system pages[90m 10[2mms[22m[31m[39m
+[31m     → expected [ { …(2) } ] to deeply equal [][39m
+ [32m✓[39m src/views/warehouse/visual/index.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/views/item/list/item-location-utils.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+[90mstderr[2m | src/views/warehouse/visual/renderers/index.spec.ts[2m > [22m[2mlayout element renderer registry[2
+m > [22m[2mshould return null for unregistered element type in renderLayoutElement
+[22m[39m[renderers] 未注册的元素类型: unknown-type
+
+ [32m✓[39m src/views/warehouse/visual/renderers/index.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/views/system/menu/tree-expand.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/item/list/submit-payload.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/system/role/role-permission.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/warehouse/submit-payload.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/warehouse/visual-api.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/system/message.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/api/system/auth.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/views/label/print-status-sync.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/views/system/menu/submit-payload.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/item/list/item-list-display.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/views/system/permission/permission-readonly.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/approval/pending/index.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/utils/file-url.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+ [31m❯[39m src/views/system/system-list-array-response-compat.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 20[2mms[22m[39m
+[31m   [31m×[31m system list pages[2m > [22msupports array responses for non-paged system list endpoints[90m 18[2mms[22m[31m[39m
+[31m     → expected '<template>\r\n  <div class="app-conta…' to contain 'Array.isArray(res.data)'[39m
+ [32m✓[39m src/api/warehouse/bin.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/api/warehouse/cabinet.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/api/warehouse/warehouse.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/api/item/label.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+ [32m✓[39m src/views/warehouse/warehouse/index.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/layouts/composables/__tests__/tabbar-style.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/label/print-feedback.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/warehouse/area.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/views/system/user/components/UserForm.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/components/TableActionGroup/table-action-permission.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/components/ApprovalFlow/ApprovalOrderPage.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/api/dashboard/location-weather.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/components/QrBarCode/rendering.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+ [32m✓[39m src/api/item/item.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 4[2mms[22m[39m
+ [31m❯[39m src/views/system/role/role-list.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 21[2mms[22m[39m
+[31m   [31m×[31m role list page[2m > [22msupports both array and paged role list responses[90m 20[2mms[22m[31m[39m
+[31m     → expected '<script setup lang="ts">\nimport { on…' to contain 'roles.length : normalizePageTotal(res…'[39m
+ [32m✓[39m src/views/system/message/index.spec.ts [2m([22m[2m1 test[22m[2m)[22m[90m 3[2mms[22m[39m
+ [32m✓[39m src/utils/pagination.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 4[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 5 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/views/profile/index.spec.ts[2m > [22mprofile entry orchestration[2m > [22mco
+ntains profile sections and data loading markers
+[31m[1mAssertionError[22m: expected '<template>\r\n  <div class="profile-p…' to contain '登录信息'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 登录信息[39m
+[31m+ <template>
+[39m
+[31m+   <div class="profile-page">
+[39m
+[31m+     <div class="profile-bento">
+[39m
+[31m+       <!-- 1. Hero Section -->
+[39m
+[31m+       <section class="bento-item bento-hero">
+[39m
+[31m+         <div class="hero-bg"></div>
+[39m
+[31m+         <div class="hero-content">
+[39m
+[31m+           <div class="hero-identity">
+[39m
+[31m+             <el-avatar v-if="profileAvatarUrl" :size="80" :src="profileAvatarUrl" class="hero-avatar" />[39m
+[31m+             <div v-else class="hero-avatar hero-avatar--text">{{ displayInitial }}</div>
+[39m
+[31m+             <div class="hero-meta">
+[39m
+[31m+               <div class="hero-title">账号概览</div>
+[39m
+[31m+               <h1 class="hero-name">{{ displayName }}</h1>
+[39m
+[31m+               <p class="hero-subtitle">{{ profileUserInfo?.username || '未获取到用户名' }}</p>
+[39m
+[31m+             </div>
+[39m
+[31m+           </div>
+[39m
+[31m+           <div class="hero-actions">
+[39m
+[31m+             <el-tag type="success" effect="light" round size="large">
+[39m
+[31m+               <template #icon><el-icon><Check /></el-icon></template>
+[39m
+[31m+               已登录
+[39m
+[31m+             </el-tag>
+[39m
+[31m+             <el-tag effect="light" round size="large" :type="userStore.isLogin() ? 'primary' : 'danger'">
+[39m
+[31m+               <template #icon><el-icon><Key /></el-icon></template>
+[39m
+[31m+               {{ tokenStatusLabel }}
+[39m
+[31m+             </el-tag>
+[39m
+[31m+           </div>
+[39m
+[31m+         </div>
+[39m
+[31m+       </section>
+[39m
+[31m+ 
+[39m
+[31m+       <!-- 2. Stats Section -->
+[39m
+[31m+       <div class="bento-stats">
+[39m
+[31m+         <el-card shadow="never" class="bento-card stat-card">
+[39m
+[31m+           <div class="stat-icon stat-icon--primary">
+[39m
+[31m+             <el-icon><Lock /></el-icon>
+[39m
+[31m+           </div>
+[39m
+[31m+           <div class="stat-info">
+[39m
+[31m+             <div class="stat-value">{{ profilePermissions.length }}</div>
+[39m
+[31m+             <div class="stat-label">权限数量</div>
+[39m
+[31m+           </div>
+[39m
+[31m+         </el-card>
+[39m
+[31m+ 
+[39m
+[31m+         <el-card shadow="never" class="bento-card stat-card">
+[39m
+[31m+           <div class="stat-icon stat-icon--success">
+[39m
+[31m+             <el-icon><User /></el-icon>
+[39m
+[31m+           </div>
+[39m
+[31m+           <div class="stat-info">
+[39m
+[31m+             <div class="stat-value">{{ profileRoles.length }}</div>
+[39m
+[31m+             <div class="stat-label">角色数量</div>
+[39m
+[31m+           </div>
+[39m
+[31m+         </el-card>
+[39m
+[31m+ 
+[39m
+[31m+         <el-card shadow="never" class="bento-card stat-card">
+[39m
+[31m+           <div class="stat-icon stat-icon--warning">
+[39m
+[31m+             <el-icon><Timer /></el-icon>
+[39m
+[31m+           </div>
+[39m
+[31m+           <div class="stat-info">
+[39m
+[31m+             <div class="stat-value stat-value--text">{{ formattedLoginTime }}</div>
+[39m
+[31m+             <div class="stat-label">最近登录时间</div>
+[39m
+[31m+           </div>
+[39m
+[31m+         </el-card>
+[39m
+[31m+       </div>
+[39m
+[31m+ 
+[39m
+[31m+       <!-- 3. Basic Info -->
+[39m
+[31m+       <el-card shadow="never" class="bento-card bento-basic">
+[39m
+[31m+         <template #header>
+[39m
+[31m+           <div class="card-header">
+[39m
+[31m+             <el-icon><InfoFilled /></el-icon>
+[39m
+[31m+             <span>基础资料</span>
+[39m
+[31m+           </div>
+[39m
+[31m+         </template>
+[39m
+[31m+         <el-descriptions :column="2" class="profile-descriptions">
+[39m
+[31m+           <el-descriptions-item label="用户ID">{{ profileUserInfo?.userId ?? '-' }}</el-descriptions-item>
+[39m
+[31m+           <el-descriptions-item label="部门ID">{{ profileUserInfo?.deptId ?? '-' }}</el-descriptions-item>
+[39m
+[31m+           <el-descriptions-item label="用户名">{{ profileUserInfo?.username || '-' }}</el-descriptions-item>
+[39m
+[31m+           <el-descriptions-item label="真实姓名">{{ profileUserInfo?.realName || profileUserInfo?.username || '用户' }
+}</el-descriptions-item>
+[39m
+[31m+           <el-descriptions-item label="最近登录IP" :span="2">{{ lastLoginIpText }}</el-descriptions-item>
+[39m
+[31m+         </el-descriptions>
+[39m
+[31m+       </el-card>
+[39m
+[31m+ 
+[39m
+[31m+       <!-- 4. Security Center -->
+[39m
+[31m+       <el-card shadow="never" class="bento-card bento-security">
+[39m
+[31m+         <template #header>
+[39m
+[31m+           <div class="card-header">
+[39m
+[31m+             <el-icon><Setting /></el-icon>
+[39m
+[31m+             <span>安全中心</span>
+[39m
+[31m+           </div>
+[39m
+[31m+         </template>
+[39m
+[31m+         <div class="security-actions">
+[39m
+[31m+           <el-button class="security-btn" type="primary" plain @click="openPasswordDialog">
+[39m
+[31m+             <el-icon><Lock /></el-icon>修改密码
+[39m
+[31m+           </el-button>
+[39m
+[31m+           <el-button class="security-btn" @click="loadProfile">
+[39m
+[31m+             <el-icon><Refresh /></el-icon>刷新资料
+[39m
+[31m+           </el-button>
+[39m
+[31m+           <el-button class="security-btn" type="danger" plain @click="handleLogout">
+[39m
+[31m+             <el-icon><SwitchButton /></el-icon>退出登录
+[39m
+[31m+           </el-button>
+[39m
+[31m+         </div>
+[39m
+[31m+       </el-card>
+[39m
+[31m+ 
+[39m
+[31m+       <!-- 5. Edit Profile -->
+[39m
+[31m+       <el-card shadow="never" class="bento-card bento-edit">
+[39m
+[31m+         <template #header>
+[39m
+[31m+           <div class="card-header">
+[39m
+[31m+             <el-icon><Edit /></el-icon>
+[39m
+[31m+             <span>编辑资料</span>
+[39m
+[31m+           </div>
+[39m
+[31m+         </template>
+[39m
+[31m+         <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-position="top" class="profile-edit
+-form">
+[39m
+[31m+           <div class="profile-avatar-editor">
+[39m
+[31m+             <el-avatar v-if="resolvedPreviewAvatarUrl" :size="84" :src="resolvedPreviewAvatarUrl" class="avatar-
+preview" />[39m
+[31m+             <div v-else class="hero-avatar hero-avatar--text avatar-preview">{{ displayInitial }}</div>
+[39m
+[31m+             <div class="profile-avatar-editor__actions">
+[39m
+[31m+               <input
+[39m
+[31m+                 ref="avatarInputRef"
+[39m
+[31m+                 class="profile-avatar-editor__input"
+[39m
+[31m+                 type="file"
+[39m
+[31m+                 accept="image/png,image/jpeg,image/jpg,image/webp"
+[39m
+[31m+                 @change="handleAvatarChange"
+[39m
+[31m+               />
+[39m
+[31m+               <el-button type="primary" plain @click="triggerAvatarSelect">
+[39m
+[31m+                 <el-icon><Upload /></el-icon>更换头像
+[39m
+[31m+               </el-button>
+[39m
+[31m+               <span class="profile-avatar-editor__tip">支持 PNG/JPG/JPEG/WEBP，上传后自动预览</span>
+[39m
+[31m+             </div>
+[39m
+[31m+           </div>
+[39m
+[31m+ 
+[39m
+[31m+           <div class="edit-form-grid">
+[39m
+[31m+             <el-form-item label="真实姓名" prop="realName">
+[39m
+[31m+               <el-input v-model="editForm.realName" placeholder="请输入真实姓名">
+[39m
+[31m+                 <template #prefix><el-icon><User /></el-icon></template>
+[39m
+[31m+               </el-input>
+[39m
+[31m+             </el-form-item>
+[39m
+[31m+             <el-form-item label="手机号" prop="phone">
+[39m
+[31m+               <el-input v-model="editForm.phone" placeholder="请输入手机号">
+[39m
+[31m+                 <template #prefix><el-icon><Iphone /></el-icon></template>
+[39m
+[31m+               </el-input>
+[39m
+[31m+             </el-form-item>
+[39m
+[31m+             <el-form-item label="邮箱" prop="email">
+[39m
+[31m+               <el-input v-model="editForm.email" placeholder="请输入邮箱">
+[39m
+[31m+                 <template #prefix><el-icon><Message /></el-icon></template>
+[39m
+[31m+               </el-input>
+[39m
+[31m+             </el-form-item>
+[39m
+[31m+           </div>
+[39m
+[31m+ 
+[39m
+[31m+           <div class="profile-actions">
+[39m
+[31m+             <el-button @click="resetEditForm">重置</el-button>
+[39m
+[31m+             <el-button type="primary" :loading="saveLoading" @click="handleSaveProfile">保存资料</el-button>
+[39m
+[31m+           </div>
+[39m
+[31m+         </el-form>
+[39m
+[31m+       </el-card>
+[39m
+[31m+     </div>
+[39m
+[31m+ 
+[39m
+[31m+     <ChangePasswordDialog v-model:visible="passwordDialogVisible" />
+[39m
+[31m+   </div>
+[39m
+[31m+ </template>
+[39m
+[31m+ 
+[39m
+[31m+ <script setup lang="ts">
+[39m
+[31m+ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+[39m
+[31m+ import { ElMessage } from 'element-plus'
+[39m
+[31m+ import type { FormInstance, FormRules } from 'element-plus'
+[39m
+[31m+ import { getProfile, updateProfile } from '@/api/system/auth'
+[39m
+[31m+ import type { LastLoginInfoVO, ProfileResp, UpdateProfileReq, UserInfoVO } from '@/types/auth'
+[39m
+[31m+ import { useUserStore } from '@/store/modules/user'[39m
+[31m+ import { useFileUpload } from '@/hooks/useFileUpload'[39m
+[31m+ import { resolveFileUrl } from '@/utils/file-url'[39m
+[31m+ import ChangePasswordDialog from '@/views/system/password/ChangePasswordDialog.vue'[39m
+[31m+ import { 
+[39m
+[31m+   Check, 
+[39m
+[31m+   Key, 
+[39m
+[31m+   Lock, 
+[39m
+[31m+   User, 
+[39m
+[31m+   Timer, 
+[39m
+[31m+   InfoFilled, 
+[39m
+[31m+   Setting, 
+[39m
+[31m+   Edit, 
+[39m
+[31m+   Refresh, 
+[39m
+[31m+   SwitchButton, 
+[39m
+[31m+   Upload, 
+[39m
+[31m+   Iphone, 
+[39m
+[31m+   Message 
+[39m
+[31m+ } from '@element-plus/icons-vue'
+[39m
+[31m+ 
+[39m
+[31m+ const userStore = useUserStore()
+[39m
+[31m+ const passwordDialogVisible = ref(false)
+[39m
+[31m+ const profile = ref<ProfileResp | null>(null)
+[39m
+[31m+ const saveLoading = ref(false)
+[39m
+[31m+ const editFormRef = ref<FormInstance>()
+[39m
+[31m+ const avatarInputRef = ref<HTMLInputElement>()
+[39m
+[31m+ const previewAvatarUrl = ref('')
+[39m
+[31m+ let previewObjectUrl: string | null = null
+[39m
+[31m+ 
+[39m
+[31m+ const { upload: uploadAvatarFile } = useFileUpload({
+[39m
+[31m+   bucket: 'avatars',
+[39m
+[31m+   beforeUpload: (file: File) => {
+[39m
+[31m+     const validTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
+[39m
+[31m+     if (!validTypes.includes(file.type)) {
+[39m
+[31m+       ElMessage.error('头像仅支持 PNG、JPG、JPEG、WEBP 图片')
+[39m
+[31m+       return false
+[39m
+[31m+     }
+[39m
+[31m+     if (file.size > 2 * 1024 * 1024) {
+[39m
+[31m+       ElMessage.error('头像大小不能超过2MB')
+[39m
+[31m+       return false
+[39m
+[31m+     }
+[39m
+[31m+     return true
+[39m
+[31m+   }
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ const editForm = reactive<UpdateProfileReq>({
+[39m
+[31m+   realName: '',
+[39m
+[31m+   phone: '',
+[39m
+[31m+   email: '',
+[39m
+[31m+   avatar: '',
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ const editRules: FormRules = {
+[39m
+[31m+   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
+[39m
+[31m+   phone: [{ pattern: /^$|^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
+[39m
+[31m+   email: [{ type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }],
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ const profileUserInfo = computed<UserInfoVO | null>(() => profile.value?.userInfo || userStore.userInfo)
+[39m
+[31m+ const profilePermissions = computed(() => profile.value?.permissions || userStore.permissions)
+[39m
+[31m+ const profileRoles = computed(() => profile.value?.roles || userStore.roles)
+[39m
+[31m+ const lastLoginInfo = computed<LastLoginInfoVO | null>(() => profile.value?.lastLoginInfo || null)
+[39m
+[31m+ 
+[39m
+[31m+ const displayName = computed(() => profileUserInfo.value?.realName || profileUserInfo.value?.username || '用户')[
+39m
+[31m+ const displayInitial = computed(() => displayName.value.trim().slice(0, 1).toUpperCase() || 'U')[39m
+[31m+ const profileAvatarUrl = computed(() => resolveFileUrl(profileUserInfo.value?.avatar || ''))[39m
+[31m+ const resolvedPreviewAvatarUrl = computed(() => resolveFileUrl(previewAvatarUrl.value))[39m
+[31m+ const tokenStatusLabel = computed(() => (userStore.isLogin() ? '有效' : '失效'))[39m
+[31m+ const formattedLoginTime = computed(() => formatDateTime(lastLoginInfo.value?.loginTime || null))
+[39m
+[31m+ const lastLoginIpText = computed(() => lastLoginInfo.value?.loginIp || '暂无记录')
+[39m
+[31m+ 
+[39m
+[31m+ onMounted(() => {
+[39m
+[31m+   loadProfile()
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ onBeforeUnmount(() => {
+[39m
+[31m+   cleanupPreviewObjectUrl()
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ async function loadProfile() {
+[39m
+[31m+   try {
+[39m
+[31m+     const res = await getProfile()
+[39m
+[31m+     applyProfileData(res.data)
+[39m
+[31m+   } catch (error) {
+[39m
+[31m+     console.error('获取个人中心信息失败:', error)
+[39m
+[31m+     ElMessage.error('获取个人中心信息失败')
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function openPasswordDialog() {
+[39m
+[31m+   passwordDialogVisible.value = true
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleLogout() {
+[39m
+[31m+   userStore.logout()
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function triggerAvatarSelect() {
+[39m
+[31m+   avatarInputRef.value?.click()
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ async function handleAvatarChange(event: Event) {
+[39m
+[31m+   const input = event.target as HTMLInputElement
+[39m
+[31m+   const file = input.files?.[0]
+[39m
+[31m+   if (!file) {
+[39m
+[31m+     return
+[39m
+[31m+   }
+[39m
+[31m+ 
+[39m
+[31m+   cleanupPreviewObjectUrl()
+[39m
+[31m+   previewObjectUrl = URL.createObjectURL(file)
+[39m
+[31m+   previewAvatarUrl.value = previewObjectUrl
+[39m
+[31m+ 
+[39m
+[31m+   try {
+[39m
+[31m+     // 通过useFileUpload统一上传，自动适配本地/MinIO存储
+[39m
+[31m+     const result = await uploadAvatarFile(file)
+[39m
+[31m+     editForm.avatar = result.url
+[39m
+[31m+     ElMessage.success('头像上传成功')
+[39m
+[31m+   } catch (error) {
+[39m
+[31m+     console.error('头像上传失败:', error)
+[39m
+[31m+     cleanupPreviewObjectUrl()
+[39m
+[31m+     previewAvatarUrl.value = profileUserInfo.value?.avatar || ''
+[39m
+[31m+     ElMessage.error('头像上传失败')
+[39m
+[31m+   } finally {
+[39m
+[31m+     input.value = ''
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ async function handleSaveProfile() {
+[39m
+[31m+   await editFormRef.value?.validate()
+[39m
+[31m+   saveLoading.value = true
+[39m
+[31m+   try {
+[39m
+[31m+     const res = await updateProfile({
+[39m
+[31m+       realName: editForm.realName,
+[39m
+[31m+       phone: editForm.phone?.trim() || '',
+[39m
+[31m+       email: editForm.email?.trim() || '',
+[39m
+[31m+       avatar: editForm.avatar?.trim() || '',
+[39m
+[31m+     })
+[39m
+[31m+     applyProfileData(res.data)
+[39m
+[31m+     ElMessage.success('个人资料保存成功')
+[39m
+[31m+   } catch (error) {
+[39m
+[31m+     console.error('保存个人资料失败:', error)
+[39m
+[31m+     ElMessage.error('保存个人资料失败')
+[39m
+[31m+   } finally {
+[39m
+[31m+     saveLoading.value = false
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function resetEditForm() {
+[39m
+[31m+   applyEditForm(profileUserInfo.value)
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function applyProfileData(data: ProfileResp) {
+[39m
+[31m+   profile.value = data
+[39m
+[31m+   userStore.syncUserInfo(data.userInfo)
+[39m
+[31m+   applyEditForm(data.userInfo)
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function applyEditForm(userInfo: UserInfoVO | null) {
+[39m
+[31m+   editForm.realName = userInfo?.realName || ''
+[39m
+[31m+   editForm.phone = userInfo?.phone || ''
+[39m
+[31m+   editForm.email = userInfo?.email || ''
+[39m
+[31m+   editForm.avatar = userInfo?.avatar || ''
+[39m
+[31m+   previewAvatarUrl.value = userInfo?.avatar || ''
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function cleanupPreviewObjectUrl() {
+[39m
+[31m+   if (!previewObjectUrl) {
+[39m
+[31m+     return
+[39m
+[31m+   }
+[39m
+[31m+   URL.revokeObjectURL(previewObjectUrl)
+[39m
+[31m+   previewObjectUrl = null
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function formatDateTime(loginTime: string | null) {
+[39m
+[31m+   if (!loginTime) {
+[39m
+[31m+     return '暂无记录'
+[39m
+[31m+   }
+[39m
+[31m+ 
+[39m
+[31m+   const date = new Date(loginTime)
+[39m
+[31m+   if (Number.isNaN(date.getTime())) {
+[39m
+[31m+     return loginTime
+[39m
+[31m+   }
+[39m
+[31m+ 
+[39m
+[31m+   return date.toLocaleString('zh-CN', {
+[39m
+[31m+     year: 'numeric',
+[39m
+[31m+     month: '2-digit',
+[39m
+[31m+     day: '2-digit',
+[39m
+[31m+     hour: '2-digit',
+[39m
+[31m+     minute: '2-digit',
+[39m
+[31m+     second: '2-digit',
+[39m
+[31m+     hour12: false,
+[39m
+[31m+   })
+[39m
+[31m+ }
+[39m
+[31m+ </script>
+[39m
+[31m+ 
+[39m
+[31m+ <style lang="scss" scoped>
+[39m
+[31m+ .profile-page {
+[39m
+[31m+   padding: 20px;
+[39m
+[31m+   max-width: 1400px;
+[39m
+[31m+   margin: 0 auto;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-bento {
+[39m
+[31m+   display: grid;
+[39m
+[31m+   grid-template-columns: repeat(12, 1fr);
+[39m
+[31m+   gap: 20px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* Base Card Style */
+[39m
+[31m+ .bento-card {
+[39m
+[31m+   border: none !important;
+[39m
+[31m+   border-radius: 12px !important;
+[39m
+[31m+   background: var(--el-bg-color-overlay);
+[39m
+[31m+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+[39m
+[31m+   transition: transform 0.3s ease, box-shadow 0.3s ease;
+[39m
+[31m+ 
+[39m
+[31m+   &:hover {
+[39m
+[31m+     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08) !important;
+[39m
+[31m+     transform: translateY(-2px);
+[39m
+[31m+   }
+[39m
+[31m+ 
+[39m
+[31m+   :deep(.el-card__header) {
+[39m
+[31m+     border-bottom: 1px solid var(--el-border-color-lighter);
+[39m
+[31m+     padding: 18px 24px;
+[39m
+[31m+   }
+[39m
+[31m+ 
+[39m
+[31m+   :deep(.el-card__body) {
+[39m
+[31m+     padding: 24px;
+[39m
+[31m+     height: 100%;
+[39m
+[31m+     box-sizing: border-box;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .card-header {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   gap: 8px;
+[39m
+[31m+   font-weight: 600;
+[39m
+[31m+   font-size: 16px;
+[39m
+[31m+   color: var(--el-text-color-primary);
+[39m
+[31m+ 
+[39m
+[31m+   .el-icon {
+[39m
+[31m+     font-size: 18px;
+[39m
+[31m+     color: var(--el-color-primary);
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* 1. Hero Section */
+[39m
+[31m+ .bento-hero {
+[39m
+[31m+   grid-column: span 12;
+[39m
+[31m+   position: relative;
+[39m
+[31m+   border-radius: 12px;
+[39m
+[31m+   background: linear-gradient(135deg, var(--el-color-primary-light-8) 0%, var(--el-bg-color-overlay) 100%);
+[39m
+[31m+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+[39m
+[31m+   overflow: hidden;
+[39m
+[31m+   transition: transform 0.3s ease, box-shadow 0.3s ease;
+[39m
+[31m+ 
+[39m
+[31m+   &:hover {
+[39m
+[31m+     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+[39m
+[31m+     transform: translateY(-2px);
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-bg {
+[39m
+[31m+   position: absolute;
+[39m
+[31m+   top: 0;
+[39m
+[31m+   right: 0;
+[39m
+[31m+   bottom: 0;
+[39m
+[31m+   width: 50%;
+[39m
+[31m+   background: radial-gradient(circle at top right, var(--el-color-primary-light-5), transparent 60%);
+[39m
+[31m+   opacity: 0.3;
+[39m
+[31m+   pointer-events: none;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-content {
+[39m
+[31m+   position: relative;
+[39m
+[31m+   padding: 32px 40px;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   justify-content: space-between;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   gap: 24px;
+[39m
+[31m+   z-index: 1;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-identity {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   gap: 24px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-avatar {
+[39m
+[31m+   border: 4px solid var(--el-bg-color-overlay);
+[39m
+[31m+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+[39m
+[31m+   flex-shrink: 0;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-avatar--text {
+[39m
+[31m+   width: 80px;
+[39m
+[31m+   height: 80px;
+[39m
+[31m+   border-radius: 50%;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   justify-content: center;
+[39m
+[31m+   background: linear-gradient(135deg, var(--el-color-primary), var(--el-color-primary-light-3));
+[39m
+[31m+   color: #fff;
+[39m
+[31m+   font-size: 32px;
+[39m
+[31m+   font-weight: 600;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-meta {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+   gap: 6px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-title {
+[39m
+[31m+   color: var(--el-text-color-secondary);
+[39m
+[31m+   font-size: 14px;
+[39m
+[31m+   font-weight: 500;
+[39m
+[31m+   letter-spacing: 1px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-name {
+[39m
+[31m+   margin: 0;
+[39m
+[31m+   color: var(--el-text-color-primary);
+[39m
+[31m+   font-size: 28px;
+[39m
+[31m+   font-weight: 700;
+[39m
+[31m+   line-height: 1.2;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-subtitle {
+[39m
+[31m+   margin: 0;
+[39m
+[31m+   color: var(--el-text-color-regular);
+[39m
+[31m+   font-size: 15px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .hero-actions {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   gap: 12px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* 2. Stats Section */
+[39m
+[31m+ .bento-stats {
+[39m
+[31m+   grid-column: span 12;
+[39m
+[31m+   display: grid;
+[39m
+[31m+   grid-template-columns: repeat(3, 1fr);
+[39m
+[31m+   gap: 20px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-card {
+[39m
+[31m+   :deep(.el-card__body) {
+[39m
+[31m+     display: flex;
+[39m
+[31m+     align-items: center;
+[39m
+[31m+     padding: 24px 32px;
+[39m
+[31m+     gap: 24px;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-icon {
+[39m
+[31m+   width: 64px;
+[39m
+[31m+   height: 64px;
+[39m
+[31m+   border-radius: 16px;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   justify-content: center;
+[39m
+[31m+   font-size: 32px;
+[39m
+[31m+   flex-shrink: 0;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-icon--primary {
+[39m
+[31m+   background: var(--el-color-primary-light-9);
+[39m
+[31m+   color: var(--el-color-primary);
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-icon--success {
+[39m
+[31m+   background: var(--el-color-success-light-9);
+[39m
+[31m+   color: var(--el-color-success);
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-icon--warning {
+[39m
+[31m+   background: var(--el-color-warning-light-9);
+[39m
+[31m+   color: var(--el-color-warning);
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-info {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+   gap: 6px;
+[39m
+[31m+   min-width: 0;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-value {
+[39m
+[31m+   font-size: 28px;
+[39m
+[31m+   font-weight: 700;
+[39m
+[31m+   color: var(--el-text-color-primary);
+[39m
+[31m+   line-height: 1.2;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-value--text {
+[39m
+[31m+   font-size: 18px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .stat-label {
+[39m
+[31m+   font-size: 14px;
+[39m
+[31m+   color: var(--el-text-color-secondary);
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* 3. Basic Info & 4. Security Center */
+[39m
+[31m+ .bento-basic {
+[39m
+[31m+   grid-column: span 8;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .bento-security {
+[39m
+[31m+   grid-column: span 4;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-descriptions {
+[39m
+[31m+   :deep(.el-descriptions__cell) {
+[39m
+[31m+     padding-bottom: 20px !important;
+[39m
+[31m+   }
+[39m
+[31m+   :deep(.el-descriptions__label) {
+[39m
+[31m+     width: 100px;
+[39m
+[31m+     color: var(--el-text-color-secondary);
+[39m
+[31m+     font-size: 14px;
+[39m
+[31m+   }
+[39m
+[31m+   :deep(.el-descriptions__content) {
+[39m
+[31m+     color: var(--el-text-color-primary);
+[39m
+[31m+     font-size: 14px;
+[39m
+[31m+     font-weight: 500;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .security-actions {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+   gap: 16px;
+[39m
+[31m+   height: 100%;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .security-btn {
+[39m
+[31m+   width: 100%;
+[39m
+[31m+   margin-left: 0 !important;
+[39m
+[31m+   justify-content: flex-start;
+[39m
+[31m+   padding: 20px 24px;
+[39m
+[31m+   height: auto;
+[39m
+[31m+   font-size: 15px;
+[39m
+[31m+   border-radius: 10px;
+[39m
+[31m+   
+[39m
+[31m+   .el-icon {
+[39m
+[31m+     margin-right: 12px;
+[39m
+[31m+     font-size: 20px;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* 5. Edit Profile */
+[39m
+[31m+ .bento-edit {
+[39m
+[31m+   grid-column: span 12;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-avatar-editor {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   align-items: center;
+[39m
+[31m+   gap: 24px;
+[39m
+[31m+   margin-bottom: 32px;
+[39m
+[31m+   padding-bottom: 32px;
+[39m
+[31m+   border-bottom: 1px dashed var(--el-border-color-lighter);
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .avatar-preview {
+[39m
+[31m+   width: 84px !important;
+[39m
+[31m+   height: 84px !important;
+[39m
+[31m+   font-size: 32px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-avatar-editor__actions {
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+   align-items: flex-start;
+[39m
+[31m+   gap: 12px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-avatar-editor__input {
+[39m
+[31m+   display: none;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-avatar-editor__tip {
+[39m
+[31m+   color: var(--el-text-color-secondary);
+[39m
+[31m+   font-size: 13px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .edit-form-grid {
+[39m
+[31m+   display: grid;
+[39m
+[31m+   grid-template-columns: repeat(3, 1fr);
+[39m
+[31m+   gap: 24px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .profile-actions {
+[39m
+[31m+   margin-top: 32px;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   justify-content: flex-end;
+[39m
+[31m+   gap: 16px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ /* Responsive */
+[39m
+[31m+ @media (max-width: 1024px) {
+[39m
+[31m+   .bento-basic {
+[39m
+[31m+     grid-column: span 12;
+[39m
+[31m+   }
+[39m
+[31m+   .bento-security {
+[39m
+[31m+     grid-column: span 12;
+[39m
+[31m+   }
+[39m
+[31m+   .security-actions {
+[39m
+[31m+     flex-direction: row;
+[39m
+[31m+     flex-wrap: wrap;
+[39m
+[31m+   }
+[39m
+[31m+   .security-btn {
+[39m
+[31m+     width: auto;
+[39m
+[31m+     flex: 1;
+[39m
+[31m+     justify-content: center;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ @media (max-width: 768px) {
+[39m
+[31m+   .hero-content {
+[39m
+[31m+     flex-direction: column;
+[39m
+[31m+     align-items: flex-start;
+[39m
+[31m+     padding: 24px;
+[39m
+[31m+   }
+[39m
+[31m+   .bento-stats {
+[39m
+[31m+     grid-template-columns: 1fr;
+[39m
+[31m+   }
+[39m
+[31m+   .edit-form-grid {
+[39m
+[31m+     grid-template-columns: 1fr;
+[39m
+[31m+   }
+[39m
+[31m+   .security-actions {
+[39m
+[31m+     flex-direction: column;
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ </style>[39m
+[31m+[39m
+
+[36m [2m❯[22m src/views/profile/index.spec.ts:[2m33:24[22m[39m
+    [90m 31| [39m    [34mexpect[39m(pageSource)[33m.[39m[34mtoContain[39m([32m'账号概览'[39m)
+    [90m 32| [39m    [34mexpect[39m(pageSource)[33m.[39m[34mtoContain[39m([32m'基础资料'[39m)
+    [90m 33| [39m    [34mexpect[39m(pageSource)[33m.[39m[34mtoContain[39m([32m'登录信息'[39m)
+    [90m   | [39m                       [31m^[39m
+    [90m 34| [39m    [34mexpect[39m(pageSource)[33m.[39m[34mtoContain[39m([32m'安全中心'[39m)
+    [90m 35| [39m    [34mexpect[39m(pageSource)[33m.[39m[34mtoContain[39m([32m'getProfile'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/views/system/system-list-array-response-compat.spec.ts[2m > [22msystem list pa
+ges[2m > [22msupports array responses for non-paged system list endpoints
+[31m[1mAssertionError[22m: expected '<template>\r\n  <div class="app-conta…' to contain 'Array.isArray(res.data)'[3
+9m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array.isArray(res.data)[39m
+[31m+ <template>
+[39m
+[31m+   <div class="app-container list-page">
+[39m
+[31m+     <el-tabs v-model="activeGroup" class="config-tabs" @tab-change="handleGroupChange">
+[39m
+[31m+       <el-tab-pane v-for="group in configGroups" :key="group.value" :label="group.label" :name="group.value" />
+[39m
+[31m+     </el-tabs>
+[39m
+[31m+ 
+[39m
+[31m+     <el-form :model="queryParams" :inline="true" class="search-form">
+[39m
+[31m+       <el-form-item label="配置键">
+[39m
+[31m+         <el-input v-model="queryParams.configKey" placeholder="请输入配置键" clearable @keyup.enter="handleQuery" />
+[39m
+[31m+       </el-form-item>
+[39m
+[31m+       <el-form-item>
+[39m
+[31m+         <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>
+[39m
+[31m+         <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+[39m
+[31m+       </el-form-item>
+[39m
+[31m+     </el-form>
+[39m
+[31m+ 
+[39m
+[31m+     <el-row :gutter="10" class="mb8">
+[39m
+[31m+       <el-col :span="1.5">
+[39m
+[31m+         <el-button v-if="userStore.hasPermission('system:config:add')" type="primary" plain :icon="Plus" @click=
+"handleAdd">新增</el-button>
+[39m
+[31m+       </el-col>
+[39m
+[31m+     </el-row>
+[39m
+[31m+ 
+[39m
+[31m+     <div class="table-section">
+[39m
+[31m+       <el-table v-loading="loading" :data="tableData" border height="100%">
+[39m
+[31m+         <el-table-column prop="configName" label="配置名称" min-width="120" />
+[39m
+[31m+         <el-table-column prop="configKey" label="配置键" min-width="180" />
+[39m
+[31m+         <el-table-column prop="configValue" label="配置值" min-width="150" show-overflow-tooltip />
+[39m
+[31m+         <el-table-column v-if="!activeGroup" prop="configGroup" label="配置组" min-width="100" />
+[39m
+[31m+         <el-table-column prop="configDesc" label="描述" min-width="150" show-overflow-tooltip />
+[39m
+[31m+         <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
+[39m
+[31m+           <template #default="{ row }">
+[39m
+[31m+             <TableActionGroup
+[39m
+[31m+               :actions="[
+[39m
+[31m+                 { label: '编辑', type: 'primary', icon: Edit, permission: 'system:config:edit', onClick: () => han
+dleEdit(row) },
+[39m
+[31m+                 { label: '删除', type: 'danger', icon: Delete, permission: 'system:config:delete', confirmText: '确
+定删除该配置吗？', onClick: () => handleDelete(row.id) },
+[39m
+[31m+               ]"
+[39m
+[31m+             />
+[39m
+[31m+           </template>
+[39m
+[31m+         </el-table-column>
+[39m
+[31m+       </el-table>
+[39m
+[31m+ 
+[39m
+[31m+       <div class="pagination-container">
+[39m
+[31m+         <el-pagination
+[39m
+[31m+           v-model:current-page="queryParams.page"
+[39m
+[31m+           v-model:page-size="queryParams.size"
+[39m
+[31m+           :total="total"
+[39m
+[31m+           :page-sizes="[10, 20, 50, 100]"
+[39m
+[31m+           layout="total, sizes, prev, pager, next, jumper"
+[39m
+[31m+           class="pagination"
+[39m
+[31m+           @size-change="handleQuery"
+[39m
+[31m+           @current-change="handleQuery"
+[39m
+[31m+         />
+[39m
+[31m+       </div>
+[39m
+[31m+     </div>
+[39m
+[31m+ 
+[39m
+[31m+     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑配置' : '新增配置'" width="500px" @close="handleClose">
+[39m
+[31m+       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+[39m
+[31m+         <el-form-item label="配置名称" prop="configName">
+[39m
+[31m+           <el-input v-model="form.configName" placeholder="请输入配置名称" />
+[39m
+[31m+         </el-form-item>
+[39m
+[31m+         <el-form-item label="配置键" prop="configKey">
+[39m
+[31m+           <el-input v-model="form.configKey" placeholder="请输入配置键" :disabled="isEdit" />
+[39m
+[31m+         </el-form-item>
+[39m
+[31m+         <el-form-item label="配置值" prop="configValue">
+[39m
+[31m+           <el-switch
+[39m
+[31m+             v-if="valueEditorType === 'switch'"
+[39m
+[31m+             v-model="switchValue"
+[39m
+[31m+             active-value="true"
+[39m
+[31m+             inactive-value="false"
+[39m
+[31m+           />
+[39m
+[31m+           <el-input-number
+[39m
+[31m+             v-else-if="valueEditorType === 'number'"
+[39m
+[31m+             v-model="numberValue"
+[39m
+[31m+             :min="0"
+[39m
+[31m+             controls-position="right"
+[39m
+[31m+             style="width: 100%"
+[39m
+[31m+           />
+[39m
+[31m+           <el-input
+[39m
+[31m+             v-else-if="valueEditorType === 'prefix'"
+[39m
+[31m+             v-model="form.configValue"
+[39m
+[31m+             placeholder="请输入配置值"
+[39m
+[31m+             maxlength="10"
+[39m
+[31m+           />
+[39m
+[31m+           <el-input
+[39m
+[31m+             v-else
+[39m
+[31m+             v-model="form.configValue"
+[39m
+[31m+             type="textarea"
+[39m
+[31m+             :rows="3"
+[39m
+[31m+             placeholder="请输入配置值"
+[39m
+[31m+           />
+[39m
+[31m+         </el-form-item>
+[39m
+[31m+         <el-form-item label="配置组" prop="configGroup">
+[39m
+[31m+           <el-select v-model="form.configGroup" placeholder="请选择配置组" clearable>
+[39m
+[31m+             <el-option v-for="group in configGroups.filter(g => g.value)" :key="group.value" :label="group.label
+" :value="group.value" />
+[39m
+[31m+           </el-select>
+[39m
+[31m+         </el-form-item>
+[39m
+[31m+         <el-form-item label="描述" prop="configDesc">
+[39m
+[31m+           <el-input v-model="form.configDesc" type="textarea" :rows="2" placeholder="请输入描述" />
+[39m
+[31m+         </el-form-item>
+[39m
+[31m+       </el-form>
+[39m
+[31m+       <template #footer>
+[39m
+[31m+         <el-button @click="handleClose">取 消</el-button>
+[39m
+[31m+         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
+[39m
+[31m+       </template>
+[39m
+[31m+     </el-dialog>
+[39m
+[31m+   </div>
+[39m
+[31m+ </template>
+[39m
+[31m+ 
+[39m
+[31m+ <script setup lang="ts">
+[39m
+[31m+ import { computed, ref, reactive, onMounted } from 'vue'
+[39m
+[31m+ import type { FormInstance, FormRules } from 'element-plus'
+[39m
+[31m+ import { ElMessage } from 'element-plus'
+[39m
+[31m+ import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+[39m
+[31m+ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+[39m
+[31m+ import { useUserStore } from '@/store/modules/user'
+[39m
+[31m+ import { getConfigPage, addConfig, updateConfig, deleteConfig } from '@/api/system/config'
+[39m
+[31m+ import type { EntityId, SysConfigVo } from '@/types/system'
+[39m
+[31m+ import { normalizePageTotal } from '@/utils/pagination'
+[39m
+[31m+ 
+[39m
+[31m+ const userStore = useUserStore()
+[39m
+[31m+ 
+[39m
+[31m+ const configGroups = [
+[39m
+[31m+   { label: '全部', value: '' },
+[39m
+[31m+   { label: '安全策略', value: 'security' },
+[39m
+[31m+   { label: '认证策略', value: 'auth' },
+[39m
+[31m+   { label: '系统参数', value: 'system' },
+[39m
+[31m+   { label: '文件存储', value: 'storage' },
+[39m
+[31m+   { label: '业务参数', value: 'business' },
+[39m
+[31m+   { label: '标签打印', value: 'label' },
+[39m
+[31m+   { label: '报表统计', value: 'report' },
+[39m
+[31m+   { label: '系统信息', value: 'info' },
+[39m
+[31m+ ]
+[39m
+[31m+ 
+[39m
+[31m+ const activeGroup = ref('')
+[39m
+[31m+ const loading = ref(false)
+[39m
+[31m+ const tableData = ref<SysConfigVo[]>([])
+[39m
+[31m+ const total = ref(0)
+[39m
+[31m+ 
+[39m
+[31m+ const queryParams = reactive({
+[39m
+[31m+   page: 1,
+[39m
+[31m+   size: 20,
+[39m
+[31m+   configKey: '',
+[39m
+[31m+   configGroup: ''
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ const dialogVisible = ref(false)
+[39m
+[31m+ const isEdit = ref(false)
+[39m
+[31m+ const formRef = ref<FormInstance>()
+[39m
+[31m+ const submitLoading = ref(false)
+[39m
+[31m+ 
+[39m
+[31m+ const form = reactive({
+[39m
+[31m+   id: undefined as EntityId | undefined,
+[39m
+[31m+   configName: '',
+[39m
+[31m+   configKey: '',
+[39m
+[31m+   configValue: '',
+[39m
+[31m+   configGroup: '',
+[39m
+[31m+   configDesc: ''
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ const rules: FormRules = {
+[39m
+[31m+   configName: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
+[39m
+[31m+   configKey: [{ required: true, message: '请输入配置键', trigger: 'blur' }],
+[39m
+[31m+   configValue: [{ required: true, message: '请输入配置值', trigger: 'blur' }]
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ const switchValue = computed({
+[39m
+[31m+   get: () => form.configValue,
+[39m
+[31m+   set: (val: string | number | boolean) => { form.configValue = String(val) }
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ const numberValue = computed({
+[39m
+[31m+   get: () => Number(form.configValue) || 0,
+[39m
+[31m+   set: (val: number) => { form.configValue = String(val) }
+[39m
+[31m+ })
+[39m
+[31m+ 
+[39m
+[31m+ function getValueEditorType(configKey: string): 'switch' | 'number' | 'prefix' | 'text' {
+[39m
+[31m+   if (/\.enabled$|\.switch$|captcha\.enabled/.test(configKey)) return 'switch'
+[39m
+[31m+   if (/\.limit$|\.max$|\.size$|\.days$|\.timeout$|\.threshold$|\.expiry/.test(configKey)) return 'number'
+[39m
+[31m+   if (/\.prefix$/.test(configKey)) return 'prefix'
+[39m
+[31m+   return 'text'
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ const valueEditorType = computed(() => getValueEditorType(form.configKey))
+[39m
+[31m+ 
+[39m
+[31m+ async function handleQuery() {
+[39m
+[31m+   loading.value = true
+[39m
+[31m+   try {
+[39m
+[31m+     const res = await getConfigPage(queryParams)
+[39m
+[31m+     tableData.value = res.data.records
+[39m
+[31m+     total.value = normalizePageTotal(res.data.total)
+[39m
+[31m+   } finally {
+[39m
+[31m+     loading.value = false
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleGroupChange() {
+[39m
+[31m+   queryParams.configGroup = activeGroup.value
+[39m
+[31m+   queryParams.page = 1
+[39m
+[31m+   handleQuery()
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleReset() {
+[39m
+[31m+   queryParams.configKey = ''
+[39m
+[31m+   queryParams.page = 1
+[39m
+[31m+   handleQuery()
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleAdd() {
+[39m
+[31m+   isEdit.value = false
+[39m
+[31m+   Object.assign(form, { id: undefined, configName: '', configKey: '', configValue: '', configGroup: activeGroup.
+value || '', configDesc: '' })
+[39m
+[31m+   dialogVisible.value = true
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleEdit(row: SysConfigVo) {
+[39m
+[31m+   isEdit.value = true
+[39m
+[31m+   Object.assign(form, { id: row.id, configName: row.configName, configKey: row.configKey, configValue: row.confi
+gValue, configGroup: row.configGroup, configDesc: row.configDesc })
+[39m
+[31m+   dialogVisible.value = true
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ async function handleSubmit() {
+[39m
+[31m+   await formRef.value?.validate()
+[39m
+[31m+   submitLoading.value = true
+[39m
+[31m+   try {
+[39m
+[31m+     const dto = {
+[39m
+[31m+       configKey: form.configKey,
+[39m
+[31m+       configValue: form.configValue,
+[39m
+[31m+       configName: form.configName,
+[39m
+[31m+       configGroup: form.configGroup,
+[39m
+[31m+       configDesc: form.configDesc
+[39m
+[31m+     }
+[39m
+[31m+     if (isEdit.value && form.id) {
+[39m
+[31m+       await updateConfig(form.id, dto)
+[39m
+[31m+       ElMessage.success('编辑成功')
+[39m
+[31m+     } else {
+[39m
+[31m+       await addConfig(dto)
+[39m
+[31m+       ElMessage.success('新增成功')
+[39m
+[31m+     }
+[39m
+[31m+     handleClose()
+[39m
+[31m+     handleQuery()
+[39m
+[31m+   } finally {
+[39m
+[31m+     submitLoading.value = false
+[39m
+[31m+   }
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ async function handleDelete(id: EntityId) {
+[39m
+[31m+   await deleteConfig(id)
+[39m
+[31m+   ElMessage.success('删除成功')
+[39m
+[31m+   if (tableData.value.length === 1 && queryParams.page > 1) {
+[39m
+[31m+     queryParams.page -= 1
+[39m
+[31m+   }
+[39m
+[31m+   handleQuery()
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ function handleClose() {
+[39m
+[31m+   dialogVisible.value = false
+[39m
+[31m+   formRef.value?.resetFields()
+[39m
+[31m+   Object.assign(form, { id: undefined, configName: '', configKey: '', configValue: '', configGroup: '', configDe
+sc: '' })
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ onMounted(() => {
+[39m
+[31m+   handleQuery()
+[39m
+[31m+ })
+[39m
+[31m+ </script>
+[39m
+[31m+ 
+[39m
+[31m+ <style scoped lang="scss">
+[39m
+[31m+ .app-container.list-page {
+[39m
+[31m+   padding: 20px;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+   min-height: 0;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .config-tabs {
+[39m
+[31m+   margin-bottom: 16px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .table-section {
+[39m
+[31m+   flex: 1;
+[39m
+[31m+   min-height: 0;
+[39m
+[31m+   display: flex;
+[39m
+[31m+   flex-direction: column;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .pagination-container {
+[39m
+[31m+   margin-top: 16px;
+[39m
+[31m+   flex-shrink: 0;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .search-form {
+[39m
+[31m+   margin-bottom: 16px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .mb8 {
+[39m
+[31m+   margin-bottom: 8px;
+[39m
+[31m+ }
+[39m
+[31m+ 
+[39m
+[31m+ .pagination {
+[39m
+[31m+   justify-content: flex-end;
+[39m
+[31m+ }
+[39m
+[31m+ </style>
+[39m
+[31m+[39m
+
+[36m [2m❯[22m src/views/system/system-list-array-response-compat.spec.ts:[2m15:24[22m[39m
+    [90m 13| [39m    [35mconst[39m configApi [33m=[39m [34mreadFileSync[39m(path[33m.[39m[34mresolve[39m(ap
+iRoot[33m,[39m [32m'config.ts'[39m)[33m,[39m…
+    [90m 14| [39m
+    [90m 15| [39m    [34mexpect[39m(configPage)[33m.[39m[34mtoContain[39m([32m'Array.isArray(res.data)'[39m)
+    [90m   | [39m                       [31m^[39m
+    [90m 16| [39m    [34mexpect[39m(configApi)[33m.[39m[34mtoContain[39m([32m'PageResult<SysConfigVo> | SysCon
+figVo[39m…
+    [90m 17| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/views/system/system-pagination-layout.spec.ts[2m > [22msystem pagination layou
+t[2m > [22muses fixed pagination layout and normalized totals on paged system pages
+[31m[1mAssertionError[22m: expected [ { …(2) } ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Array [][39m
+[31m+ Array [[39m
+[31m+   Object {[39m
+[31m+     "relativePath": "role/index.vue",[39m
+[31m+     "totalPattern": "normalizePageTotal(res.data.total)",[39m
+[31m+   },[39m
+[31m+ ][39m
+
+[36m [2m❯[22m src/views/system/system-pagination-layout.spec.ts:[2m33:26[22m[39m
+    [90m 31| [39m    })
+    [90m 32| [39m
+    [90m 33| [39m    [34mexpect[39m(invalidPages)[33m.[39m[34mtoEqual[39m([])
+    [90m   | [39m                         [31m^[39m
+    [90m 34| [39m  })
+    [90m 35| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/views/__tests__/table-action-column.spec.ts[2m > [22mtable action columns[2m 
+> [22msets explicit min-width on role and user action columns with three inline actions
+[31m[1mAssertionError[22m: expected '<script setup lang="ts">\nimport { on…' to match /<el-table-column\b[^>]*label=
+"操作"[^>]…/[39m
+
+[32m- Expected:[39m 
+/<el-table-column\b[^>]*label="操作"[^>]*min-width="240"[^>]*>/
+
+[31m+ Received:[39m 
+"<script setup lang=\"ts\">
+import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Search, Refresh, Plus, Edit, Delete, Menu, Lock } from '@element-plus/icons-vue'
+import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import { getRoleList, deleteRole } from '@/api/system/role'
+import { useUserStore } from '@/store/modules/user'
+import type { EntityId, SysRoleVo } from '@/types/system'
+import { normalizePageTotal } from '@/utils/pagination'
+import RoleForm from './components/RoleForm.vue'
+import RoleMenu from './components/RoleMenu.vue'
+import RolePermission from './components/RolePermission.vue'
+
+const dataScopeMap: Record<number, string> = {
+  1: '全部数据',
+  2: '自定义数据',
+  3: '本部门数据',
+  4: '本部门及以下数据',
+  5: '仅本人数据'
+}
+
+const loading = ref(false)
+const userStore = useUserStore()
+const tableData = ref<SysRoleVo[]>([])
+const total = ref(0)
+
+const queryParams = reactive({
+  page: 1,
+  size: 20,
+  roleName: '',
+  roleCode: '',
+  status: undefined as number | undefined
+})
+
+const formVisible = ref(false)
+const menuVisible = ref(false)
+const permissionVisible = ref(false)
+const isEdit = ref(false)
+const currentRow = ref<SysRoleVo | null>(null)
+
+async function handleQuery() {
+  loading.value = true
+  try {
+    const res = await getRoleList(queryParams)
+    const roles = Array.isArray(res.data) ? res.data : res.data.records
+    tableData.value = roles
+    total.value = normalizePageTotal(Array.isArray(res.data) ? roles.length : res.data.total)
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleReset() {
+  Object.assign(queryParams, { page: 1, roleName: '', roleCode: '', status: undefined })
+  handleQuery()
+}
+
+function handleAdd() {
+  isEdit.value = false
+  currentRow.value = null
+  formVisible.value = true
+}
+
+function handleEdit(row: SysRoleVo) {
+  isEdit.value = true
+  currentRow.value = row
+  formVisible.value = true
+}
+
+function handleAssignMenu(row: SysRoleVo) {
+  currentRow.value = row
+  menuVisible.value = true
+}
+
+function handleAssignPermission(row: SysRoleVo) {
+  currentRow.value = row
+  permissionVisible.value = true
+}
+
+async function handleDelete(id: EntityId) {
+  await deleteRole(id)
+  ElMessage.success('删除成功')
+  await handleQuery()
+}
+
+onMounted(handleQuery)
+</script>
+
+<template>
+  <div class=\"app-container list-page\">
+    <el-form :model=\"queryParams\" :inline=\"true\" class=\"search-form\">
+      <el-form-item label=\"角色名称\">
+        <el-input v-model=\"queryParams.roleName\" placeholder=\"请输入角色名称\" clearable @keyup.enter=\"handleQuery\" />
+      </el-form-item>
+      <el-form-item label=\"角色编码\">
+        <el-input v-model=\"queryParams.roleCode\" placeholder=\"请输入角色编码\" clearable @keyup.enter=\"handleQuery\" />
+      </el-form-item>
+      <el-form-item label=\"状态\">
+        <el-select v-model=\"queryParams.status\" placeholder=\"请选择状态\" clearable>
+          <el-option label=\"启用\" :value=\"1\" />
+          <el-option label=\"禁用\" :value=\"0\" />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type=\"primary\" :icon=\"Search\" @click=\"handleQuery\">搜索</el-button>
+        <el-button :icon=\"Refresh\" @click=\"handleReset\">重置</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-row :gutter=\"10\" class=\"mb8\">
+      <el-col :span=\"1.5\">
+        <el-button v-if=\"userStore.hasPermission('system:role:add')\" type=\"primary\" plain :icon=\"Plus\" @click=\"h
+andleAdd\">新增</el-button>
+      </el-col>
+    </el-row>
+
+    <div class=\"table-section\">
+      <el-table v-loading=\"loading\" :data=\"tableData\" border height=\"100%\">
+        <el-table-column prop=\"roleName\" label=\"角色名称\" min-width=\"120\" />
+        <el-table-column prop=\"roleCode\" label=\"角色编码\" min-width=\"120\" />
+        <el-table-column prop=\"roleDesc\" label=\"角色描述\" min-width=\"150\" show-overflow-tooltip />
+        <el-table-column prop=\"dataScope\" label=\"数据范围\" min-width=\"160\">
+          <template #default=\"{ row }\">
+            {{ dataScopeMap[row.dataScope] || '未知' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop=\"status\" label=\"状态\" min-width=\"80\">
+          <template #default=\"{ row }\">
+            <el-tag :type=\"row.status === 1 ? 'success' : 'danger'\">
+              {{ row.status === 1 ? '启用' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label=\"操作\" class-name=\"table-action-column\" fixed=\"right\" min-width=\"300\">
+          <template #default=\"{ row }\">
+            <TableActionGroup
+              :actions=\"[
+                { label: '编辑', type: 'primary', icon: Edit, permission: 'system:role:edit', onClick: () => handleEdit(r
+ow) },
+                { label: '菜单', type: 'success', icon: Menu, permission: 'system:role:edit', onClick: () => handleAssign
+Menu(row) },
+                { label: '权限', type: 'warning', icon: Lock, permission: 'system:role:edit', onClick: () => handleAssign
+Permission(row) },
+                { label: '删除', type: 'danger', icon: Delete, permission: 'system:role:delete', confirmText: '确认删除该角色？',
+ onClick: () => handleDelete(row.id) }
+              ]\"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class=\"pagination-container\">
+        <el-pagination
+          v-model:current-page=\"queryParams.page\"
+          v-model:page-size=\"queryParams.size\"
+          :total=\"total\"
+          :page-sizes=\"[10, 20, 50, 100]\"
+          layout=\"total, sizes, prev, pager, next, jumper\"
+          class=\"pagination\"
+          @size-change=\"handleQuery\"
+          @current-change=\"handleQuery\"
+        />
+      </div>
+    </div>
+
+    <RoleForm v-model:visible=\"formVisible\" :is-edit=\"isEdit\" :form-data=\"currentRow\" @success=\"handleQuery\" />
+    <RoleMenu v-model:visible=\"menuVisible\" :role-id=\"currentRow?.id\" :role-name=\"currentRow?.roleName\" @success=
+\"handleQuery\" />
+    <RolePermission
+      v-model:visible=\"permissionVisible\"
+      :role-id=\"currentRow?.id\"
+      :role-name=\"currentRow?.roleName\"
+      @success=\"handleQuery\"
+    />
+  </div>
+</template>
+
+<style scoped lang=\"scss\">
+.app-container.list-page {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.mb8 {
+  margin-bottom: 8px;
+}
+
+.pagination {
+  justify-content: flex-end;
+}
+</style>
+"
+
+[36m [2m❯[22m src/views/__tests__/table-action-column.spec.ts:[2m127:24[22m[39m
+    [90m125| [39m    [35mconst[39m userSource [33m=[39m [34mreadFileSync[39m(userPageFile[33m,[39m [32m'utf-
+8'[39m)
+    [90m126| [39m
+    [90m127| [39m    [34mexpect[39m(roleSource)[33m.[39m[34mtoMatch[39m([36m/<el-table-column\b[^>]*label="操作"
+[^>[39m…
+    [90m   | [39m                       [31m^[39m
+    [90m128| [39m    [34mexpect[39m(userSource)[33m.[39m[34mtoMatch[39m([36m/<el-table-column\b[^>]*label="操作"
+[^>[39m…
+    [90m129| [39m  })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/views/system/role/role-list.spec.ts[2m > [22mrole list page[2m > [22msupport
+s both array and paged role list responses
+[31m[1mAssertionError[22m: expected '<script setup lang="ts">\nimport { on…' to contain 'roles.length : normalizePag
+eTotal(res…'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- roles.length : normalizePageTotal(res.data.total)[39m
+[31m+ <script setup lang="ts">[39m
+[31m+ import { onMounted, reactive, ref } from 'vue'[39m
+[31m+ import { ElMessage } from 'element-plus'[39m
+[31m+ import { Search, Refresh, Plus, Edit, Delete, Menu, Lock } from '@element-plus/icons-vue'[39m
+[31m+ import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'[39m
+[31m+ import { getRoleList, deleteRole } from '@/api/system/role'[39m
+[31m+ import { useUserStore } from '@/store/modules/user'[39m
+[31m+ import type { EntityId, SysRoleVo } from '@/types/system'[39m
+[31m+ import { normalizePageTotal } from '@/utils/pagination'[39m
+[31m+ import RoleForm from './components/RoleForm.vue'[39m
+[31m+ import RoleMenu from './components/RoleMenu.vue'[39m
+[31m+ import RolePermission from './components/RolePermission.vue'[39m
+[31m+[39m
+[31m+ const dataScopeMap: Record<number, string> = {[39m
+[31m+   1: '全部数据',[39m
+[31m+   2: '自定义数据',[39m
+[31m+   3: '本部门数据',[39m
+[31m+   4: '本部门及以下数据',[39m
+[31m+   5: '仅本人数据'[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ const loading = ref(false)[39m
+[31m+ const userStore = useUserStore()[39m
+[31m+ const tableData = ref<SysRoleVo[]>([])[39m
+[31m+ const total = ref(0)[39m
+[31m+[39m
+[31m+ const queryParams = reactive({[39m
+[31m+   page: 1,[39m
+[31m+   size: 20,[39m
+[31m+   roleName: '',[39m
+[31m+   roleCode: '',[39m
+[31m+   status: undefined as number | undefined[39m
+[31m+ })[39m
+[31m+[39m
+[31m+ const formVisible = ref(false)[39m
+[31m+ const menuVisible = ref(false)[39m
+[31m+ const permissionVisible = ref(false)[39m
+[31m+ const isEdit = ref(false)[39m
+[31m+ const currentRow = ref<SysRoleVo | null>(null)[39m
+[31m+[39m
+[31m+ async function handleQuery() {[39m
+[31m+   loading.value = true[39m
+[31m+   try {[39m
+[31m+     const res = await getRoleList(queryParams)[39m
+[31m+     const roles = Array.isArray(res.data) ? res.data : res.data.records[39m
+[31m+     tableData.value = roles[39m
+[31m+     total.value = normalizePageTotal(Array.isArray(res.data) ? roles.length : res.data.total)[39m
+[31m+   } finally {[39m
+[31m+     loading.value = false[39m
+[31m+   }[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ function handleReset() {[39m
+[31m+   Object.assign(queryParams, { page: 1, roleName: '', roleCode: '', status: undefined })[39m
+[31m+   handleQuery()[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ function handleAdd() {[39m
+[31m+   isEdit.value = false[39m
+[31m+   currentRow.value = null[39m
+[31m+   formVisible.value = true[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ function handleEdit(row: SysRoleVo) {[39m
+[31m+   isEdit.value = true[39m
+[31m+   currentRow.value = row[39m
+[31m+   formVisible.value = true[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ function handleAssignMenu(row: SysRoleVo) {[39m
+[31m+   currentRow.value = row[39m
+[31m+   menuVisible.value = true[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ function handleAssignPermission(row: SysRoleVo) {[39m
+[31m+   currentRow.value = row[39m
+[31m+   permissionVisible.value = true[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ async function handleDelete(id: EntityId) {[39m
+[31m+   await deleteRole(id)[39m
+[31m+   ElMessage.success('删除成功')[39m
+[31m+   await handleQuery()[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ onMounted(handleQuery)[39m
+[31m+ </script>[39m
+[31m+[39m
+[31m+ <template>[39m
+[31m+   <div class="app-container list-page">[39m
+[31m+     <el-form :model="queryParams" :inline="true" class="search-form">[39m
+[31m+       <el-form-item label="角色名称">[39m
+[31m+         <el-input v-model="queryParams.roleName" placeholder="请输入角色名称" clearable @keyup.enter="handleQuery" />[
+39m
+[31m+       </el-form-item>[39m
+[31m+       <el-form-item label="角色编码">[39m
+[31m+         <el-input v-model="queryParams.roleCode" placeholder="请输入角色编码" clearable @keyup.enter="handleQuery" />[
+39m
+[31m+       </el-form-item>[39m
+[31m+       <el-form-item label="状态">[39m
+[31m+         <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>[39m
+[31m+           <el-option label="启用" :value="1" />[39m
+[31m+           <el-option label="禁用" :value="0" />[39m
+[31m+         </el-select>[39m
+[31m+       </el-form-item>[39m
+[31m+       <el-form-item>[39m
+[31m+         <el-button type="primary" :icon="Search" @click="handleQuery">搜索</el-button>[39m
+[31m+         <el-button :icon="Refresh" @click="handleReset">重置</el-button>[39m
+[31m+       </el-form-item>[39m
+[31m+     </el-form>[39m
+[31m+[39m
+[31m+     <el-row :gutter="10" class="mb8">[39m
+[31m+       <el-col :span="1.5">[39m
+[31m+         <el-button v-if="userStore.hasPermission('system:role:add')" type="primary" plain :icon="Plus" @click="h
+andleAdd">新增</el-button>[39m
+[31m+       </el-col>[39m
+[31m+     </el-row>[39m
+[31m+[39m
+[31m+     <div class="table-section">[39m
+[31m+       <el-table v-loading="loading" :data="tableData" border height="100%">[39m
+[31m+         <el-table-column prop="roleName" label="角色名称" min-width="120" />[39m
+[31m+         <el-table-column prop="roleCode" label="角色编码" min-width="120" />[39m
+[31m+         <el-table-column prop="roleDesc" label="角色描述" min-width="150" show-overflow-tooltip />[39m
+[31m+         <el-table-column prop="dataScope" label="数据范围" min-width="160">[39m
+[31m+           <template #default="{ row }">[39m
+[31m+             {{ dataScopeMap[row.dataScope] || '未知' }}[39m
+[31m+           </template>[39m
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m53 passed[39m[22m[90m (58)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m237 passed[39m[22m[90m (242)[39m
+[2m   Start at [22m 11:26:07
+[2m   Duration [22m 2.66s[2m (transform 3.07s, setup 0ms, collect 8.27s, tests 498ms, environment 16ms, prepare 14.22s)[22m
+
+[31m+         </el-table-column>[39m
+[31m+         <el-table-column prop="status" label="状态" min-width="80">[39m
+[31m+           <template #default="{ row }">[39m
+[31m+             <el-tag :type="row.status === 1 ? 'success' : 'danger'">[39m
+[31m+               {{ row.status === 1 ? '启用' : '禁用' }}[39m
+[31m+             </el-tag>[39m
+[31m+           </template>[39m
+[31m+         </el-table-column>[39m
+[31m+         <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="300">[39m
+[31m+           <template #default="{ row }">[39m
+[31m+             <TableActionGroup[39m
+[31m+               :actions="[[39m
+[31m+                 { label: '编辑', type: 'primary', icon: Edit, permission: 'system:role:edit', onClick: () => handl
+eEdit(row) },[39m
+[31m+                 { label: '菜单', type: 'success', icon: Menu, permission: 'system:role:edit', onClick: () => handl
+eAssignMenu(row) },[39m
+[31m+                 { label: '权限', type: 'warning', icon: Lock, permission: 'system:role:edit', onClick: () => handl
+eAssignPermission(row) },[39m
+[31m+                 { label: '删除', type: 'danger', icon: Delete, permission: 'system:role:delete', confirmText: '确认删
+除该角色？', onClick: () => handleDelete(row.id) }[39m
+[31m+               ]"[39m
+[31m+             />[39m
+[31m+           </template>[39m
+[31m+         </el-table-column>[39m
+[31m+       </el-table>[39m
+[31m+[39m
+[31m+       <div class="pagination-container">[39m
+[31m+         <el-pagination[39m
+[31m+           v-model:current-page="queryParams.page"[39m
+[31m+           v-model:page-size="queryParams.size"[39m
+[31m+           :total="total"[39m
+[31m+           :page-sizes="[10, 20, 50, 100]"[39m
+[31m+           layout="total, sizes, prev, pager, next, jumper"[39m
+[31m+           class="pagination"[39m
+[31m+           @size-change="handleQuery"[39m
+[31m+           @current-change="handleQuery"[39m
+[31m+         />[39m
+[31m+       </div>[39m
+[31m+     </div>[39m
+[31m+[39m
+[31m+     <RoleForm v-model:visible="formVisible" :is-edit="isEdit" :form-data="currentRow" @success="handleQuery" />
+[39m
+[31m+     <RoleMenu v-model:visible="menuVisible" :role-id="currentRow?.id" :role-name="currentRow?.roleName" @success
+="handleQuery" />[39m
+[31m+     <RolePermission[39m
+[31m+       v-model:visible="permissionVisible"[39m
+[31m+       :role-id="currentRow?.id"[39m
+[31m+       :role-name="currentRow?.roleName"[39m
+[31m+       @success="handleQuery"[39m
+[31m+     />[39m
+[31m+   </div>[39m
+[31m+ </template>[39m
+[31m+[39m
+[31m+ <style scoped lang="scss">[39m
+[31m+ .app-container.list-page {[39m
+[31m+   padding: 20px;[39m
+[31m+   display: flex;[39m
+[31m+   flex-direction: column;[39m
+[31m+   min-height: 0;[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ .table-section {[39m
+[31m+   flex: 1;[39m
+[31m+   min-height: 0;[39m
+[31m+   display: flex;[39m
+[31m+   flex-direction: column;[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ .pagination-container {[39m
+[31m+   margin-top: 16px;[39m
+[31m+   flex-shrink: 0;[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ .search-form {[39m
+[31m+   margin-bottom: 16px;[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ .mb8 {[39m
+[31m+   margin-bottom: 8px;[39m
+[31m+ }[39m
+[31m+[39m
+[31m+ .pagination {[39m
+[31m+   justify-content: flex-end;[39m
+[31m+ }[39m
+[31m+ </style>[39m
+[31m+[39m
+
+[36m [2m❯[22m src/views/system/role/role-list.spec.ts:[2m15:20[22m[39m
+    [90m 13| [39m    [34mexpect[39m(source)[33m.[39m[34mtoContain[39m([32m'Array.isArray(res.data)'[39m)
+    [90m 14| [39m    [34mexpect[39m(source)[33m.[39m[34mtoContain[39m([32m'res.data.records'[39m)
+    [90m 15| [39m    [34mexpect[39m(source)[33m.[39m[34mtoContain[39m([32m'roles.length : normalizePageTotal(r
+es.da[39m…
+    [90m   | [39m                   [31m^[39m
+    [90m 16| [39m  })
+    [90m 17| [39m})
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯[22m[39m
+

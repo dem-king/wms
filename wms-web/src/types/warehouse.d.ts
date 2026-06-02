@@ -61,6 +61,18 @@ export interface WmsAreaVo {
   sortOrder: number
   /** 状态(0-禁用 1-启用) */
   status: number
+  /** X坐标(画布自由定位) */
+  coordX?: number | null
+  /** Y坐标(画布自由定位) */
+  coordY?: number | null
+  /** 区域形状类型(rect/polygon) */
+  shapeType?: 'rect' | 'polygon' | null
+  /** 多边形顶点坐标JSON */
+  polygonPoints?: string | null
+  /** 标题相对X坐标 */
+  labelX?: number | null
+  /** 标题相对Y坐标 */
+  labelY?: number | null
   /** 创建时间 */
   createTime: string
 }

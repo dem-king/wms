@@ -73,6 +73,13 @@
       </el-table-column>
       <el-table-column prop="specModel" label="规格型号" min-width="120" />
       <el-table-column prop="unit" label="单位" min-width="80" />
+      <el-table-column label="库位" min-width="150">
+        <template #default="{ row }">
+          <el-select v-model="row.binId" placeholder="请选择库位" filterable :disabled="!form.warehouseId">
+            <el-option v-for="bin in binList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="数量" min-width="120">
         <template #default="{ row }">
           <el-input-number v-model="row.quantity" :min="1" size="small" @change="calcAmount(row)" />
@@ -110,6 +117,7 @@ import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { addInboundOrder, scanInboundOrder, updateInboundOrder } from '@/api/business/inbound'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
+import { getBinListByWarehouse } from '@/api/warehouse/bin'
 import { getSupplierList } from '@/api/system/supplier'
 import { getItemList } from '@/api/item/item'
 import { collectScannedLabelIds, mergeScannedDetail } from '@/views/business/order-scan'
@@ -117,15 +125,19 @@ import type {
   EntityId,
   InboundOrderVo,
   InboundOrderDto,
-  InboundDetailDto,
   InboundType,
   OrderScanDetailRow,
 } from '@/types/business'
-import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { WmsBinVo, WmsWarehouseVo } from '@/types/warehouse'
 import type { SysSupplierVo } from '@/types/system'
 import type { WmsItemVo } from '@/types/item'
 
-interface DetailRow extends InboundDetailDto, OrderScanDetailRow {}
+interface DetailRow extends OrderScanDetailRow {
+  itemId: EntityId
+  quantity: number
+  unitPrice: number
+  binId?: EntityId
+}
 
 interface ScanFeedback {
   type: 'success' | 'warning' | 'error'
@@ -146,6 +158,7 @@ const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
+const binList = ref<WmsBinVo[]>([])
 const supplierList = ref<SysSupplierVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
 const scanCode = ref('')
@@ -187,6 +200,7 @@ watch(() => props.visible, async (val) => {
           itemId: d.itemId,
           quantity: d.quantity,
           unitPrice: d.unitPrice,
+          binId: d.binId,
           specModel: d.specModel,
           unit: d.unit,
           amount: d.amount,
@@ -197,6 +211,12 @@ watch(() => props.visible, async (val) => {
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
+watch(() => form.warehouseId, async (warehouseId, oldWarehouseId) => {
+  await loadBinsByWarehouse(warehouseId)
+  if (oldWarehouseId !== undefined) {
+    clearInvalidDetailBins()
+  }
+})
 
 async function loadOptions() {
   const [whRes, sRes, iRes] = await Promise.all([
@@ -209,8 +229,26 @@ async function loadOptions() {
   itemList.value = iRes.data.records
 }
 
+async function loadBinsByWarehouse(warehouseId: EntityId | undefined) {
+  if (!warehouseId) {
+    binList.value = []
+    return
+  }
+  const res = await getBinListByWarehouse(warehouseId)
+  binList.value = res.data
+}
+
+function clearInvalidDetailBins() {
+  const validBinIds = new Set(binList.value.map(bin => bin.id))
+  form.details.forEach((detail) => {
+    if (detail.binId && !validBinIds.has(detail.binId)) {
+      detail.binId = undefined
+    }
+  })
+}
+
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, unitPrice: 0, specModel: '', unit: '', amount: 0 })
+  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, unitPrice: 0, binId: undefined, specModel: '', unit: '', amount: 0 })
 }
 
 function syncDetailRowFromItem(row: DetailRow) {
@@ -286,6 +324,10 @@ async function handleSubmit() {
     ElMessage.warning('请添加入库明细')
     return
   }
+  if (form.details.some(detail => !detail.binId)) {
+    ElMessage.warning('请选择明细库位')
+    return
+  }
   submitLoading.value = true
   try {
     const dto: InboundOrderDto = {
@@ -293,7 +335,7 @@ async function handleSubmit() {
       supplierId: form.supplierId!,
       inboundType: form.inboundType as InboundType,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice, binId: d.binId })),
+      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity, unitPrice: d.unitPrice, binId: d.binId! })),
     }
     if (props.isEdit && props.formData) {
       await updateInboundOrder(props.formData.id, dto)
@@ -313,6 +355,7 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { warehouseId: undefined, supplierId: undefined, inboundType: '', remark: '', details: [] })
+  binList.value = []
   resetScanState()
 }
 </script>

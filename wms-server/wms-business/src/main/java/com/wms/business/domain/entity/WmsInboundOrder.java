@@ -30,6 +30,10 @@ public class WmsInboundOrder extends BaseEntity {
     @Schema(description = "供应商ID")
     private Long supplierId;
 
+    /** 操作人ID */
+    @Schema(description = "操作人ID")
+    private Long operatorId;
+
     /** 入库类型(1-采购入库 2-归还入库 3-调拨入库) */
     @Schema(description = "入库类型(1-采购入库 2-归还入库 3-调拨入库)")
     private Integer orderType;

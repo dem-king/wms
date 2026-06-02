@@ -91,7 +91,7 @@ describe('inbound api', () => {
       supplierId: '2',
       inboundType: 'PURCHASE',
       remark: '',
-      details: [{ itemId: '1', quantity: 1, unitPrice: 0 }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0, binId: '3' }],
     })
     submitInboundOrder('10')
     deleteInboundOrder('10')
@@ -103,7 +103,7 @@ describe('inbound api', () => {
       supplierId: '2',
       orderType: 1,
       remark: '',
-      details: [{ itemId: '1', quantity: 1, unitPrice: 0, binId: undefined }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0, binId: '3' }],
     })
     expect(requestMocks.post).toHaveBeenCalledWith('/inbound/10/submit')
     expect(requestMocks.del).toHaveBeenCalledWith('/inbound/10')

@@ -6,6 +6,7 @@ import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.common.domain.R;
 import com.wms.warehouse.domain.dto.AreaDto;
+import com.wms.warehouse.domain.dto.AreaLayoutBatchDto;
 import com.wms.warehouse.domain.vo.AreaVo;
 import com.wms.warehouse.service.AreaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,5 +86,16 @@ public class AreaController {
     public R<Void> delete(@PathVariable Long id) {
         areaService.delete(id);
         return R.ok();
+    }
+
+    /**
+     * 批量更新区域坐标
+     */
+    @Operation(summary = "批量更新区域坐标")
+    @PutMapping("/layout-coordinates")
+    @PreAuthorize("hasAuthority('warehouse:visual:edit')")
+    @OperLog(module = "warehouse", type = "更新", desc = "批量更新区域坐标")
+    public R<Integer> updateLayoutCoordinates(@Valid @RequestBody AreaLayoutBatchDto dto) {
+        return R.ok(areaService.updateLayoutCoordinates(dto.getItems()));
     }
 }

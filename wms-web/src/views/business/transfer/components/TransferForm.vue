@@ -34,6 +34,20 @@
           </el-select>
         </template>
       </el-table-column>
+      <el-table-column label="调出库位" min-width="150">
+        <template #default="{ row }">
+          <el-select v-model="row.fromBinId" placeholder="请选择调出库位" filterable :disabled="!form.fromWarehouseId">
+            <el-option v-for="bin in fromBinList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
+          </el-select>
+        </template>
+      </el-table-column>
+      <el-table-column label="调入库位" min-width="150">
+        <template #default="{ row }">
+          <el-select v-model="row.toBinId" placeholder="请选择调入库位" filterable :disabled="!form.toWarehouseId">
+            <el-option v-for="bin in toBinList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="调拨数量" min-width="120">
         <template #default="{ row }">
           <el-input-number v-model="row.quantity" :min="1" size="small" />
@@ -65,12 +79,16 @@ import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { addTransferOrder, updateTransferOrder } from '@/api/business/transfer'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
+import { getBinListByWarehouse } from '@/api/warehouse/bin'
 import { getItemList } from '@/api/item/item'
 import type { EntityId, TransferOrderVo, TransferOrderDto, TransferDetailDto } from '@/types/business'
-import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { WmsBinVo, WmsWarehouseVo } from '@/types/warehouse'
 import type { WmsItemVo } from '@/types/item'
 
-interface DetailRow extends TransferDetailDto {}
+interface DetailRow extends Omit<TransferDetailDto, 'fromBinId' | 'toBinId'> {
+  fromBinId?: EntityId
+  toBinId?: EntityId
+}
 
 const props = defineProps<{
   visible: boolean
@@ -86,6 +104,8 @@ const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
+const fromBinList = ref<WmsBinVo[]>([])
+const toBinList = ref<WmsBinVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
 
 const form = reactive<{
@@ -121,6 +141,8 @@ watch(() => props.visible, async (val) => {
         remark: props.formData.remark,
         details: (props.formData.details || []).map(d => ({
           itemId: d.itemId,
+          fromBinId: d.fromBinId,
+          toBinId: d.toBinId,
           quantity: d.quantity,
         })),
       })
@@ -128,9 +150,38 @@ watch(() => props.visible, async (val) => {
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
+watch(() => form.fromWarehouseId, async (warehouseId, oldWarehouseId) => {
+  fromBinList.value = await loadBinsByWarehouse(warehouseId)
+  if (oldWarehouseId !== undefined) {
+    clearInvalidTransferBins('fromBinId', fromBinList.value)
+  }
+})
+watch(() => form.toWarehouseId, async (warehouseId, oldWarehouseId) => {
+  toBinList.value = await loadBinsByWarehouse(warehouseId)
+  if (oldWarehouseId !== undefined) {
+    clearInvalidTransferBins('toBinId', toBinList.value)
+  }
+})
+
+async function loadBinsByWarehouse(warehouseId: EntityId | undefined) {
+  if (!warehouseId) {
+    return []
+  }
+  const res = await getBinListByWarehouse(warehouseId)
+  return res.data
+}
+
+function clearInvalidTransferBins(field: 'fromBinId' | 'toBinId', bins: WmsBinVo[]) {
+  const validBinIds = new Set(bins.map(bin => bin.id))
+  form.details.forEach((detail) => {
+    if (detail[field] && !validBinIds.has(detail[field])) {
+      detail[field] = undefined
+    }
+  })
+}
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1 })
+  form.details.push({ itemId: undefined as unknown as EntityId, fromBinId: undefined, toBinId: undefined, quantity: 1 })
 }
 
 function handleItemChange(_row: DetailRow, _val: EntityId) {
@@ -146,13 +197,17 @@ async function handleSubmit() {
     ElMessage.warning('请添加调拨明细')
     return
   }
+  if (form.details.some(detail => !detail.fromBinId || !detail.toBinId)) {
+    ElMessage.warning('请选择明细调出库位和调入库位')
+    return
+  }
   submitLoading.value = true
   try {
     const dto: TransferOrderDto = {
       fromWarehouseId: form.fromWarehouseId!,
       toWarehouseId: form.toWarehouseId!,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity })),
+      details: form.details.map(d => ({ itemId: d.itemId, fromBinId: d.fromBinId!, toBinId: d.toBinId!, quantity: d.quantity })),
     }
     if (props.isEdit && props.formData) {
       await updateTransferOrder(props.formData.id, dto)
@@ -172,6 +227,8 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { fromWarehouseId: undefined, toWarehouseId: undefined, remark: '', details: [] })
+  fromBinList.value = []
+  toBinList.value = []
 }
 </script>
 

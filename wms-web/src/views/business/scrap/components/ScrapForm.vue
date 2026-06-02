@@ -26,6 +26,13 @@
           </el-select>
         </template>
       </el-table-column>
+      <el-table-column label="库位" min-width="150">
+        <template #default="{ row }">
+          <el-select v-model="row.binId" placeholder="请选择库位" filterable :disabled="!form.warehouseId">
+            <el-option v-for="bin in binList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
+          </el-select>
+        </template>
+      </el-table-column>
       <el-table-column label="报废数量" min-width="120">
         <template #default="{ row }">
           <el-input-number v-model="row.quantity" :min="1" size="small" />
@@ -57,12 +64,15 @@ import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
 import { addScrapOrder, updateScrapOrder } from '@/api/business/scrap'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
+import { getBinListByWarehouse } from '@/api/warehouse/bin'
 import { getItemList } from '@/api/item/item'
 import type { EntityId, ScrapOrderVo, ScrapOrderDto, ScrapDetailDto } from '@/types/business'
-import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { WmsBinVo, WmsWarehouseVo } from '@/types/warehouse'
 import type { WmsItemVo } from '@/types/item'
 
-interface DetailRow extends ScrapDetailDto {}
+interface DetailRow extends Omit<ScrapDetailDto, 'binId'> {
+  binId?: EntityId
+}
 
 const props = defineProps<{
   visible: boolean
@@ -78,6 +88,7 @@ const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
+const binList = ref<WmsBinVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
 
 const form = reactive<{
@@ -113,6 +124,7 @@ watch(() => props.visible, async (val) => {
         remark: props.formData.remark,
         details: (props.formData.details || []).map(d => ({
           itemId: d.itemId,
+          binId: d.binId,
           quantity: d.quantity,
         })),
       })
@@ -120,9 +132,33 @@ watch(() => props.visible, async (val) => {
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
+watch(() => form.warehouseId, async (warehouseId, oldWarehouseId) => {
+  await loadBinsByWarehouse(warehouseId)
+  if (oldWarehouseId !== undefined) {
+    clearInvalidDetailBins()
+  }
+})
+
+async function loadBinsByWarehouse(warehouseId: EntityId | undefined) {
+  if (!warehouseId) {
+    binList.value = []
+    return
+  }
+  const res = await getBinListByWarehouse(warehouseId)
+  binList.value = res.data
+}
+
+function clearInvalidDetailBins() {
+  const validBinIds = new Set(binList.value.map(bin => bin.id))
+  form.details.forEach((detail) => {
+    if (detail.binId && !validBinIds.has(detail.binId)) {
+      detail.binId = undefined
+    }
+  })
+}
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1 })
+  form.details.push({ itemId: undefined as unknown as EntityId, binId: undefined, quantity: 1 })
 }
 
 function handleItemChange(_row: DetailRow, _val: EntityId) {
@@ -134,13 +170,17 @@ async function handleSubmit() {
     ElMessage.warning('请添加报废明细')
     return
   }
+  if (form.details.some(detail => !detail.binId)) {
+    ElMessage.warning('请选择明细库位')
+    return
+  }
   submitLoading.value = true
   try {
     const dto: ScrapOrderDto = {
       warehouseId: form.warehouseId!,
       scrapReason: form.scrapReason,
       remark: form.remark,
-      details: form.details.map(d => ({ itemId: d.itemId, quantity: d.quantity })),
+      details: form.details.map(d => ({ itemId: d.itemId, binId: d.binId!, quantity: d.quantity })),
     }
     if (props.isEdit && props.formData) {
       await updateScrapOrder(props.formData.id, dto)
@@ -160,6 +200,7 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { warehouseId: undefined, scrapReason: '', remark: '', details: [] })
+  binList.value = []
 }
 </script>
 

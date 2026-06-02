@@ -81,6 +81,14 @@ public class TransferOrderVo {
         @Schema(description = "物品编号")
         private String itemCode;
 
+        /** 调出库位ID */
+        @Schema(description = "调出库位ID")
+        private Long fromBinId;
+
+        /** 调入库位ID */
+        @Schema(description = "调入库位ID")
+        private Long toBinId;
+
         /** 数量 */
         @Schema(description = "数量")
         private Integer quantity;

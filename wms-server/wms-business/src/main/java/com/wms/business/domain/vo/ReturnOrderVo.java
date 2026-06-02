@@ -77,6 +77,10 @@ public class ReturnOrderVo {
         @Schema(description = "物品编号")
         private String itemCode;
 
+        /** 归还库位ID */
+        @Schema(description = "归还库位ID")
+        private Long binId;
+
         /** 数量 */
         @Schema(description = "数量")
         private Integer quantity;

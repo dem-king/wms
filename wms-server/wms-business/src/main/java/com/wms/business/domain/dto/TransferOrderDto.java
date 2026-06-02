@@ -47,6 +47,16 @@ public class TransferOrderDto {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 调出库位ID */
+        @NotNull(message = "调出库位ID不能为空")
+        @Schema(description = "调出库位ID")
+        private Long fromBinId;
+
+        /** 调入库位ID */
+        @NotNull(message = "调入库位ID不能为空")
+        @Schema(description = "调入库位ID")
+        private Long toBinId;
+
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")

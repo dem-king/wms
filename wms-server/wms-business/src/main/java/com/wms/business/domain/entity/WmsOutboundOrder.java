@@ -26,6 +26,18 @@ public class WmsOutboundOrder extends BaseEntity {
     @Schema(description = "库房ID")
     private Long warehouseId;
 
+    /** 申请人ID */
+    @Schema(description = "申请人ID")
+    private Long applicantId;
+
+    /** 部门ID */
+    @Schema(description = "部门ID")
+    private Long deptId;
+
+    /** 操作人ID */
+    @Schema(description = "操作人ID")
+    private Long operatorId;
+
     /** 出库类型(1-领用出库 2-调拨出库 3-报废出库) */
     @Schema(description = "出库类型(1-领用出库 2-调拨出库 3-报废出库)")
     private Integer orderType;

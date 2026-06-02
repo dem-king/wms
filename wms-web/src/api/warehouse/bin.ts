@@ -6,6 +6,10 @@ export function getBinList(cabinetId: EntityId) {
   return get<WmsBinVo[]>(`/warehouse/bins/cabinet/${cabinetId}`)
 }
 
+export function getBinListByWarehouse(warehouseId: EntityId) {
+  return get<WmsBinVo[]>(`/warehouse/bins/warehouse/${warehouseId}`)
+}
+
 export function getBinPage(params: PageParams & { cabinetId: EntityId }) {
   return get<PageResult<WmsBinVo>>('/warehouse/bins', params as unknown as Record<string, unknown>)
 }

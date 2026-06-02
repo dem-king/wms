@@ -39,6 +39,8 @@ public class AreaConverter {
         vo.setStatus(area.getStatus());
         vo.setRemark(area.getRemark());
         vo.setCreateTime(area.getCreateTime());
+        vo.setCoordX(area.getCoordX());
+        vo.setCoordY(area.getCoordY());
         // 从Map中填充库房名称
         if (area.getWarehouseId() != null) {
             WmsWarehouse warehouse = warehouseMap.get(area.getWarehouseId());

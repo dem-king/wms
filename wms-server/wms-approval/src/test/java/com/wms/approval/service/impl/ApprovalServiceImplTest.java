@@ -13,6 +13,7 @@ import com.wms.approval.mapper.WmsApprovalConfigMapper;
 import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.mapper.WmsApprovalOrderMapper;
 import com.wms.approval.mapper.WmsApprovalRecordMapper;
+import com.wms.approval.service.ApprovalVisibilityService;
 import com.wms.approval.strategy.ApprovalStrategy;
 import com.wms.approval.strategy.ApprovalStrategyFactory;
 import com.wms.business.domain.entity.WmsInboundOrder;
@@ -34,6 +35,7 @@ import com.wms.system.mapper.SysUserMapper;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +59,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -116,8 +121,17 @@ class ApprovalServiceImplTest {
     @Mock
     private WmsWarehouseMapper wmsWarehouseMapper;
 
+    @Mock
+    private ApprovalVisibilityService approvalVisibilityService;
+
     @InjectMocks
     private ApprovalServiceImpl approvalService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(approvalVisibilityService.hasVisibleApproverForNode(any(), anyLong(), any())).thenReturn(true);
+        lenient().when(approvalVisibilityService.canApprove(anyLong(), any())).thenReturn(true);
+    }
 
     @AfterEach
     void tearDown() {
@@ -141,6 +155,22 @@ class ApprovalServiceImplTest {
 
         assertSame(expected, result);
         verify(approvalStrategyFactory).getStrategy(config, 0);
+    }
+
+    @Test
+    @DisplayName("发起审批时当前节点没有可见业务单据的审批人应拒绝")
+    void shouldRejectStartApprovalWhenNoVisibleApproverForNode() {
+        setCurrentUser(1001L, "applicant");
+        WmsApprovalConfig config = buildConfig(701L, 5);
+        WmsApprovalNode node = buildUserNode(config.getId(), 1, 2001L);
+        when(wmsApprovalConfigMapper.selectOne(any())).thenReturn(config);
+        when(wmsApprovalNodeMapper.selectList(any())).thenReturn(List.of(node));
+        when(approvalVisibilityService.hasVisibleApproverForNode(node, 9001L, 5)).thenReturn(false);
+
+        BizException exception = assertThrows(BizException.class, () -> approvalService.startApproval(9001L, 5));
+
+        assertEquals("当前审批节点无可见该单据的审批人", exception.getMessage());
+        verify(approvalStrategyFactory, never()).getStrategy(any(), anyInt());
     }
 
     @Test
@@ -231,8 +261,8 @@ class ApprovalServiceImplTest {
     }
 
     @Test
-    @DisplayName("库房管理员节点无法解析业务单据时应按 fail-closed 拒绝审批")
-    void shouldFailClosedWhenWarehouseAdminBizOrderMissing() {
+    @DisplayName("库房管理员节点不再支持时应拒绝审批")
+    void shouldRejectUnsupportedWarehouseAdminNodeWhenApproving() {
         setCurrentUser(4001L, "warehouse-admin");
         WmsApprovalOrder order = buildApprovingOrder(8007L, 9007L, 2, 1001L, 1, 2);
         WmsApprovalConfig config = buildConfig(506L, order.getBizType());
@@ -244,36 +274,30 @@ class ApprovalServiceImplTest {
         BizException exception = assertThrows(BizException.class,
                 () -> approvalService.approve(8007L, buildActionDto("管理员审批")));
 
-        assertEquals("出库单不存在", exception.getMessage());
+        assertEquals("当前审批步骤审批人类型不受支持", exception.getMessage());
         verify(wmsApprovalRecordMapper, never()).insert(any());
         verify(wmsApprovalOrderMapper, never()).updateById(any());
         verifyNoInteractions(eventPublisher);
     }
 
     @Test
-    @DisplayName("当前用户是业务单据所属库房管理员时应允许审批通过")
-    void shouldAllowWarehouseManagerToApproveWarehouseAdminNode() {
-        setCurrentUser(4001L, "warehouse-admin");
-        WmsApprovalOrder order = buildApprovingOrder(8011L, 9011L, 1, 1001L, 1, 2);
-        WmsApprovalConfig config = buildConfig(7011L, order.getBizType());
-        WmsApprovalNode currentNode = buildWarehouseAdminNode(config.getId(), 1);
-        WmsInboundOrder inboundOrder = new WmsInboundOrder();
-        inboundOrder.setId(order.getBizId());
-        inboundOrder.setWarehouseId(6001L);
-        WmsWarehouse warehouse = new WmsWarehouse();
-        warehouse.setId(6001L);
-        warehouse.setManagerId(4001L);
-        when(wmsApprovalOrderMapper.selectById(8011L)).thenReturn(order);
+    @DisplayName("当前用户是节点审批人但无权查看业务单据时审批应拒绝")
+    void shouldRejectApproveWhenCurrentApproverCannotViewBizOrder() {
+        setCurrentUser(2001L, "approver-a");
+        WmsApprovalOrder order = buildApprovingOrder(8201L, 9201L, 5, 1001L, 1, 1);
+        WmsApprovalConfig config = buildConfig(702L, order.getBizType());
+        WmsApprovalNode currentNode = buildUserNode(config.getId(), 1, 2001L);
+        when(wmsApprovalOrderMapper.selectById(8201L)).thenReturn(order);
         when(wmsApprovalConfigMapper.selectOne(any())).thenReturn(config);
         when(wmsApprovalNodeMapper.selectOne(any())).thenReturn(currentNode);
-        when(wmsInboundOrderMapper.selectById(order.getBizId())).thenReturn(inboundOrder);
-        when(wmsWarehouseMapper.selectById(6001L)).thenReturn(warehouse);
+        when(approvalVisibilityService.canApprove(2001L, order)).thenReturn(false);
 
-        approvalService.approve(8011L, buildActionDto("库房管理员审批"));
+        BizException exception = assertThrows(BizException.class,
+                () -> approvalService.approve(8201L, buildActionDto("同意")));
 
-        verify(wmsApprovalRecordMapper).insert(any(WmsApprovalRecord.class));
-        verify(wmsApprovalOrderMapper).updateById(any(WmsApprovalOrder.class));
-        verify(eventPublisher, never()).publishEvent(any());
+        assertEquals("当前用户无权查看该审批业务单据", exception.getMessage());
+        verify(wmsApprovalRecordMapper, never()).insert(any());
+        verify(wmsApprovalOrderMapper, never()).updateById(any());
     }
 
     @Test

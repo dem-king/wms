@@ -33,6 +33,10 @@ public class WarehouseConverter {
         vo.setRemark(warehouse.getRemark());
         vo.setCreateTime(warehouse.getCreateTime());
         vo.setUpdateTime(warehouse.getUpdateTime());
+        vo.setLayoutWidth(warehouse.getLayoutWidth());
+        vo.setLayoutHeight(warehouse.getLayoutHeight());
+        vo.setLayoutScale(warehouse.getLayoutScale());
+        vo.setLayoutBackgroundVersion(warehouse.getLayoutBackgroundVersion());
         return vo;
     }
 

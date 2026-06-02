@@ -66,6 +66,7 @@ public class OutboundOrderDto {
         private Integer quantity;
 
         /** 库位ID */
+        @NotNull(message = "出库库位ID不能为空")
         @Schema(description = "库位ID")
         private Long binId;
     }

@@ -134,7 +134,7 @@ public class ApprovalResultEventListener {
                         .eq(WmsInboundDetail::getOrderId, bizId));
         for (WmsInboundDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getWarehouseId(), null,
+                    detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
                     detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
         }
     }
@@ -161,7 +161,7 @@ public class ApprovalResultEventListener {
                         .eq(WmsOutboundDetail::getOrderId, bizId));
         for (WmsOutboundDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getWarehouseId(), null,
+                    detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
                     -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
         }
     }
@@ -188,7 +188,7 @@ public class ApprovalResultEventListener {
                         .eq(WmsScrapDetail::getOrderId, bizId));
         for (WmsScrapDetail detail : details) {
             eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getWarehouseId(), null,
+                    detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
                     -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
         }
     }
@@ -216,11 +216,11 @@ public class ApprovalResultEventListener {
         for (WmsTransferDetail detail : details) {
             // 调出库房出库
             eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getFromWarehouseId(), null,
+                    detail.getItemId(), order.getFromWarehouseId(), detail.getFromBinId(),
                     -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
             // 调入库房入库
             eventPublisher.publishEvent(new StockSyncEvent(
-                    detail.getItemId(), order.getToWarehouseId(), null,
+                    detail.getItemId(), order.getToWarehouseId(), detail.getToBinId(),
                     detail.getQuantity(), BizConstants.STOCK_SYNC_IN));
         }
     }
@@ -268,7 +268,7 @@ public class ApprovalResultEventListener {
             }
             if (returnQty > 0) {
                 eventPublisher.publishEvent(new StockSyncEvent(
-                        detail.getItemId(), outboundOrder.getWarehouseId(), null,
+                        detail.getItemId(), outboundOrder.getWarehouseId(), detail.getBinId(),
                         returnQty, BizConstants.STOCK_SYNC_IN));
             }
         }

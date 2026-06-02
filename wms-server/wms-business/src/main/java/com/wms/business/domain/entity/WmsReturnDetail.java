@@ -23,6 +23,10 @@ public class WmsReturnDetail extends BaseEntity {
     @Schema(description = "物品ID")
     private Long itemId;
 
+    /** 归还库位ID */
+    @Schema(description = "归还库位ID")
+    private Long binId;
+
     /** 数量 */
     @Schema(description = "数量")
     private Integer quantity;

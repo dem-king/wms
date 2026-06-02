@@ -11,6 +11,7 @@ import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.AreaDto;
+import com.wms.warehouse.domain.dto.AreaLayoutItemDto;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.domain.vo.AreaVo;
@@ -206,6 +207,38 @@ public class AreaServiceImpl implements AreaService {
         entity.setSortOrder(dto.getSortOrder());
         entity.setStatus(dto.getStatus());
         entity.setRemark(dto.getRemark());
+    }
+
+    /**
+     * 批量更新区域坐标
+     * 更新区域的coordX/coordY字段，用于画布自由定位
+     * 使用批量更新，避免逐条更新
+     *
+     * @param items 区域坐标更新项列表
+     * @return 更新成功的数量
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateLayoutCoordinates(List<AreaLayoutItemDto> items) {
+        int successCount = 0;
+        for (AreaLayoutItemDto item : items) {
+            WmsArea existing = wmsAreaMapper.selectById(item.getId());
+            if (existing == null) {
+                throw new BizException("区域不存在");
+            }
+            if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("区域已删除");
+            }
+            // 使用UpdateWrapper显式更新coordX/coordY
+            com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<WmsArea> updateWrapper =
+                    new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<WmsArea>()
+                            .eq(WmsArea::getId, item.getId())
+                            .set(WmsArea::getCoordX, item.getCoordX())
+                            .set(WmsArea::getCoordY, item.getCoordY());
+            wmsAreaMapper.update(null, updateWrapper);
+            successCount++;
+        }
+        return successCount;
     }
 
 }

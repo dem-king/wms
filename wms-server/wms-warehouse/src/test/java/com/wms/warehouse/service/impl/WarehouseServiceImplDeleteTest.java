@@ -2,6 +2,7 @@ package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.storage.StorageStrategy;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.warehouse.converter.WarehouseConverter;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
@@ -35,6 +36,9 @@ class WarehouseServiceImplDeleteTest {
     @Mock
     private SequenceGenerator sequenceGenerator;
 
+    @Mock
+    private StorageStrategy storageStrategy;
+
     private WarehouseServiceImpl warehouseService;
 
     @BeforeEach
@@ -42,7 +46,8 @@ class WarehouseServiceImplDeleteTest {
         warehouseService = new WarehouseServiceImpl(
                 wmsWarehouseMapper,
                 sequenceGenerator,
-                new WarehouseConverter()
+                new WarehouseConverter(),
+                storageStrategy
         );
     }
 

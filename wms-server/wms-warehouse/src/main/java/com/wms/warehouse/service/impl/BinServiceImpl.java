@@ -99,6 +99,31 @@ public class BinServiceImpl implements BinService {
     }
 
     /**
+     * 按库房ID查询库位列表
+     *
+     * @param warehouseId 库房ID
+     * @return 库位VO列表
+     */
+    @Override
+    public List<BinVo> listByWarehouseId(Long warehouseId) {
+        LambdaQueryWrapper<WmsBin> wrapper = new LambdaQueryWrapper<WmsBin>()
+                .eq(WmsBin::getWarehouseId, warehouseId)
+                .orderByAsc(WmsBin::getCabinetId)
+                .orderByAsc(WmsBin::getRowNum)
+                .orderByAsc(WmsBin::getColNum);
+        List<WmsBin> list = wmsBinMapper.selectList(wrapper);
+        Set<Long> cabinetIds = list.stream()
+                .map(WmsBin::getCabinetId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, WmsCabinet> cabinetMap = cabinetIds.isEmpty()
+                ? Map.of()
+                : wmsCabinetMapper.selectBatchIds(cabinetIds).stream()
+                        .collect(Collectors.toMap(WmsCabinet::getId, Function.identity()));
+        return list.stream().map(bin -> binConverter.toVo(bin, cabinetMap)).collect(Collectors.toList());
+    }
+
+    /**
      * 新增库位
      * 自动生成库位编码，默认状态为启用、空闲
      *

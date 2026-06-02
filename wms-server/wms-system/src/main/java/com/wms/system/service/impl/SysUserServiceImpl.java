@@ -7,14 +7,19 @@ import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
+import com.wms.common.constant.PermissionConstants;
 import com.wms.common.event.PermissionCacheEvictEvent;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.system.domain.dto.SysUserDto;
+import com.wms.system.domain.entity.SysPermission;
 import com.wms.system.domain.entity.SysRole;
+import com.wms.system.domain.entity.SysRolePermission;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.entity.SysUserRole;
 import com.wms.system.domain.vo.SysUserVo;
+import com.wms.system.mapper.SysPermissionMapper;
 import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysRolePermissionMapper;
 import com.wms.system.mapper.SysUserMapper;
 import com.wms.system.mapper.SysUserRoleMapper;
 import com.wms.system.service.SysUserService;
@@ -43,6 +48,8 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysRoleMapper sysRoleMapper;
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRolePermissionMapper sysRolePermissionMapper;
+    private final SysPermissionMapper sysPermissionMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final SysConfigManager configManager;
 
@@ -123,6 +130,21 @@ public class SysUserServiceImpl implements SysUserService {
      * @param id 用户ID
      * @return 用户VO
      */
+    @Override
+    public SysUserVo getVoByUsernameExact(String username) {
+        if (username == null || username.isBlank()) {
+            return null;
+        }
+        SysUser user = sysUserMapper.selectOne(
+                new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username.trim()));
+        if (user == null || Objects.equals(user.getDelFlag(), DelFlagConstants.DELETED)) {
+            return null;
+        }
+        SysUserVo vo = toVo(user);
+        vo.setHasApprovalPermission(hasApprovalPermission(user.getId()));
+        return vo;
+    }
+
     @Override
     public SysUserVo getById(Long id) {
         SysUser user = sysUserMapper.selectById(id);
@@ -513,5 +535,37 @@ public class SysUserServiceImpl implements SysUserService {
                 .map(SysRole::getRoleName)
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    private boolean hasApprovalPermission(Long userId) {
+        List<Long> roleIds = getUserRoles(userId);
+        if (roleIds.isEmpty()) {
+            return false;
+        }
+        Set<Long> enabledRoleIds = sysRoleMapper.selectList(
+                        new LambdaQueryWrapper<SysRole>()
+                                .in(SysRole::getId, roleIds)
+                                .eq(SysRole::getStatus, BizConstants.STATUS_ENABLED))
+                .stream()
+                .map(SysRole::getId)
+                .collect(Collectors.toSet());
+        if (enabledRoleIds.isEmpty()) {
+            return false;
+        }
+        Set<Long> permIds = sysRolePermissionMapper.selectList(
+                        new LambdaQueryWrapper<SysRolePermission>().in(SysRolePermission::getRoleId, enabledRoleIds))
+                .stream()
+                .map(SysRolePermission::getPermId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (permIds.isEmpty()) {
+            return false;
+        }
+        return sysPermissionMapper.selectList(
+                        new LambdaQueryWrapper<SysPermission>()
+                                .in(SysPermission::getId, permIds)
+                                .eq(SysPermission::getStatus, BizConstants.STATUS_ENABLED))
+                .stream()
+                .anyMatch(permission -> PermissionConstants.APPROVAL_PENDING_APPROVE.equals(permission.getPermCode()));
     }
 }

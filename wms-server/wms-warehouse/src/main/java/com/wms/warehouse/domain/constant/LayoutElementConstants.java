@@ -41,4 +41,24 @@ public final class LayoutElementConstants {
 
     /** 形状类型：文字 */
     public static final String SHAPE_TYPE_TEXT = "text";
+
+    /** 元素编码前缀 */
+    public static final String ELEMENT_CODE_PREFIX = "LE";
+
+    /** 底图文件存储桶名 */
+    public static final String BACKGROUND_BUCKET = "warehouse-layout";
+
+    /** 底图文件路径模板：warehouse-layout/{warehouseId}/background/{version}.{ext} */
+    public static final String BACKGROUND_PATH_TEMPLATE = "%d/background/%s.%s";
+
+    /** 底图文件最大大小：10MB */
+    public static final long BACKGROUND_MAX_SIZE = 10 * 1024 * 1024L;
+
+    /** 底图允许的文件扩展名 */
+    public static final String[] BACKGROUND_ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "svg"};
+
+    /** 底图允许的Content-Type */
+    public static final String[] BACKGROUND_ALLOWED_CONTENT_TYPES = {
+            "image/jpeg", "image/png", "image/svg+xml"
+    };
 }

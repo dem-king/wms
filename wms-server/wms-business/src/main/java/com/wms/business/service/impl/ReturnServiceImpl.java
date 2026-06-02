@@ -323,6 +323,7 @@ public class ReturnServiceImpl implements ReturnService {
             WmsReturnDetail detail = new WmsReturnDetail();
             detail.setOrderId(orderId);
             detail.setItemId(detailDto.getItemId());
+            detail.setBinId(detailDto.getBinId());
             detail.setQuantity(detailDto.getQuantity());
             // 默认物品状态为正常
             detail.setConditionStatus(detailDto.getConditionStatus() != null

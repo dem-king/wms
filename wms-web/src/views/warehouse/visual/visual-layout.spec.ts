@@ -166,3 +166,178 @@ describe('warehouse visual layout builder', () => {
     expect(model.areas[0].height).toBeGreaterThanOrEqual(308)
   })
 })
+
+describe('warehouse visual layout - layoutElements extension', () => {
+  it('should include layoutElements in the model when provided', () => {
+    const layoutElements = [
+      {
+        id: 'elem1',
+        warehouseId: '1',
+        areaId: null,
+        elementCode: 'LE001',
+        elementName: '墙体1',
+        elementType: 'wall' as const,
+        shapeType: 'rect' as const,
+        positionX: 10,
+        positionY: 20,
+        layoutWidth: 300,
+        layoutHeight: 50,
+        rotation: 0,
+        pointData: '',
+        styleData: '',
+        labelText: '',
+        sortOrder: 0,
+        status: 1,
+        createTime: '2026-05-21 09:00:00',
+      },
+    ]
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [createArea()],
+      cabinets: [createCabinet()],
+      bins: [],
+      layoutElements,
+    })
+
+    expect(model.layoutElements).toHaveLength(1)
+    expect(model.layoutElements[0].elementName).toBe('墙体1')
+    expect(model.layoutElements[0].elementType).toBe('wall')
+  })
+
+  it('should default layoutElements to empty array when not provided', () => {
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [createArea()],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.layoutElements).toEqual([])
+  })
+
+  it('should read layoutWidth/layoutHeight/layoutScale/layoutBackgroundVersion from warehouse', () => {
+    const warehouse = createWarehouse({
+      layoutWidth: 1200,
+      layoutHeight: 800,
+      layoutScale: 0.01,
+      layoutBackgroundVersion: 'v2',
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse,
+      areas: [createArea()],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.layoutWidth).toBe(1200)
+    expect(model.layoutHeight).toBe(800)
+    expect(model.layoutScale).toBe(0.01)
+    expect(model.layoutBackgroundVersion).toBe('v2')
+  })
+
+  it('should default layout parameters to 0/null when not set on warehouse', () => {
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [createArea()],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.layoutWidth).toBe(0)
+    expect(model.layoutHeight).toBe(0)
+    expect(model.layoutScale).toBeNull()
+    expect(model.layoutBackgroundVersion).toBeNull()
+  })
+})
+
+describe('warehouse visual layout - area polygon extension', () => {
+  it('should parse polygonPoints from area and set shapeType', () => {
+    const polygonPoints = JSON.stringify([
+      { x: 0, y: 0 }, { x: 200, y: 0 }, { x: 200, y: 150 }, { x: 0, y: 150 },
+    ])
+    const area = createArea({
+      shapeType: 'polygon',
+      polygonPoints,
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [area],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.areas[0].shapeType).toBe('polygon')
+    expect(model.areas[0].polygonPoints).toHaveLength(4)
+    expect(model.areas[0].polygonPoints![0]).toEqual({ x: 0, y: 0 })
+  })
+
+  it('should resolve area position from coordX/coordY when present', () => {
+    const area = createArea({
+      coordX: 500,
+      coordY: 300,
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [area],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.areas[0].x).toBe(500)
+    expect(model.areas[0].y).toBe(300)
+  })
+
+  it('should use labelX/labelY from area when present', () => {
+    const area = createArea({
+      labelX: 100,
+      labelY: 20,
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [area],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.areas[0].labelX).toBe(100)
+    expect(model.areas[0].labelY).toBe(20)
+  })
+
+  it('should degrade polygonPoints to null when vertices are insufficient', () => {
+    const area = createArea({
+      shapeType: 'polygon',
+      polygonPoints: JSON.stringify([{ x: 0, y: 0 }, { x: 100, y: 0 }]),
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [area],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    // 顶点不足3个，降级为null
+    expect(model.areas[0].polygonPoints).toBeNull()
+  })
+
+  it('should degrade polygonPoints to null when JSON is invalid', () => {
+    const area = createArea({
+      shapeType: 'polygon',
+      polygonPoints: 'not-valid-json',
+    } as any)
+
+    const model = buildWarehouseVisualModel({
+      warehouse: createWarehouse(),
+      areas: [area],
+      cabinets: [createCabinet()],
+      bins: [],
+    })
+
+    expect(model.areas[0].polygonPoints).toBeNull()
+  })
+})

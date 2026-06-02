@@ -6,6 +6,7 @@ import type {
   WmsCabinetVo,
   WmsWarehouseVo,
 } from '@/types/warehouse'
+import type { LayoutElementVo, Point } from './types/layout-element'
 
 export const VISUAL_STATUS_ENABLED = 1
 export const VISUAL_STATUS_DISABLED = 0
@@ -24,6 +25,8 @@ export interface WarehouseVisualBuildInput {
   areas: WmsAreaVo[]
   cabinets: WmsCabinetVo[]
   bins: WmsBinVo[]
+  /** 布局辅助元素列表（可选，向后兼容） */
+  layoutElements?: LayoutElementVo[]
 }
 
 export interface WarehouseVisualViewport {
@@ -87,6 +90,14 @@ export interface WarehouseVisualAreaNode {
   y: number
   width: number
   height: number
+  /** 区域形状类型(rect/polygon) */
+  shapeType: 'rect' | 'polygon' | null
+  /** 多边形顶点坐标（画布绝对坐标） */
+  polygonPoints: Point[] | null
+  /** 标题相对X坐标 */
+  labelX: number | null
+  /** 标题相对Y坐标 */
+  labelY: number | null
 }
 
 export interface WarehouseVisualModel {
@@ -98,6 +109,16 @@ export interface WarehouseVisualModel {
   areas: WarehouseVisualAreaNode[]
   cabinets: Record<string, WarehouseVisualCabinetNode>
   bins: Record<string, WarehouseVisualBinNode>
+  /** 布局辅助元素列表 */
+  layoutElements: LayoutElementVo[]
+  /** 库房布局宽度 */
+  layoutWidth: number
+  /** 库房布局高度 */
+  layoutHeight: number
+  /** 比例尺（1px对应的物理长度m） */
+  layoutScale: number | null
+  /** 底图版本号 */
+  layoutBackgroundVersion: string | null
 }
 
 export type WarehouseVisualMatchedType = 'area' | 'cabinet' | 'bin'
@@ -154,6 +175,13 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
     disabledBins: input.bins.filter(bin => bin.status === VISUAL_STATUS_DISABLED).length,
   }
 
+  // 库房布局参数（从warehouse扩展字段读取，使用unknown中转避免类型不兼容）
+  const warehouseAny = input.warehouse as unknown as Record<string, unknown>
+  const layoutWidth = (warehouseAny.layoutWidth as number) ?? 0
+  const layoutHeight = (warehouseAny.layoutHeight as number) ?? 0
+  const layoutScale = (warehouseAny.layoutScale as number) ?? null
+  const layoutBackgroundVersion = (warehouseAny.layoutBackgroundVersion as string) ?? null
+
   if (sortedAreas.length === 0) {
     return {
       warehouseId: input.warehouse.id,
@@ -167,6 +195,11 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
       areas: [],
       cabinets: {},
       bins: {},
+      layoutElements: input.layoutElements ?? [],
+      layoutWidth,
+      layoutHeight,
+      layoutScale,
+      layoutBackgroundVersion,
     }
   }
 
@@ -183,6 +216,11 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
       areas: [],
       cabinets: {},
       bins: {},
+      layoutElements: input.layoutElements ?? [],
+      layoutWidth,
+      layoutHeight,
+      layoutScale,
+      layoutBackgroundVersion,
     }
   }
 
@@ -205,6 +243,12 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
       VISUAL_AREA_HEADER_HEIGHT + VISUAL_PADDING + calculateCabinetContentHeight(areaCabinets),
     )
 
+    // 区域位置解析：优先使用coordX/coordY，否则按sortOrder水平排列
+    const areaPosition = resolveAreaPosition(area, currentX)
+
+    // 解析多边形顶点
+    const polygonPoints = parseAreaPolygonPoints(area.polygonPoints)
+
     areaNodes.push({
       id: area.id,
       areaName: area.areaName,
@@ -212,15 +256,19 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
       sortOrder: area.sortOrder,
       status: area.status,
       cabinetIds,
-      x: currentX,
-      y: VISUAL_PADDING,
+      x: areaPosition.x,
+      y: areaPosition.y,
       width: areaWidth,
       height: areaHeight,
+      shapeType: area.shapeType ?? null,
+      polygonPoints,
+      labelX: area.labelX ?? null,
+      labelY: area.labelY ?? null,
     })
 
     areaCabinets.forEach((cabinet, index) => {
       const cabinetBins = binsByCabinet.get(cabinet.id) ?? []
-      const cabinetNode = createCabinetNode(cabinet, cabinetBins, currentX, VISUAL_PADDING, index)
+      const cabinetNode = createCabinetNode(cabinet, cabinetBins, areaPosition.x, areaPosition.y, index)
       cabinetNodes[cabinet.id] = cabinetNode
 
       for (const binNode of cabinetNode.binIds.map(binId => cabinetNode.cells.flat().find(cell => cell?.id === binId)).filter(Boolean) as WarehouseVisualBinNode[]) {
@@ -228,7 +276,10 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
       }
     })
 
-    currentX += areaWidth + VISUAL_AREA_GAP
+    // 向后兼容：无coordX/coordY时按水平排列
+    if (area.coordX == null || area.coordY == null) {
+      currentX += areaWidth + VISUAL_AREA_GAP
+    }
     maxHeight = Math.max(maxHeight, areaHeight)
   }
 
@@ -241,6 +292,11 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
     areas: areaNodes,
     cabinets: cabinetNodes,
     bins: binNodes,
+    layoutElements: input.layoutElements ?? [],
+    layoutWidth,
+    layoutHeight,
+    layoutScale,
+    layoutBackgroundVersion,
   }
 }
 
@@ -500,4 +556,50 @@ function normalizeCode(value: string): string {
 
 function compareEntityId(left: EntityId, right: EntityId): number {
   return left.localeCompare(right)
+}
+
+/**
+ * 区域位置解析：优先使用coordX/coordY，否则按sortOrder水平排列
+ * @param area 区域数据
+ * @param fallbackX 无coordX时的水平排列X坐标
+ * @returns 区域画布坐标
+ */
+function resolveAreaPosition(area: WmsAreaVo, fallbackX: number): { x: number; y: number } {
+  if (area.coordX != null && area.coordY != null) {
+    return { x: area.coordX, y: area.coordY }
+  }
+  // 向后兼容：无coordX/coordY时按水平排列
+  return { x: fallbackX, y: VISUAL_PADDING }
+}
+
+/**
+ * 解析区域多边形顶点数据
+ * @param polygonPointsStr 多边形顶点JSON字符串
+ * @returns 顶点坐标数组，解析失败返回null
+ */
+function parseAreaPolygonPoints(polygonPointsStr: string | null | undefined): Point[] | null {
+  if (!polygonPointsStr) {
+    return null
+  }
+  try {
+    const points = JSON.parse(polygonPointsStr)
+    if (!Array.isArray(points) || points.length < 3) {
+      console.warn('[visual-layout] 区域多边形顶点不足，降级为矩形渲染')
+      return null
+    }
+    // 校验每个顶点格式
+    const validPoints = points.filter(
+      (p: unknown): p is Point =>
+        typeof p === 'object' && p !== null &&
+        typeof (p as Point).x === 'number' && typeof (p as Point).y === 'number',
+    )
+    if (validPoints.length < 3) {
+      console.warn('[visual-layout] 区域多边形有效顶点不足，降级为矩形渲染')
+      return null
+    }
+    return validPoints
+  } catch {
+    console.warn('[visual-layout] 区域多边形顶点数据JSON解析失败，降级为矩形渲染')
+    return null
+  }
 }

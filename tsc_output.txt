@@ -1,0 +1,2 @@
+﻿src/api/warehouse/layout-element.ts(11,3): error TS6196: 'LayoutElementUpdateItemDto' is declared but never used.
+src/views/warehouse/visual/layout-editor.spec.ts(8,1): error TS6133: 'LayoutEditorState' is declared but its value is never read.

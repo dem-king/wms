@@ -9,13 +9,19 @@ const requestMocks = vi.hoisted(() => ({
 
 vi.mock('../request', () => requestMocks)
 
-import { getBinList, getBinPage } from './bin'
+import { getBinList, getBinListByWarehouse, getBinPage } from './bin'
 
 describe('bin api', () => {
   it('requests the cabinet bin list endpoint', () => {
     getBinList('1')
 
     expect(requestMocks.get).toHaveBeenCalledWith('/warehouse/bins/cabinet/1')
+  })
+
+  it('requests the warehouse bin list endpoint', () => {
+    getBinListByWarehouse('10')
+
+    expect(requestMocks.get).toHaveBeenCalledWith('/warehouse/bins/warehouse/10')
   })
 
   it('requests the bin page endpoint with cabinet and page params', () => {

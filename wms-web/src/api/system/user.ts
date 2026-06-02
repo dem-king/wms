@@ -9,6 +9,10 @@ export function getUser(id: EntityId) {
   return get<SysUserVo>(`/system/users/${id}`)
 }
 
+export function getUserByUsernameExact(username: string) {
+  return get<SysUserVo | null>('/system/users/by-username', { username })
+}
+
 export function addUser(data: SysUserDto) {
   return post<SysUserVo>('/system/users', data)
 }

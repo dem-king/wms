@@ -3,6 +3,7 @@ package com.wms.warehouse.service;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
 import com.wms.warehouse.domain.dto.AreaDto;
+import com.wms.warehouse.domain.dto.AreaLayoutItemDto;
 import com.wms.warehouse.domain.vo.AreaVo;
 
 import java.util.List;
@@ -54,4 +55,13 @@ public interface AreaService {
      * @param id 区域ID
      */
     void delete(Long id);
+
+    /**
+     * 批量更新区域坐标
+     * 更新区域的coordX/coordY字段，用于画布自由定位
+     *
+     * @param items 区域坐标更新项列表
+     * @return 更新成功的数量
+     */
+    int updateLayoutCoordinates(List<AreaLayoutItemDto> items);
 }

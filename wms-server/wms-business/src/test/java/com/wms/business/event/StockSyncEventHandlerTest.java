@@ -53,6 +53,20 @@ class StockSyncEventHandlerTest {
     }
 
     @Test
+    @DisplayName("库存同步事件 - 缺少库位时应拒绝处理")
+    void shouldRejectStockSyncWhenBinIdMissing() {
+        StockSyncEvent event = new StockSyncEvent(1L, 10L, null, 50, BizConstants.STOCK_SYNC_IN);
+
+        BizException ex = assertThrows(BizException.class,
+                () -> handler.handleStockSync(event));
+
+        assertTrue(ex.getMessage().contains("库位不能为空"));
+        verify(wmsStockMapper, never()).selectOne(any(LambdaQueryWrapper.class));
+        verify(wmsStockMapper, never()).insert(any(WmsStock.class));
+        verify(wmsStockMapper, never()).updateById(any(WmsStock.class));
+    }
+
+    @Test
     @DisplayName("入库事件 - 已有库存记录应累加数量")
     void shouldIncreaseStockWhenExists() {
         StockSyncEvent event = new StockSyncEvent(1L, 10L, 100L, 30, BizConstants.STOCK_SYNC_IN);

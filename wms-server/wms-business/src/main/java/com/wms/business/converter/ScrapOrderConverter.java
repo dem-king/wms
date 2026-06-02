@@ -63,6 +63,7 @@ public class ScrapOrderConverter {
         ScrapOrderVo.ScrapDetailVo vo = new ScrapOrderVo.ScrapDetailVo();
         vo.setId(detail.getId());
         vo.setItemId(detail.getItemId());
+        vo.setBinId(detail.getBinId());
         vo.setQuantity(detail.getQuantity());
         if (detail.getItemId() != null) {
             WmsItem item = wmsItemMapper.selectById(detail.getItemId());

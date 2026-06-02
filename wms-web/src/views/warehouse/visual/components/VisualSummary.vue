@@ -6,6 +6,9 @@ import type {
   WarehouseVisualCabinetNode,
   WarehouseVisualModel,
 } from '../visual-layout'
+import type { LayoutElementVo, ElementType } from '../types/layout-element'
+import { ELEMENT_TYPES } from '../types/layout-element'
+import LayoutElementEditorPanel from './LayoutElementEditorPanel.vue'
 
 const props = defineProps<{
   warehouseName: string
@@ -15,13 +18,30 @@ const props = defineProps<{
   visualModel: WarehouseVisualModel | null
   pendingLayoutCount: number
   isEditMode: boolean
+  /** 选中的布局元素 */
+  selectedElement: LayoutElementVo | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'open-cabinet-detail'): void
+  (e: 'update-element-property', payload: { field: string; value: unknown }): void
+  (e: 'update-element-style', payload: Record<string, unknown>): void
+  (e: 'delete-element', elementId: string): void
 }>()
 
 const cabinetBinCount = computed(() => props.selectedCabinet?.binIds.length ?? 0)
+
+/** 布局元素统计 */
+const elementStats = computed(() => {
+  if (!props.visualModel?.layoutElements) {
+    return {}
+  }
+  const stats: Record<string, number> = {}
+  for (const element of props.visualModel.layoutElements) {
+    stats[element.elementType] = (stats[element.elementType] ?? 0) + 1
+  }
+  return stats
+})
 </script>
 
 <template>
@@ -73,6 +93,18 @@ const cabinetBinCount = computed(() => props.selectedCabinet?.binIds.length ?? 0
 
     <el-divider />
 
+    <!-- 布局元素属性面板 -->
+    <div v-if="selectedElement" class="element-panel-section">
+      <LayoutElementEditorPanel
+        :element="selectedElement"
+        @update-property="emit('update-element-property', $event)"
+        @update-style="emit('update-element-style', $event)"
+        @delete="emit('delete-element', $event)"
+      />
+    </div>
+
+    <el-divider v-if="visualModel" />
+
     <div v-if="visualModel" class="summary-grid">
       <div class="metric-card">
         <div class="metric-label">区域数</div>
@@ -89,6 +121,21 @@ const cabinetBinCount = computed(() => props.selectedCabinet?.binIds.length ?? 0
       <div class="metric-card">
         <div class="metric-label">禁用库位</div>
         <div class="metric-value">{{ visualModel.summary.disabledBins }}</div>
+      </div>
+    </div>
+
+    <!-- 布局元素统计 -->
+    <div v-if="visualModel?.layoutElements.length" class="element-stats">
+      <div class="stats-title">布局元素</div>
+      <div class="stats-grid">
+        <div
+          v-for="(count, type) in elementStats"
+          :key="type"
+          class="stats-item"
+        >
+          <span class="stats-label">{{ ELEMENT_TYPES[type as ElementType] ?? type }}</span>
+          <span class="stats-count">{{ count }}</span>
+        </div>
       </div>
     </div>
 
@@ -166,5 +213,45 @@ const cabinetBinCount = computed(() => props.selectedCabinet?.binIds.length ?? 0
 .metric-value {
   margin-top: 4px;
   font-size: 20px;
+}
+
+.element-panel-section {
+  margin-bottom: 16px;
+}
+
+.element-stats {
+  margin-top: 12px;
+}
+
+.stats-title {
+  margin-bottom: 8px;
+  color: #909399;
+  font-size: 13px;
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stats-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fafcff;
+  font-size: 12px;
+}
+
+.stats-label {
+  color: #909399;
+}
+
+.stats-count {
+  color: #303133;
+  font-weight: 600;
 }
 </style>

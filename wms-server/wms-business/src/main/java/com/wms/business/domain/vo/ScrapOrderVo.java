@@ -73,6 +73,10 @@ public class ScrapOrderVo {
         @Schema(description = "物品编号")
         private String itemCode;
 
+        /** 报废库位ID */
+        @Schema(description = "报废库位ID")
+        private Long binId;
+
         /** 数量 */
         @Schema(description = "数量")
         private Integer quantity;

@@ -75,6 +75,8 @@ public class TransferOrderConverter {
         TransferOrderVo.TransferDetailVo vo = new TransferOrderVo.TransferDetailVo();
         vo.setId(detail.getId());
         vo.setItemId(detail.getItemId());
+        vo.setFromBinId(detail.getFromBinId());
+        vo.setToBinId(detail.getToBinId());
         vo.setQuantity(detail.getQuantity());
         if (detail.getItemId() != null) {
             WmsItem item = wmsItemMapper.selectById(detail.getItemId());

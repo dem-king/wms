@@ -1,11 +1,19 @@
 <template>
   <div class="app-container list-page">
     <el-form :inline="true" class="search-form">
+      <el-form-item label="库房">
+        <el-select v-model="selectedWarehouseId" placeholder="请选择库房" @change="handleWarehouseChange">
+          <el-option v-for="w in warehouseList" :key="w.id" :label="w.warehouseName" :value="w.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="区域">
+        <el-select v-model="selectedAreaId" placeholder="请选择区域" @change="handleAreaChange">
+          <el-option v-for="a in areaList" :key="a.id" :label="a.areaName" :value="a.id" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="存放柜">
         <el-select v-model="selectedCabinetId" placeholder="请选择存放柜" @change="handleCabinetChange">
-          <el-option-group v-for="w in warehouseList" :key="w.id" :label="w.warehouseName">
-            <el-option v-for="c in w.cabinets" :key="c.id" :label="c.cabinetName" :value="c.id" />
-          </el-option-group>
+          <el-option v-for="c in cabinetList" :key="c.id" :label="c.cabinetName" :value="c.id" />
         </el-select>
       </el-form-item>
     </el-form>
@@ -131,19 +139,9 @@ import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
 import { getCabinetList } from '@/api/warehouse/cabinet'
 import { getBinPage, addBin, updateBin, deleteBin, batchCreateBin } from '@/api/warehouse/bin'
-import type { EntityId, WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
+import type { EntityId, WmsWarehouseVo, WmsAreaVo, WmsCabinetVo, WmsBinVo, WmsBinDto, WmsBinBatchDto } from '@/types/warehouse'
 import { normalizePageTotal } from '@/utils/pagination'
 
-interface CabinetOption {
-  id: EntityId
-  cabinetName: string
-}
-
-interface WarehouseOption {
-  id: EntityId
-  warehouseName: string
-  cabinets: CabinetOption[]
-}
 
 interface BinPageRow extends WmsBinVo {
   row: number
@@ -151,7 +149,17 @@ interface BinPageRow extends WmsBinVo {
   status: number
 }
 
-const warehouseList = ref<WarehouseOption[]>([])
+/** 库房下拉选项列表 */
+const warehouseList = ref<WmsWarehouseVo[]>([])
+/** 区域下拉选项列表（按需加载） */
+const areaList = ref<WmsAreaVo[]>([])
+/** 存放柜下拉选项列表（按需加载） */
+const cabinetList = ref<WmsCabinetVo[]>([])
+/** 当前选中的库房ID */
+const selectedWarehouseId = ref<EntityId>()
+/** 当前选中的区域ID */
+const selectedAreaId = ref<EntityId>()
+/** 当前选中的存放柜ID */
 const selectedCabinetId = ref<EntityId>()
 const userStore = useUserStore()
 
@@ -198,6 +206,42 @@ const batchRules: FormRules = {
   endCol: [{ required: true, message: '请输入结束列', trigger: 'blur' }]
 }
 
+/**
+ * 库房切换事件处理
+ * 清空区域和存放柜的选中值及选项列表，清空表格数据，加载新库房下的区域列表
+ */
+async function handleWarehouseChange(warehouseId: EntityId) {
+  // 先清空下级状态，防止旧数据残留
+  selectedAreaId.value = undefined
+  areaList.value = []
+  selectedCabinetId.value = undefined
+  cabinetList.value = []
+  tableData.value = []
+  total.value = 0
+  // 按需加载区域列表
+  const res = await getAreaList(warehouseId)
+  areaList.value = res.data
+}
+
+/**
+ * 区域切换事件处理
+ * 清空存放柜的选中值及选项列表，清空表格数据，加载新区域下的存放柜列表
+ */
+async function handleAreaChange(areaId: EntityId) {
+  // 先清空下级状态，防止旧数据残留
+  selectedCabinetId.value = undefined
+  cabinetList.value = []
+  tableData.value = []
+  total.value = 0
+  // 按需加载存放柜列表
+  const res = await getCabinetList(areaId)
+  cabinetList.value = res.data
+}
+
+/**
+ * 存放柜切换事件处理
+ * 重置分页到第1页，查询该存放柜下的库位列表
+ */
 async function handleCabinetChange(cabinetId: EntityId) {
   queryParams.page = 1
   await handleQuery(cabinetId)
@@ -306,19 +350,13 @@ function resetBatchForm() {
   Object.assign(batchForm, { cabinetId: '', startRow: 1, endRow: 1, startCol: 1, endCol: 1 })
 }
 
+/**
+ * 页面初始化：仅加载库房列表
+ * 区域和存放柜列表按需加载，消除N+1请求问题
+ */
 onMounted(async () => {
-  const whRes = await getWarehouseList()
-  const options: WarehouseOption[] = []
-  for (const w of whRes.data) {
-    const areaRes = await getAreaList(w.id)
-    const cabinets: CabinetOption[] = []
-    for (const a of areaRes.data) {
-      const cabRes = await getCabinetList(a.id)
-      cabinets.push(...cabRes.data.map(c => ({ id: c.id, cabinetName: `${a.areaName}-${c.cabinetName}` })))
-    }
-    options.push({ id: w.id, warehouseName: w.warehouseName, cabinets })
-  }
-  warehouseList.value = options
+  const res = await getWarehouseList()
+  warehouseList.value = res.data
 })
 </script>
 

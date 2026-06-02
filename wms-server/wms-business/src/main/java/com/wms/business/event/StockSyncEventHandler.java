@@ -36,11 +36,16 @@ public class StockSyncEventHandler {
                 event.getItemId(), event.getWarehouseId(), event.getBinId(),
                 event.getQuantity(), event.getType());
 
+        if (event.getBinId() == null) {
+            throw new BizException("库位不能为空: itemId=" + event.getItemId()
+                    + ", warehouseId=" + event.getWarehouseId());
+        }
+
         // 查找对应库位的库存记录
         LambdaQueryWrapper<WmsStock> wrapper = new LambdaQueryWrapper<WmsStock>()
                 .eq(WmsStock::getItemId, event.getItemId())
                 .eq(WmsStock::getWarehouseId, event.getWarehouseId())
-                .eq(event.getBinId() != null, WmsStock::getBinId, event.getBinId());
+                .eq(WmsStock::getBinId, event.getBinId());
         WmsStock stock = wmsStockMapper.selectOne(wrapper);
 
         if (stock != null) {

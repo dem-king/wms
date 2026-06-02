@@ -160,6 +160,7 @@ public class ScrapServiceImpl implements ScrapService {
             WmsScrapDetail detail = new WmsScrapDetail();
             detail.setOrderId(order.getId());
             detail.setItemId(detailDto.getItemId());
+            detail.setBinId(detailDto.getBinId());
             detail.setQuantity(detailDto.getQuantity());
             detailList.add(detail);
         }
@@ -242,6 +243,7 @@ public class ScrapServiceImpl implements ScrapService {
             WmsScrapDetail detail = new WmsScrapDetail();
             detail.setOrderId(id);
             detail.setItemId(detailDto.getItemId());
+            detail.setBinId(detailDto.getBinId());
             detail.setQuantity(detailDto.getQuantity());
             newDetailList.add(detail);
         }

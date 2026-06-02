@@ -61,6 +61,14 @@ public class AreaVo {
     @Schema(description = "标题Y坐标")
     private Integer labelY;
 
+    /** X坐标(画布自由定位) */
+    @Schema(description = "X坐标(画布自由定位)")
+    private Integer coordX;
+
+    /** Y坐标(画布自由定位) */
+    @Schema(description = "Y坐标(画布自由定位)")
+    private Integer coordY;
+
     /** 备注 */
     @Schema(description = "备注")
     private String remark;

@@ -59,4 +59,15 @@ class OrderEntityMappingTest {
         assertNotNull(tableField, "status 字段必须声明 TableField 映射");
         assertEquals("order_status", tableField.value());
     }
+
+    @Test
+    @DisplayName("库存变更明细实体应包含库位字段")
+    void shouldExposeBinFieldsForStockMovingDetails() throws NoSuchFieldException {
+        assertNotNull(WmsInboundDetail.class.getDeclaredField("binId"));
+        assertNotNull(WmsOutboundDetail.class.getDeclaredField("binId"));
+        assertNotNull(WmsReturnDetail.class.getDeclaredField("binId"));
+        assertNotNull(WmsScrapDetail.class.getDeclaredField("binId"));
+        assertNotNull(WmsTransferDetail.class.getDeclaredField("fromBinId"));
+        assertNotNull(WmsTransferDetail.class.getDeclaredField("toBinId"));
+    }
 }

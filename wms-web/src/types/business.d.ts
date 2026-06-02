@@ -135,6 +135,7 @@ export interface InboundDetailVo {
   unitPrice: number
   /** 金额 */
   amount: number
+  binId?: EntityId
 }
 
 /** 入库单新增/编辑DTO */
@@ -160,7 +161,7 @@ export interface InboundDetailDto {
   /** 单价 */
   unitPrice: number
   /** 入库库位ID */
-  binId?: EntityId
+  binId: EntityId
 }
 
 /** 出库单视图对象 */
@@ -215,6 +216,7 @@ export interface OutboundDetailVo {
   unitPrice: number
   /** 金额 */
   amount: number
+  binId?: EntityId
 }
 
 /** 出库单新增/编辑DTO */
@@ -244,7 +246,7 @@ export interface OutboundDetailDto {
   /** 单价 */
   unitPrice: number
   /** 库位ID */
-  binId?: EntityId
+  binId: EntityId
 }
 
 /** 归还单视图对象 */
@@ -279,6 +281,7 @@ export interface ReturnDetailVo {
   orderId: EntityId
   /** 物品ID */
   itemId: EntityId
+  binId?: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -289,6 +292,7 @@ export interface ReturnDetailVo {
   conditionStatus: number
   /** 异常说明 */
   abnormalRemark: string
+  actualQuantity?: number
 }
 
 /** 归还单新增DTO */
@@ -307,12 +311,14 @@ export interface ReturnOrderDto {
 export interface ReturnDetailDto {
   /** 物品ID */
   itemId: EntityId
+  binId?: EntityId
   /** 归还数量 */
   quantity: number
   /** 物品状态(0-正常 1-损坏) */
   conditionStatus: number
   /** 异常说明 */
   abnormalRemark: string
+  actualQuantity?: number
 }
 
 /** 报废单视图对象 */
@@ -345,6 +351,7 @@ export interface ScrapDetailVo {
   orderId: EntityId
   /** 物品ID */
   itemId: EntityId
+  binId?: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -369,6 +376,7 @@ export interface ScrapOrderDto {
 export interface ScrapDetailDto {
   /** 物品ID */
   itemId: EntityId
+  binId: EntityId
   /** 报废数量 */
   quantity: number
 }
@@ -405,6 +413,8 @@ export interface TransferDetailVo {
   orderId: EntityId
   /** 物品ID */
   itemId: EntityId
+  fromBinId?: EntityId
+  toBinId?: EntityId
   /** 物品编码 */
   itemCode: string
   /** 物品名称 */
@@ -429,6 +439,8 @@ export interface TransferOrderDto {
 export interface TransferDetailDto {
   /** 物品ID */
   itemId: EntityId
+  fromBinId: EntityId
+  toBinId: EntityId
   /** 调拨数量 */
   quantity: number
 }
@@ -443,7 +455,7 @@ export type ApprovalResult = 1 | 2
 export type BizType = 1 | 2 | 3 | 4 | 5
 
 /** 审批人类型枚举 */
-export type ApprovalApproverType = 1 | 2 | 3
+export type ApprovalApproverType = 1 | 2
 
 /** 审批配置查询参数 */
 export interface ApprovalConfigQuery {
@@ -525,6 +537,12 @@ export interface ApprovalNodeVo {
   approverType: ApprovalApproverType
   /** 审批人ID */
   approverId?: number
+  /** 审批用户名 */
+  approverUsername?: string
+  /** 审批人名称 */
+  approverName?: string
+  /** 审批角色名称 */
+  approverRoleName?: string
 }
 
 /** 审批节点提交对象 */

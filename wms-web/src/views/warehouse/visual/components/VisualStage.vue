@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import type { EntityId } from '@/types/warehouse'
 import type {
   WarehouseVisualAreaNode,
@@ -10,6 +10,14 @@ import type {
 import { VISUAL_AREA_HEADER_HEIGHT, VISUAL_STATUS_DISABLED } from '../visual-layout'
 import type { LayoutEditorPositionDraft } from '../layout-editor'
 import type { VisualSelectionState, VisualViewMode } from '../visual-state'
+import type { LayoutElementVo, RenderContext, ElementType } from '../types/layout-element'
+import { renderLayoutElement } from '../renderers'
+import { calculatePolygonBounds, resolveLabelPosition, detectAreaOverlap, getPolygonAreaConfig } from '../renderers/renderPolygonArea'
+import { useCanvasViewport } from '../composables/useCanvasViewport'
+import { useBackgroundImage } from '../composables/useBackgroundImage'
+
+/** 缩放低于此比例时隐藏库位细节 */
+const SCALE_HIDE_BIN_DETAIL = 0.2
 
 interface CabinetGridCell {
   key: string
@@ -35,6 +43,10 @@ const props = defineProps<{
   isEditMode: boolean
   pendingCabinetIds: EntityId[]
   draftPositions: Record<string, LayoutEditorPositionDraft>
+  /** 布局辅助元素列表 */
+  layoutElements: LayoutElementVo[]
+  /** 当前绘制模式 */
+  drawingMode: ElementType | null
 }>()
 
 const emit = defineEmits<{
@@ -44,8 +56,49 @@ const emit = defineEmits<{
   (e: 'open-cabinet-detail', cabinetId: EntityId): void
   (e: 'update-cabinet-position', payload: { cabinetId: EntityId; positionX: number; positionY: number }): void
   (e: 'retry'): void
+  (e: 'select-element', elementId: EntityId): void
+  (e: 'wheel-zoom', event: WheelEvent): void
 }>()
 
+// ==================== 画布视口 ====================
+const stageContainerRef = ref<HTMLElement | null>(null)
+const containerWidth = ref(960)
+const containerHeight = ref(600)
+
+const viewport = useCanvasViewport(containerWidth.value, containerHeight.value)
+const backgroundImg = useBackgroundImage()
+
+// 监听容器尺寸变化
+let resizeObserver: ResizeObserver | null = null
+onMounted(() => {
+  if (stageContainerRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        containerWidth.value = entry.contentRect.width
+        containerHeight.value = entry.contentRect.height
+      }
+    })
+    resizeObserver.observe(stageContainerRef.value)
+  }
+})
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+})
+
+// 监听底图版本变化，自动加载底图
+watch(
+  () => props.visualModel,
+  (model) => {
+    if (model?.layoutBackgroundVersion) {
+      backgroundImg.load(model.warehouseId, model.layoutBackgroundVersion)
+    } else {
+      backgroundImg.clear()
+    }
+  },
+  { immediate: true },
+)
+
+// ==================== 计算属性 ====================
 const visualAreas = computed(() => props.visualModel?.areas ?? [])
 const cabinetList = computed(() =>
   Object.values(props.visualModel?.cabinets ?? {}).map((cabinet) => {
@@ -57,11 +110,58 @@ const cabinetList = computed(() =>
     }
   }),
 )
+
+/** 是否隐藏库位细节（缩放低于20%时） */
+const hideBinDetail = computed(() => viewport.scale.value < SCALE_HIDE_BIN_DETAIL)
+
+/** 渲染上下文 */
+function createRenderContext(isSelected: boolean, isHighlighted: boolean): RenderContext {
+  return {
+    viewMode: props.viewMode,
+    isSelected,
+    isHighlighted,
+    isEditMode: props.isEditMode,
+    scale: viewport.scale.value,
+  }
+}
+
+/** 按层级分类布局元素 */
+const auxiliaryElements = computed(() =>
+  props.layoutElements.filter(e => e.elementType === 'wall' || e.elementType === 'aisle' || e.elementType === 'reserved'),
+)
+const annotationElements = computed(() =>
+  props.layoutElements.filter(e => e.elementType === 'device' || e.elementType === 'text' || e.elementType === 'dimension'),
+)
+
+/** 区域重叠检测结果 */
+const areaOverlaps = computed(() => {
+  const areas = visualAreas.value
+  const overlaps: Array<{ areaIdA: EntityId; areaIdB: EntityId }> = []
+  for (let i = 0; i < areas.length; i++) {
+    for (let j = i + 1; j < areas.length; j++) {
+      if (detectAreaOverlap(areas[i], areas[j])) {
+        overlaps.push({ areaIdA: areas[i].id, areaIdB: areas[j].id })
+      }
+    }
+  }
+  return overlaps
+})
+
+// ==================== Stage配置 ====================
 const stageConfig = computed(() => ({
-  width: props.visualModel?.viewport.width ?? 960,
-  height: props.visualModel?.viewport.height ?? 420,
+  width: containerWidth.value,
+  height: containerHeight.value,
 }))
 
+const stageContentConfig = computed(() => ({
+  scaleX: viewport.state.value.scaleX,
+  scaleY: viewport.state.value.scaleY,
+  x: viewport.state.value.offsetX,
+  y: viewport.state.value.offsetY,
+  draggable: !props.isEditMode || !props.drawingMode,
+}))
+
+// ==================== 区域渲染 ====================
 function getAreaRectConfig(area: WarehouseVisualAreaNode) {
   const isSelected = area.id === props.selection.selectedAreaId
   const isHighlighted = area.id === props.selection.highlightedAreaId
@@ -80,6 +180,20 @@ function getAreaRectConfig(area: WarehouseVisualAreaNode) {
 }
 
 function getAreaTitleConfig(area: WarehouseVisualAreaNode) {
+  // 多边形区域标题定位
+  if (area.shapeType === 'polygon' && area.polygonPoints) {
+    const bounds = calculatePolygonBounds(area.polygonPoints)
+    const labelPos = resolveLabelPosition(bounds, area.labelX, area.labelY)
+    return {
+      x: labelPos.x,
+      y: labelPos.y,
+      text: `${area.areaName} (${area.areaCode})`,
+      fontSize: 18,
+      fontStyle: area.id === props.selection.selectedAreaId ? 'bold' : 'normal',
+      fill: '#1f2d3d',
+    }
+  }
+
   return {
     x: area.x + 16,
     y: area.y + 14,
@@ -114,6 +228,18 @@ function getAreaSideShadowConfig(area: WarehouseVisualAreaNode) {
   }
 }
 
+/** 多边形区域渲染配置 */
+function getPolygonConfig(area: WarehouseVisualAreaNode) {
+  if (area.shapeType !== 'polygon' || !area.polygonPoints) {
+    return null
+  }
+  const isSelected = area.id === props.selection.selectedAreaId
+  const isHighlighted = area.id === props.selection.highlightedAreaId
+  const isDisabled = area.status === VISUAL_STATUS_DISABLED
+  return getPolygonAreaConfig(area.polygonPoints, isSelected, isHighlighted, isDisabled)
+}
+
+// ==================== 存放柜渲染 ====================
 function getCabinetGroupConfig(cabinet: WarehouseVisualCabinetNode) {
   return {
     x: cabinet.x,
@@ -213,7 +339,7 @@ function getCabinetGridCells(cabinet: WarehouseVisualCabinetNode): CabinetGridCe
           strokeWidth: isHighlighted ? 3 : isSelected ? 2 : 1,
           cornerRadius: 6,
         },
-        labelConfig: cell
+        labelConfig: cell && !hideBinDetail.value
           ? {
               x: x + 4,
               y: y + 6,
@@ -228,6 +354,7 @@ function getCabinetGridCells(cabinet: WarehouseVisualCabinetNode): CabinetGridCe
   )
 }
 
+// ==================== 事件处理 ====================
 function handleCabinetClick(cabinetId: EntityId) {
   emit('select-cabinet', cabinetId)
 }
@@ -260,9 +387,62 @@ function handleCabinetDragEnd(cabinet: WarehouseVisualCabinetNode, event: DragTa
   })
 }
 
+function handleElementClick(elementId: EntityId) {
+  emit('select-element', elementId)
+}
+
+/** 鼠标滚轮缩放 */
+function handleStageWheel(event: WheelEvent) {
+  viewport.handleWheelZoom(event)
+}
+
+/** 画布拖拽平移 */
+const isPanning = ref(false)
+const lastPointerPos = ref({ x: 0, y: 0 })
+
+function handleStageMouseDown(event: MouseEvent) {
+  // 编辑模式绘制时不触发平移
+  if (props.isEditMode && props.drawingMode) {
+    return
+  }
+  isPanning.value = true
+  lastPointerPos.value = { x: event.clientX, y: event.clientY }
+}
+
+function handleStageMouseMove(event: MouseEvent) {
+  if (!isPanning.value) {
+    return
+  }
+  const dx = event.clientX - lastPointerPos.value.x
+  const dy = event.clientY - lastPointerPos.value.y
+  lastPointerPos.value = { x: event.clientX, y: event.clientY }
+
+  const contentWidth = props.visualModel?.viewport.width ?? 960
+  const contentHeight = props.visualModel?.viewport.height ?? 600
+  viewport.pan(dx, dy, contentWidth, contentHeight)
+}
+
+function handleStageMouseUp() {
+  isPanning.value = false
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
+
+// 暴露给父组件的方法
+defineExpose({
+  viewport,
+  backgroundImg,
+  fitToContent: () => {
+    const contentWidth = props.visualModel?.viewport.width ?? 960
+    const contentHeight = props.visualModel?.viewport.height ?? 600
+    viewport.fitToContent(contentWidth, contentHeight)
+  },
+  resetZoom: viewport.resetZoom,
+  zoomIn: viewport.zoomIn,
+  zoomOut: viewport.zoomOut,
+})
 </script>
 
 <template>
@@ -271,9 +451,12 @@ function clamp(value: number, min: number, max: number) {
       <div class="card-header">
         <div>
           <div class="header-title">库房可视化工作台</div>
-          <div class="header-subtitle">支持 2D / 2.5D 轻量投影、快速定位和高亮联动</div>
+          <div class="header-subtitle">支持 2D / 2.5D 等轴测投影、快速定位、缩放平移和高亮联动</div>
         </div>
-        <el-tag type="info">{{ viewMode === '2.5d' ? '2.5D' : '2D' }}</el-tag>
+        <div class="header-badges">
+          <el-tag type="info">{{ viewMode === '2.5d' ? '2.5D' : '2D' }}</el-tag>
+          <el-tag type="success">{{ viewport.scalePercent.value }}</el-tag>
+        </div>
       </div>
     </template>
 
@@ -294,65 +477,180 @@ function clamp(value: number, min: number, max: number) {
     </div>
 
     <div v-else class="stage-shell">
-      <div v-loading="loading" class="stage-scroll">
-        <v-stage :config="stageConfig">
-          <v-layer>
-            <template v-for="area in visualAreas" :key="`area-${area.id}`">
-              <v-rect
-                v-if="viewMode === '2.5d'"
-                :config="getAreaTopShadowConfig(area)"
-              />
-              <v-rect
-                v-if="viewMode === '2.5d'"
-                :config="getAreaSideShadowConfig(area)"
-              />
-              <v-rect :config="getAreaRectConfig(area)" @click="emit('select-area', area.id)" />
-              <v-text :config="getAreaTitleConfig(area)" @click="emit('select-area', area.id)" />
-            </template>
+      <div v-loading="loading" class="stage-scroll" ref="stageContainerRef">
+        <!-- 区域重叠警告 -->
+        <el-alert
+          v-if="areaOverlaps.length > 0"
+          type="warning"
+          :closable="false"
+          title="区域存在重叠"
+          class="overlap-alert"
+        />
 
-            <template v-for="cabinet in cabinetList" :key="`cabinet-${cabinet.id}`">
-              <v-group
-                :config="getCabinetGroupConfig(cabinet)"
-                @dragend="handleCabinetDragEnd(cabinet, $event)"
-              >
+        <!-- 底图加载状态 -->
+        <div v-if="backgroundImg.loading.value" class="background-loading">
+          <el-icon class="is-loading"><Loading /></el-icon>
+          <span>底图加载中...</span>
+        </div>
+        <div v-if="backgroundImg.error.value" class="background-error">
+          <el-alert type="error" :closable="false" :title="backgroundImg.error.value">
+            <template #default>
+              <el-button size="small" @click="backgroundImg.retry()">重试</el-button>
+            </template>
+          </el-alert>
+        </div>
+
+        <v-stage :config="stageConfig" @wheel="handleStageWheel" @mousedown="handleStageMouseDown" @mousemove="handleStageMouseMove" @mouseup="handleStageMouseUp" @mouseleave="handleStageMouseUp">
+          <v-layer :config="stageContentConfig">
+            <!-- L0: 底图层 -->
+            <v-layer>
+              <v-image
+                v-if="backgroundImg.backgroundImage.value && visualModel?.layoutBackgroundVersion"
+                :config="{
+                  image: backgroundImg.backgroundImage.value,
+                  x: 0,
+                  y: 0,
+                  width: visualModel?.layoutWidth || visualModel?.viewport.width || 960,
+                  height: visualModel?.layoutHeight || visualModel?.viewport.height || 600,
+                  opacity: backgroundImg.opacity.value,
+                }"
+              />
+            </v-layer>
+
+            <!-- L1: 辅助结构层（墙体/通道/预留区） -->
+            <v-layer>
+              <template v-for="element in auxiliaryElements" :key="`aux-${element.id}`">
                 <v-rect
-                  v-if="viewMode === '2.5d'"
-                  :config="getCabinetTopShadowConfig(cabinet)"
+                  v-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'rect'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
                 />
-                <v-rect
-                  v-if="viewMode === '2.5d'"
-                  :config="getCabinetSideShadowConfig(cabinet)"
-                />
-                <v-rect
-                  :config="getCabinetRectConfig(cabinet)"
-                  @click="handleCabinetClick(cabinet.id)"
-                  @dblclick="handleCabinetDblclick(cabinet.id)"
+                <v-line
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'line'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
                 />
                 <v-text
-                  :config="getCabinetTitleConfig(cabinet)"
-                  @click="handleCabinetClick(cabinet.id)"
-                  @dblclick="handleCabinetDblclick(cabinet.id)"
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'text'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
                 />
+                <v-group
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'group'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
+                />
+              </template>
+            </v-layer>
 
-                <template v-for="cell in getCabinetGridCells(cabinet)" :key="cell.key">
+            <!-- L2: 区域层 -->
+            <v-layer>
+              <template v-for="area in visualAreas" :key="`area-${area.id}`">
+                <!-- 2.5D阴影 -->
+                <v-rect
+                  v-if="viewMode === '2.5d'"
+                  :config="getAreaTopShadowConfig(area)"
+                />
+                <v-rect
+                  v-if="viewMode === '2.5d'"
+                  :config="getAreaSideShadowConfig(area)"
+                />
+                <!-- 多边形区域 -->
+                <v-line
+                  v-if="area.shapeType === 'polygon' && area.polygonPoints"
+                  :config="getPolygonConfig(area)"
+                  @click="emit('select-area', area.id)"
+                />
+                <!-- 矩形区域 -->
+                <v-rect
+                  v-else
+                  :config="getAreaRectConfig(area)"
+                  @click="emit('select-area', area.id)"
+                />
+                <!-- 区域标题 -->
+                <v-text :config="getAreaTitleConfig(area)" @click="emit('select-area', area.id)" />
+              </template>
+            </v-layer>
+
+            <!-- L3: 存放柜/库位层 -->
+            <v-layer>
+              <template v-for="cabinet in cabinetList" :key="`cabinet-${cabinet.id}`">
+                <v-group
+                  :config="getCabinetGroupConfig(cabinet)"
+                  @dragend="handleCabinetDragEnd(cabinet, $event)"
+                >
                   <v-rect
-                    :config="cell.rectConfig"
-                    @click="cell.binId ? emit('select-bin', { cabinetId: cabinet.id, binId: cell.binId }) : handleCabinetClick(cabinet.id)"
+                    v-if="viewMode === '2.5d'"
+                    :config="getCabinetTopShadowConfig(cabinet)"
+                  />
+                  <v-rect
+                    v-if="viewMode === '2.5d'"
+                    :config="getCabinetSideShadowConfig(cabinet)"
+                  />
+                  <v-rect
+                    :config="getCabinetRectConfig(cabinet)"
+                    @click="handleCabinetClick(cabinet.id)"
+                    @dblclick="handleCabinetDblclick(cabinet.id)"
                   />
                   <v-text
-                    v-if="cell.labelConfig"
-                    :config="cell.labelConfig"
-                    @click="cell.binId ? emit('select-bin', { cabinetId: cabinet.id, binId: cell.binId }) : handleCabinetClick(cabinet.id)"
+                    :config="getCabinetTitleConfig(cabinet)"
+                    @click="handleCabinetClick(cabinet.id)"
+                    @dblclick="handleCabinetDblclick(cabinet.id)"
                   />
-                </template>
-              </v-group>
-            </template>
+
+                  <template v-if="!hideBinDetail" v-for="cell in getCabinetGridCells(cabinet)" :key="cell.key">
+                    <v-rect
+                      :config="cell.rectConfig"
+                      @click="cell.binId ? emit('select-bin', { cabinetId: cabinet.id, binId: cell.binId }) : handleCabinetClick(cabinet.id)"
+                    />
+                    <v-text
+                      v-if="cell.labelConfig"
+                      :config="cell.labelConfig"
+                      @click="cell.binId ? emit('select-bin', { cabinetId: cabinet.id, binId: cell.binId }) : handleCabinetClick(cabinet.id)"
+                    />
+                  </template>
+                </v-group>
+              </template>
+            </v-layer>
+
+            <!-- L4: 标注层（设备/文字/尺寸标注） -->
+            <v-layer>
+              <template v-for="element in annotationElements" :key="`ann-${element.id}`">
+                <v-rect
+                  v-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'rect'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
+                />
+                <v-line
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'line'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
+                />
+                <v-text
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'text'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
+                />
+                <v-group
+                  v-else-if="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.type === 'group'"
+                  :config="renderLayoutElement(element, createRenderContext(element.id === selection.selectedElementId, false))?.config"
+                  @click="handleElementClick(element.id)"
+                />
+              </template>
+            </v-layer>
           </v-layer>
         </v-stage>
       </div>
     </div>
   </el-card>
 </template>
+
+<script lang="ts">
+import { Loading } from '@element-plus/icons-vue'
+export default {
+  components: { Loading },
+}
+</script>
 
 <style scoped lang="scss">
 .visual-card {
@@ -377,15 +675,21 @@ function clamp(value: number, min: number, max: number) {
   font-size: 13px;
 }
 
+.header-badges {
+  display: flex;
+  gap: 8px;
+}
+
 .stage-shell {
   min-height: 420px;
 }
 
 .stage-scroll {
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid #ebeef5;
   border-radius: 12px;
   background: linear-gradient(180deg, #fcfdff 0%, #f6faff 100%);
+  min-height: 420px;
 }
 
 .visual-empty-state,
@@ -394,5 +698,32 @@ function clamp(value: number, min: number, max: number) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.overlap-alert {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+}
+
+.background-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #909399;
+  z-index: 5;
+}
+
+.background-error {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  max-width: 300px;
 }
 </style>

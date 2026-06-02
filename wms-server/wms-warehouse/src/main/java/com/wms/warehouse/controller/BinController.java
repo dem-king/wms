@@ -15,13 +15,21 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 /**
  * 库位管理控制器
- * 提供库位CRUD、按存放柜查询、批量生成库位等接口
+ * 提供库位CRUD、按存放柜/库房查询、批量生成库位等接口
  */
 @Tag(name = "库位管理")
 @RestController
@@ -52,6 +60,17 @@ public class BinController {
     @DataScope
     public R<List<BinVo>> listByCabinetId(@PathVariable Long cabinetId) {
         return R.ok(binService.listByCabinetId(cabinetId));
+    }
+
+    /**
+     * 按库房ID查询库位列表
+     */
+    @Operation(summary = "按库房查询库位列表")
+    @GetMapping("/warehouse/{warehouseId}")
+    @PreAuthorize("hasAuthority('warehouse:bin:list')")
+    @DataScope
+    public R<List<BinVo>> listByWarehouseId(@PathVariable Long warehouseId) {
+        return R.ok(binService.listByWarehouseId(warehouseId));
     }
 
     /**

@@ -1,7 +1,0 @@
--- 认证日志表已统一到系统标准日志表，初始化时不再创建 auth_login_log / auth_oper_log。
--- 请执行 database/sys_log_tables.sql，创建以下标准表：
--- 1. `sys_login_log`
--- 2. `sys_oper_log`
---
--- 历史环境的 auth_* 日志表迁移请执行：
--- database/migration/V20260522__unify_log_tables.sql

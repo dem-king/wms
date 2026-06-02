@@ -66,7 +66,7 @@ describe('outbound api', () => {
       purpose: '报废处理',
       returnDate: '',
       remark: '',
-      details: [{ itemId: '1', quantity: 1, unitPrice: 0 }],
+      details: [{ itemId: '1', quantity: 1, unitPrice: 0, binId: '4' }],
     })
     submitOutboundOrder('20')
     deleteOutboundOrder('20')
@@ -80,7 +80,7 @@ describe('outbound api', () => {
       purpose: '报废处理',
       expectedReturnDate: undefined,
       remark: '',
-      details: [{ itemId: '1', quantity: 1, binId: undefined }],
+      details: [{ itemId: '1', quantity: 1, binId: '4' }],
     })
     expect(requestMocks.post).toHaveBeenCalledWith('/outbound/20/submit')
     expect(requestMocks.del).toHaveBeenCalledWith('/outbound/20')

@@ -43,6 +43,14 @@ public interface SysUserService {
     PageResult<SysUserVo> page(PageParam pageParam, String username, String realName, Integer status);
 
     /**
+     * 根据用户名精确查询用户信息。
+     *
+     * @param username 用户名
+     * @return 用户VO，不存在时返回null
+     */
+    SysUserVo getVoByUsernameExact(String username);
+
+    /**
      * 根据ID获取用户详情
      *
      * @param id 用户ID

@@ -20,6 +20,10 @@ public class WmsScrapOrder extends BaseEntity {
     @Schema(description = "报废单号")
     private String orderNo;
 
+    /** 申请人ID */
+    @Schema(description = "申请人ID")
+    private Long applicantId;
+
     /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
     @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
     @TableField("order_status")

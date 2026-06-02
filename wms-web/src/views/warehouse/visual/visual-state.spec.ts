@@ -27,8 +27,8 @@ function createModel(): WarehouseVisualModel {
       disabledBins: 1,
     },
     areas: [
-      { id: '10', areaName: '西区', areaCode: 'QY-01', sortOrder: 10, status: 1, cabinetIds: ['101'], x: 24, y: 24, width: 420, height: 280 },
-      { id: '20', areaName: '东区', areaCode: 'QY-02', sortOrder: 20, status: 1, cabinetIds: ['201'], x: 468, y: 24, width: 420, height: 280 },
+      { id: '10', areaName: '西区', areaCode: 'QY-01', sortOrder: 10, status: 1, cabinetIds: ['101'], x: 24, y: 24, width: 420, height: 280, shapeType: null, polygonPoints: null, labelX: null, labelY: null },
+      { id: '20', areaName: '东区', areaCode: 'QY-02', sortOrder: 20, status: 1, cabinetIds: ['201'], x: 468, y: 24, width: 420, height: 280, shapeType: null, polygonPoints: null, labelX: null, labelY: null },
     ],
     cabinets: {
       101: {
@@ -73,6 +73,11 @@ function createModel(): WarehouseVisualModel {
       1002: { id: '1002', cabinetId: '101', binCode: 'A-1-2', row: 1, col: 2, status: 0 },
       2001: { id: '2001', cabinetId: '201', binCode: 'B-1-1', row: 1, col: 1, status: 1 },
     },
+    layoutElements: [],
+    layoutWidth: 0,
+    layoutHeight: 0,
+    layoutScale: null,
+    layoutBackgroundVersion: null,
   }
 }
 
@@ -88,6 +93,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     })
   })
 
@@ -100,6 +106,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     }
 
     const afterCabinetClick = reduceVisualSelection(createModel(), initial, {
@@ -120,6 +127,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     })
     expect(afterBinClick).toEqual({
       selectedAreaId: '20',
@@ -129,6 +137,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     })
   })
 
@@ -141,6 +150,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     }
 
     expect(
@@ -156,6 +166,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: '2d',
+      selectedElementId: null,
     })
   })
 
@@ -194,6 +205,7 @@ describe('warehouse visual selection reducer', () => {
       highlightedCabinetId: '101',
       highlightedBinId: '1002',
       viewMode: '2d',
+      selectedElementId: null,
     })
   })
 })

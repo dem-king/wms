@@ -24,7 +24,6 @@ export const BIZ_TYPE = {
 export const APPROVER_TYPE = {
   ROLE: 1,
   USER: 2,
-  WAREHOUSE_ADMIN: 3,
 } as const satisfies Record<string, ApprovalApproverType>
 
 export const SWITCH_STATUS = {
@@ -58,7 +57,6 @@ export const APPROVAL_STATUS_OPTIONS = [
 export const APPROVER_TYPE_OPTIONS = [
   { label: '指定角色', value: APPROVER_TYPE.ROLE },
   { label: '指定用户', value: APPROVER_TYPE.USER },
-  { label: '库房管理员', value: APPROVER_TYPE.WAREHOUSE_ADMIN },
 ] as const
 
 export const TIMEOUT_ACTION_OPTIONS = [

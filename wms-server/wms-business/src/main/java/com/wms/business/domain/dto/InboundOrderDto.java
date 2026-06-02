@@ -62,6 +62,7 @@ public class InboundOrderDto {
         private BigDecimal unitPrice;
 
         /** 入库库位ID */
+        @NotNull(message = "入库库位ID不能为空")
         @Schema(description = "入库库位ID")
         private Long binId;
     }

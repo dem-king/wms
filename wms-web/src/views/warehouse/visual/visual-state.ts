@@ -13,6 +13,8 @@ export interface VisualSelectionState {
   highlightedCabinetId: EntityId | null
   highlightedBinId: EntityId | null
   viewMode: VisualViewMode
+  /** 当前选中的布局元素ID */
+  selectedElementId: EntityId | null
 }
 
 export type VisualSelectionAction =
@@ -21,6 +23,7 @@ export type VisualSelectionAction =
   | { type: 'select-bin'; cabinetId: EntityId; binId: EntityId }
   | { type: 'set-view-mode'; viewMode: VisualViewMode }
   | { type: 'locate-match'; match: WarehouseVisualLocationMatch }
+  | { type: 'select-element'; elementId: EntityId | null }
   | { type: 'reset' }
 
 /**
@@ -40,6 +43,7 @@ export function createInitialVisualSelection(model: WarehouseVisualModel): Visua
     highlightedCabinetId: null,
     highlightedBinId: null,
     viewMode: DEFAULT_VIEW_MODE,
+    selectedElementId: null,
   }
 }
 
@@ -71,6 +75,21 @@ export function reduceVisualSelection(
       highlightedCabinetId: action.match.cabinetId,
       highlightedBinId: action.match.binId,
       viewMode: state.viewMode ?? DEFAULT_VIEW_MODE,
+      selectedElementId: null,
+    }
+  }
+
+  // 选中布局元素
+  if (action.type === 'select-element') {
+    return {
+      ...state,
+      selectedElementId: action.elementId,
+      // 选中元素时清除区域/存放柜/库位选中
+      ...(action.elementId ? {
+        selectedAreaId: null,
+        selectedCabinetId: null,
+        selectedBinId: null,
+      } : {}),
     }
   }
 
@@ -83,6 +102,7 @@ export function reduceVisualSelection(
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: state.viewMode ?? DEFAULT_VIEW_MODE,
+      selectedElementId: null,
     }
   }
 
@@ -100,6 +120,7 @@ export function reduceVisualSelection(
       highlightedCabinetId: null,
       highlightedBinId: null,
       viewMode: state.viewMode ?? DEFAULT_VIEW_MODE,
+      selectedElementId: null,
     }
   }
 
@@ -117,6 +138,7 @@ export function reduceVisualSelection(
     highlightedCabinetId: null,
     highlightedBinId: null,
     viewMode: state.viewMode ?? DEFAULT_VIEW_MODE,
+    selectedElementId: null,
   }
 }
 
@@ -129,5 +151,6 @@ function createEmptySelection(viewMode: VisualViewMode = DEFAULT_VIEW_MODE): Vis
     highlightedCabinetId: null,
     highlightedBinId: null,
     viewMode,
+    selectedElementId: null,
   }
 }

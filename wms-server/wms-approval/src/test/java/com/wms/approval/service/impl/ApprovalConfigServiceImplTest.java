@@ -6,6 +6,13 @@ import com.wms.approval.domain.dto.ApprovalConfigDto;
 import com.wms.approval.domain.entity.WmsApprovalConfig;
 import com.wms.approval.mapper.WmsApprovalConfigMapper;
 import com.wms.approval.mapper.WmsApprovalNodeMapper;
+import com.wms.system.domain.entity.SysRole;
+import com.wms.system.domain.entity.SysUser;
+import com.wms.system.mapper.SysRoleMapper;
+import com.wms.system.mapper.SysRolePermissionMapper;
+import com.wms.system.mapper.SysUserMapper;
+import com.wms.system.mapper.SysUserRoleMapper;
+import com.wms.system.mapper.SysPermissionMapper;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.SecurityUtil;
@@ -42,6 +49,21 @@ class ApprovalConfigServiceImplTest {
     @Mock
     private WmsApprovalNodeMapper wmsApprovalNodeMapper;
 
+    @Mock
+    private SysUserMapper sysUserMapper;
+
+    @Mock
+    private SysRoleMapper sysRoleMapper;
+
+    @Mock
+    private SysUserRoleMapper sysUserRoleMapper;
+
+    @Mock
+    private SysRolePermissionMapper sysRolePermissionMapper;
+
+    @Mock
+    private SysPermissionMapper sysPermissionMapper;
+
     @Spy
     private ApprovalConfigConverter approvalConfigConverter = new ApprovalConfigConverter();
 
@@ -49,13 +71,13 @@ class ApprovalConfigServiceImplTest {
     private ApprovalConfigServiceImpl approvalConfigService;
 
     @Test
-    @DisplayName("创建配置时未传开关值应写入启用和非免审默认值")
+    @DisplayName("创建免审配置时未传启用和超时值应写入默认值")
     void shouldApplyDefaultEnabledAndAutoApproveWhenValuesMissing() {
         ApprovalConfigDto dto = new ApprovalConfigDto();
         dto.setBizType(5);
         dto.setConfigName("归还审批");
         dto.setRemark("默认配置");
-        dto.setNodes(List.of());
+        dto.setAutoApprove(BizConstants.STATUS_ENABLED);
 
         doAnswer(invocation -> {
             WmsApprovalConfig config = invocation.getArgument(0);
@@ -67,7 +89,7 @@ class ApprovalConfigServiceImplTest {
             config.setId(501L);
             config.setBizType(dto.getBizType());
             config.setEnabled(BizConstants.STATUS_ENABLED);
-            config.setAutoApprove(BizConstants.STATUS_DISABLED);
+            config.setAutoApprove(BizConstants.STATUS_ENABLED);
             config.setConfigName(dto.getConfigName());
             config.setRemark(dto.getRemark());
             config.setDelFlag(DelFlagConstants.NORMAL);
@@ -80,7 +102,7 @@ class ApprovalConfigServiceImplTest {
         ArgumentCaptor<WmsApprovalConfig> configCaptor = ArgumentCaptor.forClass(WmsApprovalConfig.class);
         verify(wmsApprovalConfigMapper).insert(configCaptor.capture());
         assertEquals(BizConstants.STATUS_ENABLED, configCaptor.getValue().getEnabled());
-        assertEquals(BizConstants.STATUS_DISABLED, configCaptor.getValue().getAutoApprove());
+        assertEquals(BizConstants.STATUS_ENABLED, configCaptor.getValue().getAutoApprove());
         assertEquals(ApprovalConstants.DEFAULT_TIMEOUT_HOURS, configCaptor.getValue().getTimeoutHours());
         assertEquals(ApprovalConstants.TIMEOUT_ACTION_REMIND, configCaptor.getValue().getTimeoutAction());
     }
@@ -92,8 +114,56 @@ class ApprovalConfigServiceImplTest {
         dto.setBizType(5);
         dto.setConfigName("归还审批");
         dto.setEnabled(BizConstants.STATUS_ENABLED);
-        dto.setNodes(List.of());
+        dto.setAutoApprove(BizConstants.STATUS_ENABLED);
         when(wmsApprovalConfigMapper.selectCount(any())).thenReturn(1L);
+
+        assertThrows(com.wms.common.exception.BizException.class, () -> approvalConfigService.createConfig(dto));
+
+        verify(wmsApprovalConfigMapper, never()).insert(any());
+    }
+
+    @Test
+    @DisplayName("创建配置时应拒绝库房管理员等不支持的审批人类型")
+    void shouldRejectUnsupportedApproverTypeWhenCreatingConfig() {
+        ApprovalConfigDto dto = new ApprovalConfigDto();
+        dto.setBizType(5);
+        dto.setConfigName("归还审批");
+        dto.setEnabled(BizConstants.STATUS_DISABLED);
+        dto.setNodes(List.of(buildNode(1, ApprovalConstants.APPROVER_TYPE_WAREHOUSE_ADMIN, null)));
+
+        assertThrows(com.wms.common.exception.BizException.class, () -> approvalConfigService.createConfig(dto));
+
+        verify(wmsApprovalConfigMapper, never()).insert(any());
+    }
+
+    @Test
+    @DisplayName("创建配置时指定用户不存在应拒绝")
+    void shouldRejectMissingUserApproverWhenCreatingConfig() {
+        ApprovalConfigDto dto = new ApprovalConfigDto();
+        dto.setBizType(5);
+        dto.setConfigName("归还审批");
+        dto.setEnabled(BizConstants.STATUS_DISABLED);
+        dto.setNodes(List.of(buildNode(1, ApprovalConstants.APPROVER_TYPE_USER, 2001L)));
+        when(sysUserMapper.selectById(2001L)).thenReturn(null);
+
+        assertThrows(com.wms.common.exception.BizException.class, () -> approvalConfigService.createConfig(dto));
+
+        verify(wmsApprovalConfigMapper, never()).insert(any());
+    }
+
+    @Test
+    @DisplayName("创建配置时指定角色禁用应拒绝")
+    void shouldRejectDisabledRoleApproverWhenCreatingConfig() {
+        ApprovalConfigDto dto = new ApprovalConfigDto();
+        dto.setBizType(5);
+        dto.setConfigName("归还审批");
+        dto.setEnabled(BizConstants.STATUS_DISABLED);
+        dto.setNodes(List.of(buildNode(1, ApprovalConstants.APPROVER_TYPE_ROLE, 3001L)));
+        SysRole role = new SysRole();
+        role.setId(3001L);
+        role.setStatus(BizConstants.STATUS_DISABLED);
+        role.setDelFlag(DelFlagConstants.NORMAL);
+        when(sysRoleMapper.selectById(3001L)).thenReturn(role);
 
         assertThrows(com.wms.common.exception.BizException.class, () -> approvalConfigService.createConfig(dto));
 
@@ -115,7 +185,7 @@ class ApprovalConfigServiceImplTest {
         dto.setBizType(5);
         dto.setConfigName("归还审批");
         dto.setEnabled(BizConstants.STATUS_ENABLED);
-        dto.setNodes(List.of());
+        dto.setAutoApprove(BizConstants.STATUS_ENABLED);
 
         assertThrows(com.wms.common.exception.BizException.class, () -> approvalConfigService.updateConfig(601L, dto));
 
@@ -140,7 +210,7 @@ class ApprovalConfigServiceImplTest {
         dto.setBizType(1);
         dto.setConfigName("入库审批");
         dto.setEnabled(BizConstants.STATUS_DISABLED);
-        dto.setNodes(List.of());
+        dto.setAutoApprove(BizConstants.STATUS_ENABLED);
 
         approvalConfigService.updateConfig(602L, dto);
 
@@ -149,6 +219,15 @@ class ApprovalConfigServiceImplTest {
                 DelFlagConstants.DELETED,
                 SecurityUtil.getCurrentUsername()
         );
+    }
+
+    private ApprovalConfigDto.ApprovalNodeDto buildNode(int stepOrder, Integer approverType, Long approverId) {
+        ApprovalConfigDto.ApprovalNodeDto node = new ApprovalConfigDto.ApprovalNodeDto();
+        node.setStepOrder(stepOrder);
+        node.setNodeName("审批节点" + stepOrder);
+        node.setApproverType(approverType);
+        node.setApproverId(approverId);
+        return node;
     }
 
 }

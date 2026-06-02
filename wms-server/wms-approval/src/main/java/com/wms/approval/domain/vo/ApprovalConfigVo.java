@@ -88,5 +88,17 @@ public class ApprovalConfigVo {
         /** 审批人/角色ID */
         @Schema(description = "审批人/角色ID")
         private Long approverId;
+
+        /** 审批用户名 */
+        @Schema(description = "审批用户名")
+        private String approverUsername;
+
+        /** 审批人名称 */
+        @Schema(description = "审批人名称")
+        private String approverName;
+
+        /** 审批角色名称 */
+        @Schema(description = "审批角色名称")
+        private String approverRoleName;
     }
 }

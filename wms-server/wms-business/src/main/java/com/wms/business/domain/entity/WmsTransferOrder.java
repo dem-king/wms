@@ -8,8 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 调拨单主表实体
- * 对应表 wms_transfer_order，存储调拨单的基础信息和状态
+ * 调拨单主表实体。
+ * 对应表 wms_transfer_order，存储调拨单的基础信息和状态。
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -20,6 +20,10 @@ public class WmsTransferOrder extends BaseEntity {
     @Schema(description = "调拨单号")
     private String orderNo;
 
+    /** 申请人ID */
+    @Schema(description = "申请人ID")
+    private Long applicantId;
+
     /** 调出库房ID */
     @Schema(description = "调出库房ID")
     private Long fromWarehouseId;
@@ -28,8 +32,8 @@ public class WmsTransferOrder extends BaseEntity {
     @Schema(description = "调入库房ID")
     private Long toWarehouseId;
 
-    /** 状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回) */
-    @Schema(description = "状态(0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回)")
+    /** 状态：0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回 */
+    @Schema(description = "状态：0-草稿 1-待审核 2-已审核 3-已完成 4-已驳回")
     @TableField("order_status")
     private Integer status;
 

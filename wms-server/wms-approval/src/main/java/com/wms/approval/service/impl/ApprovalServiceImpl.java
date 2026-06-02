@@ -15,6 +15,7 @@ import com.wms.approval.mapper.WmsApprovalNodeMapper;
 import com.wms.approval.mapper.WmsApprovalOrderMapper;
 import com.wms.approval.mapper.WmsApprovalRecordMapper;
 import com.wms.approval.service.ApprovalService;
+import com.wms.approval.service.ApprovalVisibilityService;
 import com.wms.approval.strategy.ApprovalContext;
 import com.wms.approval.strategy.ApprovalStrategy;
 import com.wms.approval.strategy.ApprovalStrategyFactory;
@@ -83,6 +84,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
+    private final ApprovalVisibilityService approvalVisibilityService;
 
     /**
      * 发起审批
@@ -117,6 +119,10 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
 
         // 构建审批上下文
+        if (!(config.getAutoApprove() != null && config.getAutoApprove() == BizConstants.STATUS_ENABLED)) {
+            validateVisibleApprovers(nodes, bizId, bizType);
+        }
+
         ApprovalContext context = ApprovalContext.builder()
                 .bizId(bizId)
                 .bizType(bizType)
@@ -424,16 +430,14 @@ public class ApprovalServiceImpl implements ApprovalService {
             if (!Objects.equals(currentNode.getApproverId(), currentUserId)) {
                 throw new BizException("当前用户不是当前步骤审批人");
             }
+            validateCurrentUserCanViewOrder(currentUserId, order);
             return;
         }
         if (Objects.equals(currentNode.getApproverType(), ApprovalConstants.APPROVER_TYPE_ROLE)) {
             if (!hasRoleApproval(currentNode.getApproverId())) {
                 throw new BizException("当前用户不具备当前步骤审批角色");
             }
-            return;
-        }
-        if (Objects.equals(currentNode.getApproverType(), ApprovalConstants.APPROVER_TYPE_WAREHOUSE_ADMIN)) {
-            validateWarehouseManagerApprover(order, currentUserId);
+            validateCurrentUserCanViewOrder(currentUserId, order);
             return;
         }
         throw new BizException("当前审批步骤审批人类型不受支持");
@@ -445,6 +449,20 @@ public class ApprovalServiceImpl implements ApprovalService {
      * @param order         审批单
      * @param currentUserId 当前用户ID
      */
+    private void validateVisibleApprovers(List<WmsApprovalNode> nodes, Long bizId, Integer bizType) {
+        for (WmsApprovalNode node : nodes) {
+            if (!approvalVisibilityService.hasVisibleApproverForNode(node, bizId, bizType)) {
+                throw new BizException("当前审批节点无可见该单据的审批人");
+            }
+        }
+    }
+
+    private void validateCurrentUserCanViewOrder(Long currentUserId, WmsApprovalOrder order) {
+        if (!approvalVisibilityService.canApprove(currentUserId, order)) {
+            throw new BizException("当前用户无权查看该审批业务单据");
+        }
+    }
+
     private void validateWarehouseManagerApprover(WmsApprovalOrder order, Long currentUserId) {
         Long warehouseId = resolveWarehouseId(order);
         WmsWarehouse warehouse = wmsWarehouseMapper.selectById(warehouseId);

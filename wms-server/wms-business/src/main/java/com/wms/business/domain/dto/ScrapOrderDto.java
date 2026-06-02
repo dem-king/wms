@@ -44,6 +44,11 @@ public class ScrapOrderDto {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 报废库位ID */
+        @NotNull(message = "报废库位ID不能为空")
+        @Schema(description = "报废库位ID")
+        private Long binId;
+
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")

@@ -46,6 +46,10 @@ public class ReturnOrderDto {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 归还库位ID */
+        @Schema(description = "归还库位ID")
+        private Long binId;
+
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")

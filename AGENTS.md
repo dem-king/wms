@@ -92,12 +92,29 @@ public class ItemConverter {
 
 ### 3.2 逻辑删除
 
+`delFlag` 字段标注了 `@TableLogic`，MyBatis-Plus 对逻辑删除字段有特殊处理。**禁止**通过 `setDelFlag(DELETED) + updateById` 或 `Db.updateBatchById` 执行删除，这类更新可能不会真正写入 `del_flag=1`，会导致前端点击删除后数据仍然存在。
+
 ```java
-// 正确：手动设置 + updateById
+// 正确：使用统一逻辑删除工具，显式更新 del_flag 字段
+LogicDeleteHelper.markDeleted(mapper, XxxEntity.class, id);
+LogicDeleteHelper.markDeletedEntities(mapper, XxxEntity.class, entities);
+```
+
+如确实不能使用工具类，必须使用 `UpdateWrapper.set("del_flag", DelFlagConstants.DELETED)` 或专用 Mapper SQL 显式更新 `del_flag`。
+
+```java
+// 正确：显式 set del_flag，避免 @TableLogic 字段被普通更新跳过
+mapper.update(null, Wrappers.<XxxEntity>lambdaUpdate()
+        .set(XxxEntity::getDelFlag, DelFlagConstants.DELETED)
+        .eq(XxxEntity::getId, id));
+
+// 错误：逻辑删除字段可能不会被写入数据库
 entity.setDelFlag(DelFlagConstants.DELETED);
 mapper.updateById(entity);
+Db.updateBatchById(updateList);
 ```
-> 手动设置的值不会被覆盖（strictFill 仅填充null值）
+
+该规则适用于主表、关联表、单据明细、报表旧记录清理等所有需要逻辑删除的数据。
 
 ### 3.3 禁止手动拼接del_flag=0条件
 
@@ -187,13 +204,13 @@ public final class DelFlagConstants {
 
 ```java
 // 正确：使用常量类引用
-entity.setDelFlag(DelFlagConstants.DELETED);
+updateWrapper.set("del_flag", DelFlagConstants.DELETED);
 order.setStatus(OrderStatusEnum.DRAFT.getCode());
 warehouse.setStatus(BizConstants.STATUS_ENABLED);
 event.setDirection(BizConstants.STOCK_SYNC_IN);
 
 // 错误：魔法数字
-entity.setDelFlag(1);
+updateWrapper.set("del_flag", 1);
 order.setStatus(0);
 warehouse.setStatus(1);
 event.setDirection("IN");
@@ -407,7 +424,8 @@ interface InboundOrderParams {
 □ 写操作有@OperLog？
 □ Controller不含业务逻辑（无Entity转换/SecurityUtil）？
 □ 返回VO而非Entity？
-□ 删除用逻辑删除（setDelFlag+updateById）？
+□ 删除用显式逻辑删除（LogicDeleteHelper 或 UpdateWrapper.set("del_flag", DELETED)）？
+□ 无 setDelFlag(DELETED) + updateById/Db.updateBatchById 删除模式？
 □ 无.eq(::getDelFlag, 0)冗余条件？
 □ 无物理删除（mapper.delete/deleteById）？
 □ 无魔法数字？

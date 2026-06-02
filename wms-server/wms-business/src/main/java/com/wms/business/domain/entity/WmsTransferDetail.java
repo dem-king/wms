@@ -23,6 +23,14 @@ public class WmsTransferDetail extends BaseEntity {
     @Schema(description = "物品ID")
     private Long itemId;
 
+    /** 调出库位ID */
+    @Schema(description = "调出库位ID")
+    private Long fromBinId;
+
+    /** 调入库位ID */
+    @Schema(description = "调入库位ID")
+    private Long toBinId;
+
     /** 数量 */
     @Schema(description = "数量")
     private Integer quantity;

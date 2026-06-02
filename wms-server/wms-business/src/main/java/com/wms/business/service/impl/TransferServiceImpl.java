@@ -347,6 +347,8 @@ public class TransferServiceImpl implements TransferService {
             WmsTransferDetail detail = new WmsTransferDetail();
             detail.setOrderId(orderId);
             detail.setItemId(detailDto.getItemId());
+            detail.setFromBinId(detailDto.getFromBinId());
+            detail.setToBinId(detailDto.getToBinId());
             detail.setQuantity(detailDto.getQuantity());
             detailList.add(detail);
         }

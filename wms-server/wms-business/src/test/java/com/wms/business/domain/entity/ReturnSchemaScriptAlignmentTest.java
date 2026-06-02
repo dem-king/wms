@@ -10,14 +10,14 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 归还单相关建表脚本对齐测试
- * 防止初始化 SQL 与当前归还单代码模型继续偏离
+ * Return and stock-moving detail schema alignment tests.
+ * Prevents initialization SQL from drifting away from fields used by order code.
  */
-@DisplayName("归还单建表脚本对齐测试")
+@DisplayName("Return and stock-moving detail schema alignment")
 class ReturnSchemaScriptAlignmentTest {
 
     @Test
-    @DisplayName("初始化 SQL 应声明归还单代码模型所需字段")
+    @DisplayName("initial SQL should contain columns used by return and bin-level stock-moving details")
     void shouldContainReturnOrderAndDetailColumnsUsedByCode() throws IOException {
         assertScriptContainsRequiredColumns(Path.of("..", "..", "database", "wms_complete_init.sql"));
         assertScriptContainsRequiredColumns(Path.of("..", "..", "database", "wms_full_init.sql"));
@@ -27,11 +27,14 @@ class ReturnSchemaScriptAlignmentTest {
     private void assertScriptContainsRequiredColumns(Path scriptPath) throws IOException {
         String content = Files.readString(scriptPath);
 
-        assertTrue(content.contains("`outbound_order_id`"), scriptPath + " 缺少 outbound_order_id");
-        assertTrue(content.contains("`receiver`"), scriptPath + " 缺少 receiver");
-        assertTrue(content.contains("`order_status`"), scriptPath + " 缺少 order_status");
-        assertTrue(content.contains("`condition_status`"), scriptPath + " 缺少 condition_status");
-        assertTrue(content.contains("`abnormal_remark`"), scriptPath + " 缺少 abnormal_remark");
-        assertTrue(content.contains("`actual_quantity`"), scriptPath + " 缺少 actual_quantity");
+        assertTrue(content.contains("`outbound_order_id`"), scriptPath + " missing outbound_order_id");
+        assertTrue(content.contains("`receiver`"), scriptPath + " missing receiver");
+        assertTrue(content.contains("`order_status`"), scriptPath + " missing order_status");
+        assertTrue(content.contains("`condition_status`"), scriptPath + " missing condition_status");
+        assertTrue(content.contains("`abnormal_remark`"), scriptPath + " missing abnormal_remark");
+        assertTrue(content.contains("`actual_quantity`"), scriptPath + " missing actual_quantity");
+        assertTrue(content.contains("`bin_id`"), scriptPath + " missing bin_id");
+        assertTrue(content.contains("`from_bin_id`"), scriptPath + " missing from_bin_id");
+        assertTrue(content.contains("`to_bin_id`"), scriptPath + " missing to_bin_id");
     }
 }

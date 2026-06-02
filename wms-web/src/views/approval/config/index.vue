@@ -12,12 +12,13 @@ import {
   getApprovalConfigs,
   updateApprovalConfig,
 } from '@/api/approval'
+import { getAllRoles } from '@/api/system/role'
+import { getUserByUsernameExact } from '@/api/system/user'
 import {
   APPROVER_TYPE,
   APPROVER_TYPE_OPTIONS,
   BIZ_TYPE_OPTIONS,
   DEFAULT_TIMEOUT_HOURS,
-  getApproverTypeLabel,
   getBizTypeLabel,
   SWITCH_STATUS,
   TIMEOUT_ACTION,
@@ -31,6 +32,16 @@ import type {
   ApprovalNodeVo,
   BizType,
 } from '@/types/business'
+import type { SysRoleVo } from '@/types/system'
+
+interface ApprovalNodeForm extends ApprovalNodeDto {
+  approverUsername?: string
+  approverName?: string
+  userCheckStatus?: 'idle' | 'checking' | 'valid' | 'invalid'
+  userCheckMessage?: string
+  userCheckSeq?: number
+  userCheckTimer?: number
+}
 
 interface ConfigFormModel {
   configName: string
@@ -40,13 +51,14 @@ interface ConfigFormModel {
   remark: string
   timeoutHours: number
   timeoutAction: number
-  nodes: ApprovalNodeDto[]
+  nodes: ApprovalNodeForm[]
 }
 
 const userStore = useUserStore()
 
 const loading = ref(false)
 const tableData = ref<ApprovalConfigVo[]>([])
+const roleOptions = ref<SysRoleVo[]>([])
 const total = ref(0)
 const formVisible = ref(false)
 const submitLoading = ref(false)
@@ -71,12 +83,18 @@ const rules: FormRules<ConfigFormModel> = {
   timeoutAction: [{ required: true, message: '请选择超时处理方式', trigger: 'change' }],
 }
 
-function createDefaultNode(stepOrder: number): ApprovalNodeDto {
+function createDefaultNode(stepOrder: number): ApprovalNodeForm {
   return {
     stepOrder,
     nodeName: '',
     approverType: APPROVER_TYPE.USER,
     approverId: undefined,
+    approverUsername: '',
+    approverName: '',
+    userCheckStatus: 'idle',
+    userCheckMessage: '',
+    userCheckSeq: 0,
+    userCheckTimer: undefined,
   }
 }
 
@@ -97,7 +115,7 @@ function resetFormModel() {
   Object.assign(form, createDefaultForm())
 }
 
-function mapNodes(nodes?: ApprovalNodeVo[]): ApprovalNodeDto[] {
+function mapNodes(nodes?: ApprovalNodeVo[]): ApprovalNodeForm[] {
   if (!nodes?.length) {
     return [createDefaultNode(1)]
   }
@@ -106,7 +124,98 @@ function mapNodes(nodes?: ApprovalNodeVo[]): ApprovalNodeDto[] {
     nodeName: node.nodeName,
     approverType: node.approverType,
     approverId: node.approverId,
+    approverUsername: node.approverUsername || '',
+    approverName: node.approverName || '',
+    userCheckStatus: node.approverType === APPROVER_TYPE.USER ? 'valid' : 'idle',
+    userCheckMessage: '',
+    userCheckSeq: 0,
+    userCheckTimer: undefined,
   }))
+}
+
+async function loadRoles() {
+  const res = await getAllRoles()
+  roleOptions.value = res.data || []
+}
+
+function resetUserCheck(node: ApprovalNodeForm) {
+  if (node.userCheckTimer) {
+    window.clearTimeout(node.userCheckTimer)
+    node.userCheckTimer = undefined
+  }
+  node.userCheckStatus = 'idle'
+  node.userCheckMessage = ''
+  node.approverName = ''
+}
+
+function handleApproverTypeChange(node: ApprovalNodeForm) {
+  node.approverId = undefined
+  node.approverUsername = ''
+  resetUserCheck(node)
+}
+
+function scheduleUsernameCheck(node: ApprovalNodeForm) {
+  node.approverId = undefined
+  resetUserCheck(node)
+  node.userCheckTimer = window.setTimeout(() => {
+    node.userCheckTimer = undefined
+    validateUsername(node)
+  }, 300)
+}
+
+async function validateUsername(node: ApprovalNodeForm) {
+  if (node.userCheckTimer) {
+    window.clearTimeout(node.userCheckTimer)
+    node.userCheckTimer = undefined
+  }
+  if (node.approverType !== APPROVER_TYPE.USER) {
+    return
+  }
+  const username = node.approverUsername?.trim()
+  if (!username) {
+    node.userCheckStatus = 'invalid'
+    node.userCheckMessage = '请输入用户名'
+    return
+  }
+  const seq = (node.userCheckSeq || 0) + 1
+  node.userCheckSeq = seq
+  node.userCheckStatus = 'checking'
+  node.userCheckMessage = '正在校验'
+  let res
+  try {
+    res = await getUserByUsernameExact(username)
+  } catch {
+    if (node.userCheckSeq !== seq) {
+      return
+    }
+    node.userCheckStatus = 'invalid'
+    node.userCheckMessage = '用户校验失败'
+    return
+  }
+  if (node.userCheckSeq !== seq) {
+    return
+  }
+  const user = res.data
+  if (!user) {
+    node.userCheckStatus = 'invalid'
+    node.userCheckMessage = '用户不存在'
+    return
+  }
+  if (user.status !== SWITCH_STATUS.ENABLED) {
+    node.userCheckStatus = 'invalid'
+    node.userCheckMessage = '用户已禁用'
+    return
+  }
+  if (!user.hasApprovalPermission) {
+    node.userCheckStatus = 'invalid'
+    node.userCheckMessage = '用户缺少审批权限'
+    return
+  }
+  node.approverId = Number(user.id)
+  node.approverUsername = user.username
+  node.approverName = user.realName || user.username
+  node.userCheckStatus = 'valid'
+  node.userCheckMessage = node.approverName ? `已匹配：${node.approverName}` : '已匹配'
 }
 
 async function loadTable() {
@@ -168,13 +277,24 @@ function removeNode(index: number) {
   })
 }
 
-function normalizeNodes(nodes: ApprovalNodeDto[]) {
+async function ensureUserNodesValid(nodes: ApprovalNodeForm[]) {
+  for (const node of nodes) {
+    if (node.approverType === APPROVER_TYPE.USER) {
+      await validateUsername(node)
+      if (node.userCheckStatus !== 'valid' || !node.approverId) {
+        throw new Error(node.userCheckMessage || '请指定有效审批用户')
+      }
+    }
+  }
+}
+
+function normalizeNodes(nodes: ApprovalNodeForm[]): ApprovalNodeDto[] {
   return [...nodes]
     .map((node) => ({
       stepOrder: node.stepOrder,
       nodeName: node.nodeName.trim(),
       approverType: node.approverType,
-      approverId: node.approverType === APPROVER_TYPE.WAREHOUSE_ADMIN ? undefined : node.approverId,
+      approverId: node.approverId,
     }))
     .sort((a, b) => a.stepOrder - b.stepOrder)
 }
@@ -186,9 +306,7 @@ function validateNodes(nodes: ApprovalNodeDto[]) {
   if (!nodes.length) {
     throw new Error('请至少配置一个审批节点')
   }
-  const invalidNode = nodes.find((node) => {
-    return !node.nodeName || (node.approverType !== APPROVER_TYPE.WAREHOUSE_ADMIN && !node.approverId)
-  })
+  const invalidNode = nodes.find((node) => !node.nodeName || !node.approverId)
   if (invalidNode) {
     throw new Error('请完善审批节点名称和审批人配置')
   }
@@ -196,6 +314,7 @@ function validateNodes(nodes: ApprovalNodeDto[]) {
 
 async function handleSubmit() {
   await formRef.value?.validate()
+  await ensureUserNodesValid(form.nodes)
   const nodes = normalizeNodes(form.nodes)
   validateNodes(nodes)
   submitLoading.value = true
@@ -245,6 +364,7 @@ function handleClose() {
 
 onMounted(() => {
   loadTable()
+  loadRoles()
 })
 </script>
 
@@ -395,7 +515,7 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="审批人类型" min-width="140">
             <template #default="{ row }">
-              <el-select v-model="row.approverType" placeholder="请选择" size="small">
+              <el-select v-model="row.approverType" placeholder="请选择" size="small" @change="handleApproverTypeChange(row)">
                 <el-option
                   v-for="item in APPROVER_TYPE_OPTIONS"
                   :key="item.value"
@@ -405,15 +525,38 @@ onMounted(() => {
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column label="审批人/角色ID" min-width="140">
+          <el-table-column label="审批人/角色" min-width="220">
             <template #default="{ row }">
-              <el-input-number
-                v-if="row.approverType !== APPROVER_TYPE.WAREHOUSE_ADMIN"
+              <el-select
+                v-if="row.approverType === APPROVER_TYPE.ROLE"
                 v-model="row.approverId"
-                :min="1"
+                placeholder="请选择角色"
                 size="small"
-              />
-              <span v-else>{{ getApproverTypeLabel(row.approverType) }}</span>
+                filterable
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="role in roleOptions"
+                  :key="role.id"
+                  :label="role.roleName"
+                  :value="Number(role.id)"
+                />
+              </el-select>
+              <div v-else class="user-check-cell">
+                <el-input
+                  v-model="row.approverUsername"
+                  placeholder="请输入用户名"
+                  size="small"
+                  @input="scheduleUsernameCheck(row)"
+                  @blur="validateUsername(row)"
+                />
+                <span
+                  v-if="row.userCheckMessage"
+                  :class="['user-check-message', row.userCheckStatus === 'valid' ? 'is-valid' : 'is-invalid']"
+                >
+                  {{ row.userCheckMessage }}
+                </span>
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="操作" class-name="table-action-column" fixed="right" min-width="180">
@@ -460,5 +603,24 @@ onMounted(() => {
   gap: 12px;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.user-check-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-check-message {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.user-check-message.is-valid {
+  color: var(--el-color-success);
+}
+
+.user-check-message.is-invalid {
+  color: var(--el-color-danger);
 }
 </style>

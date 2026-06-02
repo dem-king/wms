@@ -53,6 +53,10 @@ public class SysUserVo {
     @Schema(description = "状态(0-禁用 1-启用)")
     private Integer status;
 
+    /** 是否拥有审批通过权限 */
+    @Schema(description = "是否拥有审批通过权限")
+    private Boolean hasApprovalPermission;
+
     /** 创建时间 */
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import type { EntityId, WmsWarehouseVo } from '@/types/warehouse'
 import type { VisualViewMode } from '../visual-state'
+import type { ElementType } from '../types/layout-element'
+import { ELEMENT_TYPES } from '../types/layout-element'
+import BackgroundImageUploader from './BackgroundImageUploader.vue'
 
 const props = defineProps<{
   warehouseList: WmsWarehouseVo[]
@@ -15,6 +18,20 @@ const props = defineProps<{
   isSavingLayout: boolean
   layoutFeedbackType: '' | 'success' | 'error'
   layoutFeedbackMessage: string
+  /** 缩放百分比 */
+  scalePercent: string
+  /** 是否有底图 */
+  hasBackground: boolean
+  /** 底图透明度(0~1) */
+  backgroundOpacity: number
+  /** 当前绘制模式 */
+  drawingMode: ElementType | null
+  /** 是否有可撤销操作 */
+  canUndo: boolean
+  /** 是否有可重做操作 */
+  canRedo: boolean
+  /** 是否有待保存的元素变更 */
+  hasPendingElementChanges: boolean
 }>()
 
 const emit = defineEmits<{
@@ -26,12 +43,31 @@ const emit = defineEmits<{
   (e: 'toggle-edit-mode', value: boolean): void
   (e: 'save-layout'): void
   (e: 'discard-layout'): void
+  (e: 'zoom-in'): void
+  (e: 'zoom-out'): void
+  (e: 'zoom-reset'): void
+  (e: 'zoom-fit'): void
+  (e: 'background-uploaded'): void
+  (e: 'background-deleted'): void
+  (e: 'update:backgroundOpacity', value: number): void
+  (e: 'set-drawing-mode', elementType: ElementType | null): void
+  (e: 'undo'): void
+  (e: 'redo'): void
+  (e: 'save-elements'): void
 }>()
 
 const viewModeOptions = computed(() => [
   { label: '2D', value: '2d' },
   { label: '2.5D', value: '2.5d' },
 ])
+
+/** 元素类型选项列表 */
+const elementTypeOptions = computed(() =>
+  Object.entries(ELEMENT_TYPES).map(([value, label]) => ({
+    label,
+    value: value as ElementType,
+  })),
+)
 
 function handleWarehouseChange(value: EntityId | undefined) {
   if (typeof value === 'string' && value) {
@@ -54,6 +90,25 @@ function resolveLayoutFeedbackType() {
   }
   return 'info'
 }
+
+/**
+ * 切换绘制模式
+ */
+function handleDrawingModeToggle(elementType: ElementType) {
+  if (props.drawingMode === elementType) {
+    emit('set-drawing-mode', null)
+  } else {
+    emit('set-drawing-mode', elementType)
+  }
+}
+
+/**
+ * 底图透明度百分比
+ */
+const backgroundOpacityPercent = computed({
+  get: () => Math.round(props.backgroundOpacity * 100),
+  set: (val: number) => emit('update:backgroundOpacity', val / 100),
+})
 </script>
 
 <template>
@@ -132,10 +187,87 @@ function resolveLayoutFeedbackType() {
         <el-button
           type="primary"
           :loading="props.isSavingLayout"
-          :disabled="props.pendingLayoutCount === 0"
+          :disabled="props.pendingLayoutCount === 0 && !props.hasPendingElementChanges"
           @click="emit('save-layout')"
         >
           保存布局
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 缩放控制区 -->
+    <div class="toolbar-secondary">
+      <div class="toolbar-group">
+        <span class="toolbar-label">缩放</span>
+        <el-button-group>
+          <el-button size="small" @click="emit('zoom-out')" title="缩小">
+            <el-icon><ZoomOut /></el-icon>
+          </el-button>
+          <el-button size="small" disabled class="scale-display">
+            {{ scalePercent }}
+          </el-button>
+          <el-button size="small" @click="emit('zoom-in')" title="放大">
+            <el-icon><ZoomIn /></el-icon>
+          </el-button>
+        </el-button-group>
+        <el-button size="small" @click="emit('zoom-reset')" title="重置100%">100%</el-button>
+        <el-button size="small" @click="emit('zoom-fit')" title="适应画布">适应</el-button>
+      </div>
+
+      <!-- 底图控制区 -->
+      <div class="toolbar-group">
+        <span class="toolbar-label">底图</span>
+        <BackgroundImageUploader
+          v-if="selectedWarehouseId"
+          :warehouse-id="selectedWarehouseId"
+          :has-background="hasBackground"
+          @uploaded="emit('background-uploaded')"
+          @deleted="emit('background-deleted')"
+        />
+        <el-slider
+          v-if="hasBackground"
+          v-model="backgroundOpacityPercent"
+          :min="0"
+          :max="100"
+          :step="5"
+          :show-tooltip="true"
+          :format-tooltip="(val: number) => val + '%'"
+          style="width: 120px; margin-left: 8px;"
+        />
+      </div>
+
+      <!-- 元素编辑工具区（编辑模式下显示） -->
+      <div v-if="isEditMode" class="toolbar-group">
+        <span class="toolbar-label">绘制元素</span>
+        <el-button-group>
+          <el-button
+            v-for="opt in elementTypeOptions"
+            :key="opt.value"
+            size="small"
+            :type="drawingMode === opt.value ? 'primary' : 'default'"
+            @click="handleDrawingModeToggle(opt.value)"
+          >
+            {{ opt.label }}
+          </el-button>
+        </el-button-group>
+      </div>
+
+      <!-- 撤销/重做 -->
+      <div v-if="isEditMode" class="toolbar-group">
+        <span class="toolbar-label">操作</span>
+        <el-button size="small" :disabled="!canUndo" @click="emit('undo')" title="撤销(Ctrl+Z)">
+          <el-icon><RefreshLeft /></el-icon>撤销
+        </el-button>
+        <el-button size="small" :disabled="!canRedo" @click="emit('redo')" title="重做(Ctrl+Y)">
+          <el-icon><RefreshRight /></el-icon>重做
+        </el-button>
+        <el-button
+          v-if="hasPendingElementChanges"
+          type="primary"
+          size="small"
+          @click="emit('save-elements')"
+        >
+          保存元素
         </el-button>
       </div>
     </div>
@@ -161,6 +293,13 @@ function resolveLayoutFeedbackType() {
     </div>
   </el-card>
 </template>
+
+<script lang="ts">
+import { ZoomIn, ZoomOut, RefreshLeft, RefreshRight } from '@element-plus/icons-vue'
+export default {
+  components: { ZoomIn, ZoomOut, RefreshLeft, RefreshRight },
+}
+</script>
 
 <style scoped lang="scss">
 .toolbar-card {
@@ -206,5 +345,18 @@ function resolveLayoutFeedbackType() {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.toolbar-secondary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.scale-display {
+  min-width: 60px;
+  cursor: default !important;
 }
 </style>
