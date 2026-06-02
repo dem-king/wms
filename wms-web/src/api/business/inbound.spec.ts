@@ -62,6 +62,40 @@ describe('inbound api', () => {
     expect(res.data.records[0].status).toBe('COMPLETED')
   })
 
+  it('preserves detail binId when normalizing backend detail response', async () => {
+    requestMocks.get.mockResolvedValueOnce({
+      data: {
+        id: '10',
+        orderNo: 'RK2025010001',
+        warehouseId: '1',
+        warehouseName: '主库房',
+        supplierId: '2',
+        supplierName: '供应商',
+        orderType: 1,
+        status: 0,
+        totalAmount: 12,
+        remark: '',
+        createTime: '2026-05-21T15:48:40',
+        details: [
+          {
+            id: '100',
+            itemId: '101',
+            itemCode: 'WP-001',
+            itemName: '备件',
+            quantity: 1,
+            unitPrice: 12,
+            amount: 12,
+            binId: '9',
+          },
+        ],
+      },
+    })
+
+    const res = await getInboundOrder('10')
+
+    expect(res.data.details[0].binId).toBe('9')
+  })
+
   it('maps form payloads to the backend inbound dto fields', () => {
     addInboundOrder({
       warehouseId: '1',

@@ -205,6 +205,29 @@ public class ItemServiceImpl implements ItemService {
     }
 
     /**
+     * 追加物品默认库位，只新增缺失关系，不删除已有默认库位。
+     *
+     * @param itemId 物品ID
+     * @param binIds 需要追加的库位ID集合
+     * @return 更新后的物品VO
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ItemVo appendDefaultBins(Long itemId, Collection<Long> binIds) {
+        WmsItem existing = wmsItemMapper.selectById(itemId);
+        if (existing == null) {
+            throw new BizException("物品不存在: " + itemId);
+        }
+        if (existing.getDelFlag() == DelFlagConstants.DELETED) {
+            throw new BizException("物品已删除: " + itemId);
+        }
+        List<Long> normalizedBinIds = normalizeBinIds(binIds == null ? List.of() : new ArrayList<>(binIds));
+        validateBins(normalizedBinIds);
+        appendItemBins(itemId, normalizedBinIds);
+        return getById(itemId);
+    }
+
+    /**
      * 新增物品
      * 自动生成物品编号和拼音，默认状态为启用
      * 
@@ -887,6 +910,38 @@ public class ItemServiceImpl implements ItemService {
     }
 
     /**
+     * 追加物品默认库位，只补充缺失关系，不删除已有库位。
+     *
+     * @param itemId 物品ID
+     * @param binIds 需要追加的库位ID列表
+     */
+    private void appendItemBins(Long itemId, List<Long> binIds) {
+        if (binIds.isEmpty()) {
+            return;
+        }
+        List<WmsItemBin> existingList = wmsItemBinMapper.selectAllByItemId(itemId);
+        Map<Long, WmsItemBin> existingMap = existingList.stream()
+                .collect(Collectors.toMap(WmsItemBin::getBinId, Function.identity(), (left, right) -> left));
+        int sortOrder = existingList.stream()
+                .filter(itemBin -> !Objects.equals(itemBin.getDelFlag(), DelFlagConstants.DELETED))
+                .map(WmsItemBin::getSortOrder)
+                .filter(Objects::nonNull)
+                .max(Integer::compareTo)
+                .orElse(0);
+        for (Long binId : binIds) {
+            WmsItemBin existing = existingMap.get(binId);
+            if (existing == null) {
+                WmsItemBin itemBin = new WmsItemBin();
+                itemBin.setItemId(itemId);
+                itemBin.setBinId(binId);
+                itemBin.setSortOrder(++sortOrder);
+                wmsItemBinMapper.insert(itemBin);
+            } else if (Objects.equals(existing.getDelFlag(), DelFlagConstants.DELETED)) {
+                wmsItemBinMapper.restoreById(existing.getId(), ++sortOrder, DelFlagConstants.NORMAL);
+            }
+        }
+    }
+    /**
      * 逻辑删除物品默认库位关联。
      *
      * @param itemId 物品ID
@@ -1059,3 +1114,4 @@ public class ItemServiceImpl implements ItemService {
                 .orElse(null);
     }
 }
+

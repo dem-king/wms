@@ -11,6 +11,7 @@ import com.wms.business.converter.OutboundOrderConverter;
 import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.service.OutboundService;
+import com.wms.business.service.support.BinWarehouseValidator;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -53,6 +54,7 @@ public class OutboundServiceImpl implements OutboundService {
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final WmsItemMapper wmsItemMapper;
     private final WmsBinMapper wmsBinMapper;
+    private final BinWarehouseValidator binWarehouseValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
     private final OutboundOrderConverter outboundOrderConverter;
@@ -160,6 +162,9 @@ public class OutboundServiceImpl implements OutboundService {
         order.setRemark(dto.getRemark());
 
         wmsOutboundOrderMapper.insert(order);
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(OutboundOrderDto.OutboundDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "出库明细库位不属于单据库房");
         // 保存出库明细
         List<WmsOutboundDetail> detailList = new ArrayList<>();
         for (OutboundOrderDto.OutboundDetailDto detailDto : dto.getDetails()) {
@@ -226,6 +231,10 @@ public class OutboundServiceImpl implements OutboundService {
         order.setExpectedReturnDate(dto.getExpectedReturnDate());
         order.setRemark(dto.getRemark());
         wmsOutboundOrderMapper.updateById(order);
+
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(OutboundOrderDto.OutboundDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "出库明细库位不属于单据库房");
 
         // 逻辑删除原有明细后重新保存
         List<WmsOutboundDetail> oldDetails = wmsOutboundDetailMapper.selectList(

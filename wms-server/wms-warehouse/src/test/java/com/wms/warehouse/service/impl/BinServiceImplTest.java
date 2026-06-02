@@ -2,14 +2,18 @@ package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.domain.PageParam;
 import com.wms.common.domain.PageResult;
+import com.wms.warehouse.domain.dto.BinDto;
 import com.wms.warehouse.converter.BinConverter;
 import com.wms.warehouse.domain.entity.WmsBin;
 import com.wms.warehouse.domain.entity.WmsCabinet;
 import com.wms.warehouse.domain.vo.BinVo;
 import com.wms.warehouse.mapper.WmsBinMapper;
 import com.wms.warehouse.mapper.WmsCabinetMapper;
+import com.wms.warehouse.mapper.WmsAreaMapper;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +26,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -39,12 +44,15 @@ class BinServiceImplTest {
     @Mock
     private WmsCabinetMapper wmsCabinetMapper;
 
+    @Mock
+    private WmsAreaMapper wmsAreaMapper;
+
     private BinServiceImpl binService;
 
     @BeforeEach
     void setUp() {
         BinConverter binConverter = new BinConverter();
-        binService = new BinServiceImpl(wmsBinMapper, wmsCabinetMapper, binConverter);
+        binService = new BinServiceImpl(wmsBinMapper, wmsCabinetMapper, wmsAreaMapper, binConverter);
     }
 
     @Test
@@ -79,5 +87,28 @@ class BinServiceImplTest {
         assertEquals(1, result.getRecords().size());
         assertEquals("CG202605280001-01-01", result.getRecords().get(0).getBinCode());
         assertEquals("A柜", result.getRecords().get(0).getCabinetName());
+    }
+
+    @Test
+    @DisplayName("新增库位时应使用存放柜所属库房")
+    void shouldUseCabinetWarehouseWhenCreatingBin() {
+        BinDto dto = new BinDto();
+        dto.setCabinetId(10L);
+        dto.setWarehouseId(999L);
+        dto.setBinCode("BIN-01");
+        dto.setRowNum(1);
+        dto.setColNum(1);
+
+        WmsCabinet cabinet = new WmsCabinet();
+        cabinet.setId(10L);
+        cabinet.setWarehouseId(20L);
+        cabinet.setDelFlag(DelFlagConstants.NORMAL);
+        when(wmsCabinetMapper.selectById(10L)).thenReturn(cabinet);
+
+        binService.create(dto);
+
+        ArgumentCaptor<WmsBin> captor = ArgumentCaptor.forClass(WmsBin.class);
+        verify(wmsBinMapper).insert(captor.capture());
+        assertEquals(20L, captor.getValue().getWarehouseId());
     }
 }

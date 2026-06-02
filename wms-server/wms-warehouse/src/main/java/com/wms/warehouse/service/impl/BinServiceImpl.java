@@ -11,12 +11,14 @@ import com.wms.common.domain.PageResult;
 import com.wms.common.exception.BizException;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.dto.BinDto;
+import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsBin;
 import com.wms.warehouse.domain.entity.WmsCabinet;
 import com.wms.warehouse.domain.vo.BinVo;
 import com.wms.warehouse.converter.BinConverter;
 import com.wms.warehouse.mapper.WmsBinMapper;
 import com.wms.warehouse.mapper.WmsCabinetMapper;
+import com.wms.warehouse.mapper.WmsAreaMapper;
 import com.wms.warehouse.service.BinService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ public class BinServiceImpl implements BinService {
 
     private final WmsBinMapper wmsBinMapper;
     private final WmsCabinetMapper wmsCabinetMapper;
+    private final WmsAreaMapper wmsAreaMapper;
     private final BinConverter binConverter;
 
     /**
@@ -143,6 +146,7 @@ public class BinServiceImpl implements BinService {
         }
         WmsBin bin = new WmsBin();
         copyDtoToEntity(dto, bin);
+        bin.setWarehouseId(resolveCabinetWarehouseId(cabinet));
         // 自动生成库位编码: 存放柜编码-行号-列号
         if (bin.getBinCode() == null || bin.getBinCode().isBlank()) {
             bin.setBinCode(generateBinCode(cabinet.getCabinetCode(), bin.getRowNum(), bin.getColNum()));
@@ -186,6 +190,7 @@ public class BinServiceImpl implements BinService {
         }
         copyDtoToEntity(dto, existing);
         existing.setId(id);
+        existing.setWarehouseId(resolveCabinetWarehouseId(cabinet));
         wmsBinMapper.updateById(existing);
         return binConverter.toVo(existing, Map.of());
     }
@@ -243,11 +248,12 @@ public class BinServiceImpl implements BinService {
 
         List<BinVo> result = new ArrayList<>();
         List<WmsBin> binList = new ArrayList<>();
+        Long warehouseId = resolveCabinetWarehouseId(cabinet);
         for (int row = 1; row <= rows; row++) {
             for (int col = 1; col <= cols; col++) {
                 WmsBin bin = new WmsBin();
                 bin.setCabinetId(cabinetId);
-                bin.setWarehouseId(cabinet.getWarehouseId());
+                bin.setWarehouseId(warehouseId);
                 bin.setBinCode(generateBinCode(cabinet.getCabinetCode(), row, col));
                 bin.setRowNum(row);
                 bin.setColNum(col);
@@ -278,6 +284,17 @@ public class BinServiceImpl implements BinService {
     private String generateBinCode(String cabinetCode, Integer rowNum, Integer colNum) {
         String cabinetPart = (cabinetCode != null) ? cabinetCode : "BIN";
         return cabinetPart + "-" + String.format("%02d", rowNum) + "-" + String.format("%02d", colNum);
+    }
+
+    private Long resolveCabinetWarehouseId(WmsCabinet cabinet) {
+        if (cabinet.getWarehouseId() != null) {
+            return cabinet.getWarehouseId();
+        }
+        if (cabinet.getAreaId() == null) {
+            return null;
+        }
+        WmsArea area = wmsAreaMapper.selectById(cabinet.getAreaId());
+        return area == null ? null : area.getWarehouseId();
     }
 
     /**

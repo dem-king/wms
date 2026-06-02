@@ -19,7 +19,6 @@ public class CabinetDto {
     private Long areaId;
 
     /** 所属库房ID */
-    @NotNull(message = "所属库房ID不能为空")
     @Schema(description = "所属库房ID")
     private Long warehouseId;
 

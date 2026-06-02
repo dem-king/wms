@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑入库单' : '新增入库单'" width="900px" @close="handleClose">
+  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑入库单' : '新增入库单'" width="min(1280px, calc(100vw - 48px))" @close="handleClose">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-row :gutter="16">
         <el-col :span="12">
@@ -75,9 +75,16 @@
       <el-table-column prop="unit" label="单位" min-width="80" />
       <el-table-column label="库位" min-width="150">
         <template #default="{ row }">
-          <el-select v-model="row.binId" placeholder="请选择库位" filterable :disabled="!form.warehouseId">
-            <el-option v-for="bin in binList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
-          </el-select>
+          <el-cascader
+            v-model="row.locationPath"
+            :options="locationOptions"
+            :props="locationCascaderProps"
+            placeholder="请选择库位"
+            filterable
+            clearable
+            :disabled="!form.warehouseId"
+            @change="(val) => handleLocationPathChange(row, val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="数量" min-width="120">
@@ -107,20 +114,33 @@
       <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
     </template>
   </el-dialog>
+  <LocationChoiceDialog
+    v-model:visible="locationChoiceVisible"
+    :locations="locationChoices"
+    @select="handleLocationChoice"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import LocationChoiceDialog from '@/views/business/components/LocationChoiceDialog.vue'
 import { addInboundOrder, scanInboundOrder, updateInboundOrder } from '@/api/business/inbound'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
-import { getBinListByWarehouse } from '@/api/warehouse/bin'
 import { getSupplierList } from '@/api/system/supplier'
 import { getItemList } from '@/api/item/item'
 import { collectScannedLabelIds, mergeScannedDetail } from '@/views/business/order-scan'
+import {
+  getSelectableLocations,
+  locationToPath,
+  pathToBinId,
+  resolveLocationPathByBinId,
+  type LocationPath,
+} from '@/views/business/default-location'
+import { locationCascaderProps, toWarehouseLocationOptions } from '@/views/business/location-cascader'
 import type {
   EntityId,
   InboundOrderVo,
@@ -128,15 +148,16 @@ import type {
   InboundType,
   OrderScanDetailRow,
 } from '@/types/business'
-import type { WmsBinVo, WmsWarehouseVo } from '@/types/warehouse'
+import type { WmsWarehouseVo } from '@/types/warehouse'
 import type { SysSupplierVo } from '@/types/system'
-import type { WmsItemVo } from '@/types/item'
+import type { ItemLocationVo, WmsItemVo } from '@/types/item'
 
 interface DetailRow extends OrderScanDetailRow {
   itemId: EntityId
   quantity: number
   unitPrice: number
   binId?: EntityId
+  locationPath?: LocationPath
 }
 
 interface ScanFeedback {
@@ -158,12 +179,15 @@ const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
-const binList = ref<WmsBinVo[]>([])
 const supplierList = ref<SysSupplierVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
 const scanCode = ref('')
 const scanLoading = ref(false)
 const scanFeedback = ref<ScanFeedback>({ type: 'success', message: '' })
+const locationChoiceVisible = ref(false)
+const locationChoices = ref<ItemLocationVo[]>([])
+let pendingLocationApply: ((location: ItemLocationVo) => void) | undefined
+const locationOptions = computed(() => toWarehouseLocationOptions(warehouseList.value, form.warehouseId))
 
 const form = reactive<{
   warehouseId: EntityId | undefined
@@ -196,23 +220,26 @@ watch(() => props.visible, async (val) => {
         supplierId: props.formData.supplierId,
         inboundType: props.formData.inboundType,
         remark: props.formData.remark,
-        details: (props.formData.details || []).map(d => ({
-          itemId: d.itemId,
-          quantity: d.quantity,
-          unitPrice: d.unitPrice,
-          binId: d.binId,
-          specModel: d.specModel,
-          unit: d.unit,
-          amount: d.amount,
-        })),
+        details: (props.formData.details || []).map(d => {
+          const locationPath = resolveDetailLocationPath(d.itemId, d.binId, props.formData?.warehouseId)
+          return {
+            itemId: d.itemId,
+            quantity: d.quantity,
+            unitPrice: d.unitPrice,
+            binId: pathToBinId(locationPath),
+            locationPath,
+            specModel: d.specModel,
+            unit: d.unit,
+            amount: d.amount,
+          }
+        }),
       })
       form.details.forEach((detail) => syncDetailRowFromItem(detail))
     }
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
-watch(() => form.warehouseId, async (warehouseId, oldWarehouseId) => {
-  await loadBinsByWarehouse(warehouseId)
+watch(() => form.warehouseId, (_warehouseId, oldWarehouseId) => {
   if (oldWarehouseId !== undefined) {
     clearInvalidDetailBins()
   }
@@ -229,26 +256,21 @@ async function loadOptions() {
   itemList.value = iRes.data.records
 }
 
-async function loadBinsByWarehouse(warehouseId: EntityId | undefined) {
-  if (!warehouseId) {
-    binList.value = []
-    return
-  }
-  const res = await getBinListByWarehouse(warehouseId)
-  binList.value = res.data
-}
-
 function clearInvalidDetailBins() {
-  const validBinIds = new Set(binList.value.map(bin => bin.id))
   form.details.forEach((detail) => {
-    if (detail.binId && !validBinIds.has(detail.binId)) {
+    if (detail.locationPath && detail.locationPath[0] !== form.warehouseId) {
+      detail.locationPath = undefined
+      detail.binId = undefined
+      return
+    }
+    if (detail.binId && !detail.locationPath) {
       detail.binId = undefined
     }
   })
 }
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, unitPrice: 0, binId: undefined, specModel: '', unit: '', amount: 0 })
+  form.details.push({ itemId: undefined as unknown as EntityId, quantity: 1, unitPrice: 0, binId: undefined, locationPath: undefined, specModel: '', unit: '', amount: 0 })
 }
 
 function syncDetailRowFromItem(row: DetailRow) {
@@ -264,6 +286,51 @@ function syncDetailRowFromItem(row: DetailRow) {
 function handleItemChange(row: DetailRow, itemId: EntityId) {
   row.itemId = itemId
   syncDetailRowFromItem(row)
+  applyDefaultLocation(row)
+}
+
+function applyDefaultLocation(row: DetailRow) {
+  const item = itemList.value.find(i => i.id === row.itemId)
+  const locations = getSelectableLocations(item, form.warehouseId, { strictWarehouse: true })
+  if (locations.length > 1) {
+    applyLocationToRow(row, undefined)
+    openLocationChoice(locations, location => applyLocationToRow(row, location))
+    return
+  }
+  applyLocationToRow(row, locations[0])
+}
+
+function applyLocationToRow(row: DetailRow, location: ItemLocationVo | undefined) {
+  const path = locationToPath(location)
+  if (!path) {
+    row.locationPath = undefined
+    row.binId = undefined
+    return
+  }
+  form.warehouseId = path[0]
+  row.locationPath = path
+  row.binId = pathToBinId(path)
+}
+
+function openLocationChoice(locations: ItemLocationVo[], apply: (location: ItemLocationVo) => void) {
+  locationChoices.value = locations
+  pendingLocationApply = apply
+  locationChoiceVisible.value = true
+}
+
+function handleLocationChoice(location: ItemLocationVo) {
+  pendingLocationApply?.(location)
+  pendingLocationApply = undefined
+}
+
+function resolveDetailLocationPath(itemId: EntityId, binId: EntityId | undefined, warehouseId: EntityId | undefined) {
+  const item = itemList.value.find(i => i.id === itemId)
+  return resolveLocationPathByBinId(item, binId, warehouseId)
+}
+
+function handleLocationPathChange(row: DetailRow, value: unknown) {
+  row.locationPath = Array.isArray(value) && value.length === 4 ? value as LocationPath : undefined
+  row.binId = pathToBinId(row.locationPath)
 }
 
 function calcAmount(row: DetailRow) {
@@ -285,6 +352,7 @@ function applyScannedResult(result: Awaited<ReturnType<typeof scanInboundOrder>>
   form.details.splice(0, form.details.length, ...mergedDetails.map(detail => ({ ...detail })))
   form.details.forEach((detail) => {
     syncDetailRowFromItem(detail)
+    applyDefaultLocation(detail)
     calcAmount(detail)
   })
 }
@@ -355,7 +423,6 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { warehouseId: undefined, supplierId: undefined, inboundType: '', remark: '', details: [] })
-  binList.value = []
   resetScanState()
 }
 </script>

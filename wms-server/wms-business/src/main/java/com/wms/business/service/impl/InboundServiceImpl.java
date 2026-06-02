@@ -12,6 +12,7 @@ import com.wms.business.domain.vo.InboundOrderVo;
 import com.wms.business.mapper.WmsInboundDetailMapper;
 import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.service.InboundService;
+import com.wms.business.service.support.BinWarehouseValidator;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -23,11 +24,10 @@ import com.wms.common.exception.BizException;
 import com.wms.common.util.SequenceGenerator;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
+import com.wms.item.service.ItemService;
 import com.wms.system.domain.entity.SysSupplier;
 import com.wms.system.mapper.SysSupplierMapper;
-import com.wms.warehouse.domain.entity.WmsBin;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
-import com.wms.warehouse.mapper.WmsBinMapper;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,7 +55,8 @@ public class InboundServiceImpl implements InboundService {
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final SysSupplierMapper sysSupplierMapper;
     private final WmsItemMapper wmsItemMapper;
-    private final WmsBinMapper wmsBinMapper;
+    private final ItemService itemService;
+    private final BinWarehouseValidator binWarehouseValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
     private final InboundOrderConverter inboundOrderConverter;
@@ -170,6 +171,10 @@ public class InboundServiceImpl implements InboundService {
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
         order.setRemark(dto.getRemark());
 
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(InboundOrderDto.InboundDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "入库明细库位不属于单据库房");
+
         BigDecimal totalAmount = BigDecimal.ZERO;
         wmsInboundOrderMapper.insert(order);
         List<WmsInboundDetail> detailList = new ArrayList<>();
@@ -197,6 +202,7 @@ public class InboundServiceImpl implements InboundService {
         }
         if (!detailList.isEmpty()) {
             Db.saveBatch(detailList);
+            appendDefaultBins(detailList);
         }
         order.setTotalAmount(totalAmount);
         wmsInboundOrderMapper.updateById(order);
@@ -245,6 +251,10 @@ public class InboundServiceImpl implements InboundService {
         order.setRemark(dto.getRemark());
         wmsInboundOrderMapper.updateById(order);
 
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(InboundOrderDto.InboundDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "入库明细库位不属于单据库房");
+
         List<WmsInboundDetail> oldDetails = wmsInboundDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsInboundDetail>().eq(WmsInboundDetail::getOrderId, id));
         List<WmsInboundDetail> updateDetails = new ArrayList<>();
@@ -276,6 +286,7 @@ public class InboundServiceImpl implements InboundService {
         }
         if (!newDetailList.isEmpty()) {
             Db.saveBatch(newDetailList);
+            appendDefaultBins(newDetailList);
         }
         order.setTotalAmount(totalAmount);
         wmsInboundOrderMapper.updateById(order);
@@ -355,5 +366,18 @@ public class InboundServiceImpl implements InboundService {
      */
     private String generateOrderNo() {
         return sequenceGenerator.next(OrderConstants.INBOUND_NO_PREFIX);
+    }
+
+    /**
+     * 入库保存成功后把明细库位追加到物品默认库位。
+     *
+     * @param details 入库明细列表
+     */
+    private void appendDefaultBins(List<WmsInboundDetail> details) {
+        details.stream()
+                .filter(detail -> detail.getItemId() != null && detail.getBinId() != null)
+                .collect(Collectors.groupingBy(WmsInboundDetail::getItemId,
+                        Collectors.mapping(WmsInboundDetail::getBinId, Collectors.toList())))
+                .forEach(itemService::appendDefaultBins);
     }
 }

@@ -11,6 +11,7 @@ import com.wms.business.domain.vo.ScrapOrderVo;
 import com.wms.business.mapper.WmsScrapDetailMapper;
 import com.wms.business.mapper.WmsScrapOrderMapper;
 import com.wms.business.service.ScrapService;
+import com.wms.business.service.support.BinWarehouseValidator;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
@@ -50,6 +51,7 @@ public class ScrapServiceImpl implements ScrapService {
     private final WmsScrapDetailMapper wmsScrapDetailMapper;
     private final WmsItemMapper wmsItemMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
+    private final BinWarehouseValidator binWarehouseValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
     private final ScrapOrderConverter scrapOrderConverter;
@@ -146,6 +148,9 @@ public class ScrapServiceImpl implements ScrapService {
         order.setScrapReason(dto.getScrapReason());
 
         wmsScrapOrderMapper.insert(order);
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(ScrapOrderDto.ScrapDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "报废明细库位不属于单据库房");
         // 保存报废明细
         List<WmsScrapDetail> detailList = new ArrayList<>();
         for (ScrapOrderDto.ScrapDetailDto detailDto : dto.getDetails()) {
@@ -215,6 +220,10 @@ public class ScrapServiceImpl implements ScrapService {
         order.setWarehouseId(dto.getWarehouseId());
         order.setScrapReason(dto.getScrapReason());
         wmsScrapOrderMapper.updateById(order);
+
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(ScrapOrderDto.ScrapDetailDto::getBinId)
+                .collect(Collectors.toList()), dto.getWarehouseId(), "报废明细库位不属于单据库房");
 
         // 逻辑删除原有明细
         List<WmsScrapDetail> oldDetails = wmsScrapDetailMapper.selectList(
@@ -332,4 +341,5 @@ public class ScrapServiceImpl implements ScrapService {
     private String generateOrderNo() {
         return sequenceGenerator.next(OrderConstants.SCRAP_NO_PREFIX);
     }
+
 }

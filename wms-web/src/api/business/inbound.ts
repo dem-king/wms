@@ -73,6 +73,7 @@ function normalizeInboundOrder(data?: Partial<InboundOrderApiVo>): InboundOrderV
       quantity: Number(detail.quantity || 0),
       unitPrice: Number(detail.unitPrice || 0),
       amount: Number(detail.amount || 0),
+      binId: detail.binId,
     })),
   }
 }

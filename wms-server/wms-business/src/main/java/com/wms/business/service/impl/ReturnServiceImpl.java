@@ -13,6 +13,7 @@ import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.mapper.WmsReturnDetailMapper;
 import com.wms.business.mapper.WmsReturnOrderMapper;
 import com.wms.business.service.ReturnService;
+import com.wms.business.service.support.BinWarehouseValidator;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -25,6 +26,7 @@ import com.wms.common.util.SequenceGenerator;
 import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
+import com.wms.item.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,8 @@ public class ReturnServiceImpl implements ReturnService {
     private final WmsReturnDetailMapper wmsReturnDetailMapper;
     private final WmsOutboundOrderMapper wmsOutboundOrderMapper;
     private final WmsItemMapper wmsItemMapper;
+    private final ItemService itemService;
+    private final BinWarehouseValidator binWarehouseValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
     private final ReturnOrderConverter returnOrderConverter;
@@ -144,10 +148,14 @@ public class ReturnServiceImpl implements ReturnService {
         order.setRemark(dto.getRemark());
 
         wmsReturnOrderMapper.insert(order);
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(ReturnOrderDto.ReturnDetailDto::getBinId)
+                .collect(Collectors.toList()), outboundOrder.getWarehouseId(), "归还库位不属于关联出库单库房");
         // 保存归还明细(含异常登记信息)
         List<WmsReturnDetail> detailList = buildDetails(order.getId(), dto.getDetails());
         if (!detailList.isEmpty()) {
             Db.saveBatch(detailList);
+            appendDefaultBins(detailList);
         }
 
         // 归还单创建时不直接发布库存同步事件，需走审批流程后在审批通过时发布
@@ -196,6 +204,10 @@ public class ReturnServiceImpl implements ReturnService {
         order.setRemark(dto.getRemark());
         wmsReturnOrderMapper.updateById(order);
 
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(ReturnOrderDto.ReturnDetailDto::getBinId)
+                .collect(Collectors.toList()), outboundOrder.getWarehouseId(), "归还库位不属于关联出库单库房");
+
         // 逻辑删除原有明细
         List<WmsReturnDetail> oldDetails = wmsReturnDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsReturnDetail>().eq(WmsReturnDetail::getOrderId, id));
@@ -214,6 +226,7 @@ public class ReturnServiceImpl implements ReturnService {
         List<WmsReturnDetail> newDetailList = buildDetails(id, dto.getDetails());
         if (!newDetailList.isEmpty()) {
             Db.saveBatch(newDetailList);
+            appendDefaultBins(newDetailList);
         }
 
         ReturnOrderVo vo = returnOrderConverter.toVo(order, Map.of());
@@ -357,5 +370,38 @@ public class ReturnServiceImpl implements ReturnService {
      */
     private String generateOrderNo() {
         return sequenceGenerator.next(OrderConstants.RETURN_NO_PREFIX);
+    }
+
+    /**
+     * 归还保存成功后把有效入库库位追加到物品默认库位。
+     *
+     * @param details 归还明细列表
+     */
+    private void appendDefaultBins(List<WmsReturnDetail> details) {
+        details.stream()
+                .filter(this::needsInbound)
+                .filter(detail -> detail.getItemId() != null && detail.getBinId() != null)
+                .collect(Collectors.groupingBy(WmsReturnDetail::getItemId,
+                        Collectors.mapping(WmsReturnDetail::getBinId, Collectors.toList())))
+                .forEach(itemService::appendDefaultBins);
+    }
+
+    /**
+     * 判断归还明细是否会形成有效入库。
+     *
+     * @param detail 归还明细
+     * @return 是否需要入库
+     */
+    private boolean needsInbound(WmsReturnDetail detail) {
+        Integer conditionStatus = detail.getConditionStatus();
+        if (conditionStatus != null
+                && (conditionStatus == OrderConstants.RETURN_CONDITION_DAMAGED
+                || conditionStatus == OrderConstants.RETURN_CONDITION_LOST)) {
+            return false;
+        }
+        if (conditionStatus != null && conditionStatus == OrderConstants.RETURN_CONDITION_MISMATCH) {
+            return detail.getActualQuantity() != null && detail.getActualQuantity() > 0;
+        }
+        return detail.getQuantity() != null && detail.getQuantity() > 0;
     }
 }

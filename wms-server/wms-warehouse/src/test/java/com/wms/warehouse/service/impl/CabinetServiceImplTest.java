@@ -229,6 +229,28 @@ class CabinetServiceImplTest {
     }
 
     @Test
+    @DisplayName("新增存放柜时应使用区域所属库房")
+    void shouldUseAreaWarehouseWhenCreatingCabinet() {
+        CabinetDto dto = new CabinetDto();
+        dto.setAreaId(10L);
+        dto.setWarehouseId(999L);
+        dto.setCabinetName("测试柜");
+
+        WmsArea area = new WmsArea();
+        area.setId(10L);
+        area.setWarehouseId(20L);
+        area.setDelFlag(DelFlagConstants.NORMAL);
+        when(wmsAreaMapper.selectById(10L)).thenReturn(area);
+        when(sequenceGenerator.next(any())).thenReturn("CG202605210001");
+
+        cabinetService.create(dto);
+
+        ArgumentCaptor<WmsCabinet> captor = ArgumentCaptor.forClass(WmsCabinet.class);
+        verify(wmsCabinetMapper).insert(captor.capture());
+        assertEquals(20L, captor.getValue().getWarehouseId());
+    }
+
+    @Test
     @DisplayName("批量保存布局时应返回保存后位置并更新排序号")
     void shouldBatchSaveCabinetLayoutAndReturnSavedPositions() {
         CabinetLayoutBatchSaveDto dto = new CabinetLayoutBatchSaveDto();

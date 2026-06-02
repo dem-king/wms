@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑报废单' : '新增报废单'" width="900px" @close="handleClose">
+  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑报废单' : '新增报废单'" width="min(1280px, calc(100vw - 48px))" @close="handleClose">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
       <el-form-item label="库房" prop="warehouseId">
         <el-select v-model="form.warehouseId" placeholder="请选择库房" style="width: 100%">
@@ -28,9 +28,16 @@
       </el-table-column>
       <el-table-column label="库位" min-width="150">
         <template #default="{ row }">
-          <el-select v-model="row.binId" placeholder="请选择库位" filterable :disabled="!form.warehouseId">
-            <el-option v-for="bin in binList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
-          </el-select>
+          <el-cascader
+            v-model="row.locationPath"
+            :options="locationOptions"
+            :props="locationCascaderProps"
+            placeholder="请选择库位"
+            filterable
+            clearable
+            :disabled="!form.warehouseId"
+            @change="(val) => handleLocationPathChange(row, val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="报废数量" min-width="120">
@@ -54,24 +61,38 @@
       <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
     </template>
   </el-dialog>
+  <LocationChoiceDialog
+    v-model:visible="locationChoiceVisible"
+    :locations="locationChoices"
+    @select="handleLocationChoice"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import LocationChoiceDialog from '@/views/business/components/LocationChoiceDialog.vue'
 import { addScrapOrder, updateScrapOrder } from '@/api/business/scrap'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
-import { getBinListByWarehouse } from '@/api/warehouse/bin'
 import { getItemList } from '@/api/item/item'
+import {
+  getSelectableLocations,
+  locationToPath,
+  pathToBinId,
+  resolveLocationPathByBinId,
+  type LocationPath,
+} from '@/views/business/default-location'
+import { locationCascaderProps, toWarehouseLocationOptions } from '@/views/business/location-cascader'
 import type { EntityId, ScrapOrderVo, ScrapOrderDto, ScrapDetailDto } from '@/types/business'
-import type { WmsBinVo, WmsWarehouseVo } from '@/types/warehouse'
-import type { WmsItemVo } from '@/types/item'
+import type { WmsWarehouseVo } from '@/types/warehouse'
+import type { ItemLocationVo, WmsItemVo } from '@/types/item'
 
 interface DetailRow extends Omit<ScrapDetailDto, 'binId'> {
   binId?: EntityId
+  locationPath?: LocationPath
 }
 
 const props = defineProps<{
@@ -88,8 +109,11 @@ const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const warehouseList = ref<WmsWarehouseVo[]>([])
-const binList = ref<WmsBinVo[]>([])
 const itemList = ref<WmsItemVo[]>([])
+const locationChoiceVisible = ref(false)
+const locationChoices = ref<ItemLocationVo[]>([])
+let pendingLocationApply: ((location: ItemLocationVo) => void) | undefined
+const locationOptions = computed(() => toWarehouseLocationOptions(warehouseList.value, form.warehouseId))
 
 const form = reactive<{
   warehouseId: EntityId | undefined
@@ -122,46 +146,86 @@ watch(() => props.visible, async (val) => {
         warehouseId: props.formData.warehouseId,
         scrapReason: props.formData.scrapReason,
         remark: props.formData.remark,
-        details: (props.formData.details || []).map(d => ({
-          itemId: d.itemId,
-          binId: d.binId,
-          quantity: d.quantity,
-        })),
+        details: (props.formData.details || []).map(d => {
+          const locationPath = resolveDetailLocationPath(d.itemId, d.binId, props.formData?.warehouseId)
+          return {
+            itemId: d.itemId,
+            binId: pathToBinId(locationPath),
+            locationPath,
+            quantity: d.quantity,
+          }
+        }),
       })
     }
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
-watch(() => form.warehouseId, async (warehouseId, oldWarehouseId) => {
-  await loadBinsByWarehouse(warehouseId)
+watch(() => form.warehouseId, (_warehouseId, oldWarehouseId) => {
   if (oldWarehouseId !== undefined) {
     clearInvalidDetailBins()
   }
 })
 
-async function loadBinsByWarehouse(warehouseId: EntityId | undefined) {
-  if (!warehouseId) {
-    binList.value = []
-    return
-  }
-  const res = await getBinListByWarehouse(warehouseId)
-  binList.value = res.data
-}
-
 function clearInvalidDetailBins() {
-  const validBinIds = new Set(binList.value.map(bin => bin.id))
   form.details.forEach((detail) => {
-    if (detail.binId && !validBinIds.has(detail.binId)) {
+    if (detail.locationPath && detail.locationPath[0] !== form.warehouseId) {
+      detail.locationPath = undefined
+      detail.binId = undefined
+      return
+    }
+    if (detail.binId && !detail.locationPath) {
       detail.binId = undefined
     }
   })
 }
 
 function addDetailRow() {
-  form.details.push({ itemId: undefined as unknown as EntityId, binId: undefined, quantity: 1 })
+  form.details.push({ itemId: undefined as unknown as EntityId, binId: undefined, locationPath: undefined, quantity: 1 })
 }
 
-function handleItemChange(_row: DetailRow, _val: EntityId) {
+function handleItemChange(row: DetailRow, itemId: EntityId) {
+  row.itemId = itemId
+  const item = itemList.value.find(i => i.id === itemId)
+  const locations = getSelectableLocations(item, form.warehouseId, { strictWarehouse: true })
+  if (locations.length > 1) {
+    applyLocationToRow(row, undefined)
+    openLocationChoice(locations, location => applyLocationToRow(row, location))
+    return
+  }
+  applyLocationToRow(row, locations[0])
+}
+
+function applyLocationToRow(row: DetailRow, location: ItemLocationVo | undefined) {
+  const path = locationToPath(location)
+  if (!path) {
+    row.locationPath = undefined
+    row.binId = undefined
+    return
+  }
+  form.warehouseId = path[0]
+  row.locationPath = path
+  row.binId = pathToBinId(path)
+}
+
+function openLocationChoice(locations: ItemLocationVo[], apply: (location: ItemLocationVo) => void) {
+  locationChoices.value = locations
+  pendingLocationApply = apply
+  locationChoiceVisible.value = true
+}
+
+function handleLocationChoice(location: ItemLocationVo) {
+  pendingLocationApply?.(location)
+  pendingLocationApply = undefined
+}
+
+function resolveDetailLocationPath(itemId: EntityId, binId: EntityId | undefined, warehouseId: EntityId | undefined) {
+  const item = itemList.value.find(i => i.id === itemId)
+  return resolveLocationPathByBinId(item, binId, warehouseId)
+}
+
+function handleLocationPathChange(row: DetailRow, value: unknown) {
+  row.locationPath = Array.isArray(value) && value.length === 4 ? value as LocationPath : undefined
+  row.binId = pathToBinId(row.locationPath)
 }
 
 async function handleSubmit() {
@@ -200,7 +264,6 @@ function handleClose() {
   dialogVisible.value = false
   formRef.value?.resetFields()
   Object.assign(form, { warehouseId: undefined, scrapReason: '', remark: '', details: [] })
-  binList.value = []
 }
 </script>
 

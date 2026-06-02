@@ -1,6 +1,7 @@
 package com.wms.warehouse.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
@@ -160,6 +161,7 @@ public class CabinetServiceImpl implements CabinetService {
             throw new BizException("区域已删除");
         }
         WmsCabinet cabinet = cabinetConverter.toEntity(dto);
+        cabinet.setWarehouseId(area.getWarehouseId());
         // 自动生成存放柜编码: CG + 年月日 + 4位流水号
         cabinet.setCabinetCode(generateCabinetCode());
         // 默认状态为启用
@@ -200,12 +202,14 @@ public class CabinetServiceImpl implements CabinetService {
         }
         cabinetConverter.copyToEntity(dto, existing);
         existing.setId(id);
+        existing.setWarehouseId(area.getWarehouseId());
         // 编辑时不修改编码
         existing.setCabinetCode(null);
         if (existing.getSortOrder() == null) {
             existing.setSortOrder(BizConstants.DEFAULT_SORT_ORDER);
         }
         wmsCabinetMapper.updateById(existing);
+        syncBinWarehouse(id, area.getWarehouseId());
         return cabinetConverter.toVo(existing, area.getAreaName(), null);
     }
 
@@ -317,6 +321,16 @@ public class CabinetServiceImpl implements CabinetService {
      */
     private String generateCabinetCode() {
         return sequenceGenerator.next(WarehouseConstants.CABINET_CODE_PREFIX);
+    }
+
+    private void syncBinWarehouse(Long cabinetId, Long warehouseId) {
+        if (warehouseId == null) {
+            return;
+        }
+        WmsBin updateEntity = new WmsBin();
+        updateEntity.setWarehouseId(warehouseId);
+        wmsBinMapper.update(updateEntity, Wrappers.<WmsBin>lambdaUpdate()
+                .eq(WmsBin::getCabinetId, cabinetId));
     }
 
     /**

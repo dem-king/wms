@@ -11,6 +11,7 @@ import com.wms.business.domain.vo.TransferOrderVo;
 import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
 import com.wms.business.service.TransferService;
+import com.wms.business.service.support.BinWarehouseValidator;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -23,6 +24,7 @@ import com.wms.common.util.SequenceGenerator;
 import com.wms.business.domain.constant.OrderConstants;
 import com.wms.item.domain.entity.WmsItem;
 import com.wms.item.mapper.WmsItemMapper;
+import com.wms.item.service.ItemService;
 import com.wms.warehouse.domain.entity.WmsWarehouse;
 import com.wms.warehouse.mapper.WmsWarehouseMapper;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,8 @@ public class TransferServiceImpl implements TransferService {
     private final WmsTransferDetailMapper wmsTransferDetailMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
     private final WmsItemMapper wmsItemMapper;
+    private final ItemService itemService;
+    private final BinWarehouseValidator binWarehouseValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final SequenceGenerator sequenceGenerator;
     private final TransferOrderConverter transferOrderConverter;
@@ -164,8 +168,15 @@ public class TransferServiceImpl implements TransferService {
         order.setRemark(dto.getRemark());
 
         wmsTransferOrderMapper.insert(order);
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(TransferOrderDto.TransferDetailDto::getFromBinId)
+                .collect(Collectors.toList()), dto.getFromWarehouseId(), "调出库位不属于调出库房");
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(TransferOrderDto.TransferDetailDto::getToBinId)
+                .collect(Collectors.toList()), dto.getToWarehouseId(), "调入库位不属于调入库房");
         // 保存调拨明细
-        saveDetails(order.getId(), dto.getDetails());
+        List<WmsTransferDetail> detailList = saveDetails(order.getId(), dto.getDetails());
+        appendDefaultBins(detailList);
 
         TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
         // 查询明细并转换为VO列表
@@ -267,8 +278,15 @@ public class TransferServiceImpl implements TransferService {
             LogicDeleteHelper.markDeletedEntities(wmsTransferDetailMapper, WmsTransferDetail.class, updateDetails);
         }
 
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(TransferOrderDto.TransferDetailDto::getFromBinId)
+                .collect(Collectors.toList()), dto.getFromWarehouseId(), "调出库位不属于调出库房");
+        binWarehouseValidator.validateBelongToWarehouse(dto.getDetails().stream()
+                .map(TransferOrderDto.TransferDetailDto::getToBinId)
+                .collect(Collectors.toList()), dto.getToWarehouseId(), "调入库位不属于调入库房");
         // 保存新明细
-        saveDetails(id, dto.getDetails());
+        List<WmsTransferDetail> detailList = saveDetails(id, dto.getDetails());
+        appendDefaultBins(detailList);
 
         TransferOrderVo vo = transferOrderConverter.toVo(order, Map.of());
         // 查询新明细并转换为VO列表
@@ -333,7 +351,7 @@ public class TransferServiceImpl implements TransferService {
      * @param orderId 调拨单ID
      * @param detailDtos 明细DTO列表
      */
-    private void saveDetails(Long orderId, List<TransferOrderDto.TransferDetailDto> detailDtos) {
+    private List<WmsTransferDetail> saveDetails(Long orderId, List<TransferOrderDto.TransferDetailDto> detailDtos) {
         List<WmsTransferDetail> detailList = new ArrayList<>();
         for (TransferOrderDto.TransferDetailDto detailDto : detailDtos) {
             // 校验物品存在
@@ -355,5 +373,19 @@ public class TransferServiceImpl implements TransferService {
         if (!detailList.isEmpty()) {
             Db.saveBatch(detailList);
         }
+        return detailList;
+    }
+
+    /**
+     * 调拨保存成功后把调入库位追加到物品默认库位。
+     *
+     * @param details 调拨明细列表
+     */
+    private void appendDefaultBins(List<WmsTransferDetail> details) {
+        details.stream()
+                .filter(detail -> detail.getItemId() != null && detail.getToBinId() != null)
+                .collect(Collectors.groupingBy(WmsTransferDetail::getItemId,
+                        Collectors.mapping(WmsTransferDetail::getToBinId, Collectors.toList())))
+                .forEach(itemService::appendDefaultBins);
     }
 }

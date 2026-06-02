@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑归还单' : '新增归还单'" width="900px" @close="handleClose">
+  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑归还单' : '新增归还单'" width="min(1280px, calc(100vw - 48px))" @close="handleClose">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
       <el-row :gutter="16">
         <el-col :span="12">
@@ -34,16 +34,23 @@
     <el-table :data="form.details" border>
       <el-table-column label="物品" min-width="200">
         <template #default="{ row }">
-          <el-select v-model="row.itemId" placeholder="请选择物品" filterable>
+          <el-select v-model="row.itemId" placeholder="请选择物品" filterable @change="() => applyDefaultLocation(row)">
             <el-option v-for="item in outboundItems" :key="item.itemId" :label="`${item.itemCode} - ${item.itemName}`" :value="item.itemId" />
           </el-select>
         </template>
       </el-table-column>
       <el-table-column label="归还库位" min-width="150">
         <template #default="{ row }">
-          <el-select v-model="row.binId" placeholder="请选择归还库位" filterable :disabled="!returnWarehouseId">
-            <el-option v-for="bin in returnBinList" :key="bin.id" :label="bin.binCode" :value="bin.id" />
-          </el-select>
+          <el-cascader
+            v-model="row.locationPath"
+            :options="returnLocationOptions"
+            :props="locationCascaderProps"
+            placeholder="请选择归还库位"
+            filterable
+            clearable
+            :disabled="!returnWarehouseId"
+            @change="(val) => handleLocationPathChange(row, val)"
+          />
         </template>
       </el-table-column>
       <el-table-column label="归还数量" min-width="120">
@@ -95,6 +102,11 @@
       <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 定</el-button>
     </template>
   </el-dialog>
+  <LocationChoiceDialog
+    v-model:visible="locationChoiceVisible"
+    :locations="locationChoices"
+    @select="handleLocationChoice"
+  />
 </template>
 
 <script setup lang="ts">
@@ -103,9 +115,18 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import TableActionGroup from '@/components/TableActionGroup/TableActionGroup.vue'
+import LocationChoiceDialog from '@/views/business/components/LocationChoiceDialog.vue'
 import { addReturnOrder, updateReturnOrder } from '@/api/business/return'
 import { getOutboundOrders } from '@/api/business/outbound'
-import { getBinListByWarehouse } from '@/api/warehouse/bin'
+import { getItemList } from '@/api/item/item'
+import {
+  getSelectableLocations,
+  locationToPath,
+  pathToBinId,
+  resolveLocationPathByBinId,
+  type LocationPath,
+} from '@/views/business/default-location'
+import { locationCascaderProps, toWarehouseLocationOptions } from '@/views/business/location-cascader'
 import type {
   EntityId,
   ReturnOrderVo,
@@ -113,7 +134,8 @@ import type {
   ReturnDetailDto,
 } from '@/types/business'
 import type { OutboundOrderVo, OutboundDetailVo } from '@/types/business'
-import type { WmsBinVo } from '@/types/warehouse'
+import type { ItemLocationVo, WmsItemVo } from '@/types/item'
+import type { WmsWarehouseVo } from '@/types/warehouse'
 
 const RETURN_CONDITION_NORMAL = 1
 const RETURN_CONDITION_DAMAGED = 2
@@ -122,6 +144,7 @@ const RETURN_CONDITION_MISMATCH = 4
 
 interface DetailRow extends ReturnDetailDto {
   binId?: EntityId
+  locationPath?: LocationPath
   actualQuantity?: number
 }
 
@@ -140,7 +163,10 @@ const formRef = ref<FormInstance>()
 const submitLoading = ref(false)
 const outboundList = ref<OutboundOrderVo[]>([])
 const outboundItems = ref<OutboundDetailVo[]>([])
-const returnBinList = ref<WmsBinVo[]>([])
+const itemList = ref<WmsItemVo[]>([])
+const locationChoiceVisible = ref(false)
+const locationChoices = ref<ItemLocationVo[]>([])
+let pendingLocationApply: ((location: ItemLocationVo) => void) | undefined
 
 const form = reactive<{
   outboundOrderId: EntityId | undefined
@@ -157,6 +183,12 @@ const form = reactive<{
 const selectedOutboundOrder = computed(() => outboundList.value.find(o => o.id === form.outboundOrderId))
 const returnWarehouseId = computed(() => selectedOutboundOrder.value?.warehouseId)
 const returnWarehouseName = computed(() => selectedOutboundOrder.value?.warehouseName || '')
+const returnLocationOptions = computed(() => {
+  const warehouse = selectedOutboundOrder.value
+    ? [{ id: selectedOutboundOrder.value.warehouseId, warehouseName: selectedOutboundOrder.value.warehouseName } as WmsWarehouseVo]
+    : []
+  return toWarehouseLocationOptions(warehouse, returnWarehouseId.value)
+})
 
 const rules: FormRules = {
   outboundOrderId: [{ required: true, message: '请选择出库单', trigger: 'change' }],
@@ -166,48 +198,51 @@ const rules: FormRules = {
 watch(() => props.visible, async (val) => {
   dialogVisible.value = val
   if (val) {
-    const res = await getOutboundOrders({ page: 1, size: 1000, status: 'COMPLETED' })
+    const [res, itemRes] = await Promise.all([
+      getOutboundOrders({ page: 1, size: 1000, status: 'COMPLETED' }),
+      getItemList({ page: 1, size: 1000, status: 1 }),
+    ])
     outboundList.value = res.data.records
+    itemList.value = itemRes.data.records
     if (props.isEdit && props.formData) {
+      const order = outboundList.value.find(o => o.id === props.formData!.outboundOrderId)
+      const warehouseId = order?.warehouseId
       Object.assign(form, {
         outboundOrderId: props.formData.outboundOrderId,
         receiver: props.formData.receiver,
         remark: props.formData.remark,
-        details: (props.formData.details || []).map(d => ({
-          itemId: d.itemId,
-          binId: d.binId,
-          quantity: d.quantity,
-          conditionStatus: d.conditionStatus,
-          abnormalRemark: d.abnormalRemark,
-          actualQuantity: d.actualQuantity,
-        })),
+        details: (props.formData.details || []).map(d => {
+          const locationPath = resolveDetailLocationPath(d.itemId, d.binId, warehouseId)
+          return {
+            itemId: d.itemId,
+            binId: pathToBinId(locationPath),
+            locationPath,
+            quantity: d.quantity,
+            conditionStatus: d.conditionStatus,
+            abnormalRemark: d.abnormalRemark,
+            actualQuantity: d.actualQuantity,
+          }
+        }),
       })
-      const order = outboundList.value.find(o => o.id === props.formData!.outboundOrderId)
       outboundItems.value = order?.details || []
     }
   }
 })
 watch(dialogVisible, (val) => { emit('update:visible', val) })
-watch(returnWarehouseId, async (warehouseId, oldWarehouseId) => {
-  await loadReturnBins(warehouseId)
+watch(returnWarehouseId, (_warehouseId, oldWarehouseId) => {
   if (oldWarehouseId !== undefined) {
     clearInvalidDetailBins()
   }
 })
 
-async function loadReturnBins(warehouseId: EntityId | undefined) {
-  if (!warehouseId) {
-    returnBinList.value = []
-    return
-  }
-  const res = await getBinListByWarehouse(warehouseId)
-  returnBinList.value = res.data
-}
-
 function clearInvalidDetailBins() {
-  const validBinIds = new Set(returnBinList.value.map(bin => bin.id))
   form.details.forEach((detail) => {
-    if (detail.binId && !validBinIds.has(detail.binId)) {
+    if (detail.locationPath && detail.locationPath[0] !== returnWarehouseId.value) {
+      detail.locationPath = undefined
+      detail.binId = undefined
+      return
+    }
+    if (detail.binId && !detail.locationPath) {
       detail.binId = undefined
     }
   })
@@ -219,22 +254,68 @@ function handleOutboundChange(orderId: EntityId) {
   form.details = outboundItems.value.map(d => ({
     itemId: d.itemId,
     binId: undefined,
+    locationPath: undefined,
     quantity: d.quantity,
     conditionStatus: RETURN_CONDITION_NORMAL,
     abnormalRemark: '',
     actualQuantity: undefined,
   }))
+  form.details.forEach(detail => applyDefaultLocation(detail))
 }
 
 function addDetailRow() {
   form.details.push({
     itemId: undefined as unknown as EntityId,
     binId: undefined,
+    locationPath: undefined,
     quantity: 1,
     conditionStatus: RETURN_CONDITION_NORMAL,
     abnormalRemark: '',
     actualQuantity: undefined,
   })
+}
+
+function applyDefaultLocation(row: DetailRow) {
+  const item = itemList.value.find(i => i.id === row.itemId)
+  const locations = getSelectableLocations(item, returnWarehouseId.value, { strictWarehouse: true })
+  if (locations.length > 1) {
+    applyLocationToRow(row, undefined)
+    openLocationChoice(locations, location => applyLocationToRow(row, location))
+    return
+  }
+  applyLocationToRow(row, locations[0])
+}
+
+function applyLocationToRow(row: DetailRow, location: ItemLocationVo | undefined) {
+  const path = locationToPath(location)
+  if (!path || path[0] !== returnWarehouseId.value) {
+    row.locationPath = undefined
+    row.binId = undefined
+    return
+  }
+  row.locationPath = path
+  row.binId = pathToBinId(path)
+}
+
+function openLocationChoice(locations: ItemLocationVo[], apply: (location: ItemLocationVo) => void) {
+  locationChoices.value = locations
+  pendingLocationApply = apply
+  locationChoiceVisible.value = true
+}
+
+function handleLocationChoice(location: ItemLocationVo) {
+  pendingLocationApply?.(location)
+  pendingLocationApply = undefined
+}
+
+function resolveDetailLocationPath(itemId: EntityId, binId: EntityId | undefined, warehouseId: EntityId | undefined) {
+  const item = itemList.value.find(i => i.id === itemId)
+  return resolveLocationPathByBinId(item, binId, warehouseId)
+}
+
+function handleLocationPathChange(row: DetailRow, value: unknown) {
+  row.locationPath = Array.isArray(value) && value.length === 4 ? value as LocationPath : undefined
+  row.binId = pathToBinId(row.locationPath)
 }
 
 function detailRequiresBin(detail: DetailRow) {
@@ -291,7 +372,6 @@ function handleClose() {
   formRef.value?.resetFields()
   Object.assign(form, { outboundOrderId: undefined, receiver: '', remark: '', details: [] })
   outboundItems.value = []
-  returnBinList.value = []
 }
 </script>
 

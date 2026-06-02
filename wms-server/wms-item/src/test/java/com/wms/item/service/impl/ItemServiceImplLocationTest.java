@@ -269,6 +269,70 @@ class ItemServiceImplLocationTest {
         assertEquals(List.of(102L, 103L), result.getBinIds());
     }
 
+    @Test
+    @DisplayName("追加默认库位时应只新增缺失库位并保留已有库位")
+    void shouldAppendMissingDefaultBinsOnly() {
+        WmsItem item = createItem(10L);
+        when(wmsItemMapper.selectById(10L)).thenReturn(item);
+        when(wmsCategoryMapper.selectById(1L)).thenReturn(createCategory());
+        when(wmsBinMapper.selectBatchIds(any())).thenReturn(List.of(createBin(101L), createBin(102L)));
+        when(wmsCabinetMapper.selectBatchIds(any())).thenReturn(List.of(createCabinet()));
+        when(wmsAreaMapper.selectBatchIds(any())).thenReturn(List.of(createArea()));
+        when(wmsWarehouseMapper.selectBatchIds(any())).thenReturn(List.of(createWarehouse()));
+        when(wmsItemBinMapper.selectAllByItemId(10L))
+                .thenReturn(List.of(createItemBin(10L, 101L, 901L, DelFlagConstants.NORMAL, 1)));
+        when(wmsItemBinMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(
+                        createItemBin(10L, 101L, 901L, DelFlagConstants.NORMAL, 1),
+                        createItemBin(10L, 102L, 902L, DelFlagConstants.NORMAL, 2)));
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemTagMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemImageMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+        ItemVo result = itemService.appendDefaultBins(10L, List.of(101L, 102L, 102L));
+
+        ArgumentCaptor<WmsItemBin> captor = ArgumentCaptor.forClass(WmsItemBin.class);
+        verify(wmsItemBinMapper).insert(captor.capture());
+        assertEquals(102L, captor.getValue().getBinId());
+        assertEquals(2, captor.getValue().getSortOrder());
+        assertEquals(List.of(101L, 102L), result.getBinIds());
+    }
+
+    @Test
+    @DisplayName("追加默认库位时应恢复已逻辑删除的历史关系")
+    void shouldRestoreDeletedDefaultBinWhenAppend() {
+        WmsItem item = createItem(10L);
+        when(wmsItemMapper.selectById(10L)).thenReturn(item);
+        when(wmsCategoryMapper.selectById(1L)).thenReturn(createCategory());
+        when(wmsBinMapper.selectBatchIds(any())).thenReturn(List.of(createBin(102L)));
+        when(wmsCabinetMapper.selectBatchIds(any())).thenReturn(List.of(createCabinet()));
+        when(wmsAreaMapper.selectBatchIds(any())).thenReturn(List.of(createArea()));
+        when(wmsWarehouseMapper.selectBatchIds(any())).thenReturn(List.of(createWarehouse()));
+        when(wmsItemBinMapper.selectAllByItemId(10L))
+                .thenReturn(List.of(createItemBin(10L, 102L, 902L, DelFlagConstants.DELETED, 5)));
+        when(wmsItemBinMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(createItemBin(10L, 102L, 902L, DelFlagConstants.NORMAL, 1)));
+        when(wmsStockMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemTagMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+        when(wmsItemImageMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+        ItemVo result = itemService.appendDefaultBins(10L, List.of(102L));
+
+        verify(wmsItemBinMapper).restoreById(902L, 1, DelFlagConstants.NORMAL);
+        assertEquals(List.of(102L), result.getBinIds());
+    }
+
+    @Test
+    @DisplayName("追加不存在的默认库位时应抛出业务异常")
+    void shouldRejectMissingBinWhenAppendDefaultBins() {
+        WmsItem item = createItem(10L);
+        when(wmsItemMapper.selectById(10L)).thenReturn(item);
+        when(wmsBinMapper.selectBatchIds(List.of(404L))).thenReturn(List.of());
+
+        assertThrows(BizException.class, () -> itemService.appendDefaultBins(10L, List.of(404L)));
+        verify(wmsItemBinMapper, never()).insert(any(WmsItemBin.class));
+    }
+
     private ItemDto createItemDto(List<Long> binIds) {
         ItemDto dto = new ItemDto();
         dto.setItemName("轴承");
