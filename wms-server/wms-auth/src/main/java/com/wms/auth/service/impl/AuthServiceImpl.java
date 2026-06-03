@@ -64,10 +64,16 @@ public class AuthServiceImpl implements AuthService {
     public LoginResp login(LoginReq req, String clientIp, String userAgent) {
         rateLimiterService.tryAcquire(clientIp);
 
-        if (authProperties.isCaptchaEnabled()
-                && req.getCaptchaKey() != null
-                && req.getCaptchaText() != null) {
-            captchaService.validateCaptcha(req.getCaptchaKey(), req.getCaptchaText());
+        if (authProperties.isCaptchaEnabled()) {
+            // 强制要求 captchaToken/Track 必传，杜绝"前端不传 captcha 字段即可跳过校验"的绕过后门
+            if (!StringUtils.hasText(req.getCaptchaToken())
+                    || !StringUtils.hasText(req.getCaptchaTrack())) {
+                throw new BizException(AuthErrorCode.CAPTCHA_REQUIRED.getCode(),
+                        AuthErrorCode.CAPTCHA_REQUIRED.getMsg());
+            }
+            // 4 参版本：除 tianai 轨迹校验外，还会对 IP+UA 指纹做绑定校验，防止 token 被其他客户端重放
+            captchaService.validateCaptcha(req.getCaptchaToken(), req.getCaptchaTrack(),
+                    clientIp, userAgent);
         }
 
         if (loginLockService.isLocked(req.getUsername())) {

@@ -17,6 +17,7 @@ import com.wms.common.storage.StorageStrategy;
 import com.wms.system.domain.vo.SysUserVo;
 import com.wms.system.service.SysMenuService;
 import com.wms.system.service.SysOperLogService;
+import com.wms.system.service.SysRoleService;
 import com.wms.system.service.SysUserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,9 @@ class AuthServiceImplProfileTest {
     @Mock
     private StorageStrategy storageStrategy;
 
+    @Mock
+    private SysRoleService sysRoleService;
+
     @InjectMocks
     private AuthServiceImpl authService;
 
@@ -111,7 +115,7 @@ class AuthServiceImplProfileTest {
         userVo.setAvatar("https://example.com/avatar.png");
         userVo.setDeptId(2001L);
         when(sysUserService.getById(1001L)).thenReturn(userVo);
-        when(sysUserService.getUserRoles(1001L)).thenReturn(List.of(1L, 2L));
+        when(sysRoleService.getRoleCodesByUserId(1001L)).thenReturn(List.of("admin", "user"));
         when(authorizeService.getUserPermissions(1001L)).thenReturn(List.of("system:user:list", "system:role:list"));
 
         SysLoginLog loginLog = new SysLoginLog();
@@ -125,7 +129,7 @@ class AuthServiceImplProfileTest {
         assertEquals("admin", result.getUserInfo().getUsername());
         assertEquals("系统管理员", result.getUserInfo().getRealName());
         assertEquals(List.of("system:user:list", "system:role:list"), result.getPermissions());
-        assertEquals(List.of("1", "2"), result.getRoles());
+        assertEquals(List.of("admin", "user"), result.getRoles());
         assertNotNull(result.getLastLoginInfo());
         assertEquals("127.0.0.1", result.getLastLoginInfo().getLoginIp());
         assertEquals(LocalDateTime.of(2026, 5, 21, 16, 30, 0), result.getLastLoginInfo().getLoginTime());
@@ -143,7 +147,7 @@ class AuthServiceImplProfileTest {
         userVo.setRealName("张三");
         userVo.setDeptId(2002L);
         when(sysUserService.getById(1002L)).thenReturn(userVo);
-        when(sysUserService.getUserRoles(1002L)).thenReturn(List.of());
+        when(sysRoleService.getRoleCodesByUserId(1002L)).thenReturn(List.of());
         when(authorizeService.getUserPermissions(1002L)).thenReturn(List.of());
         when(authAuditService.getLatestSuccessLoginLog(1002L)).thenReturn(null);
 
@@ -179,7 +183,7 @@ class AuthServiceImplProfileTest {
 
         when(sysUserService.updateProfile(1003L, "李四", "13800138001", "lisi@example.com", "/wms/avatar/1003/avatar.png"))
                 .thenReturn(updatedUser);
-        when(sysUserService.getUserRoles(1003L)).thenReturn(List.of(3L));
+        when(sysRoleService.getRoleCodesByUserId(1003L)).thenReturn(List.of("user"));
         when(authorizeService.getUserPermissions(1003L)).thenReturn(List.of("system:profile:update"));
         when(authAuditService.getLatestSuccessLoginLog(1003L)).thenReturn(null);
 
@@ -191,7 +195,7 @@ class AuthServiceImplProfileTest {
         assertEquals("lisi@example.com", result.getUserInfo().getEmail());
         assertEquals("/wms/avatar/1003/avatar.png", result.getUserInfo().getAvatar());
         assertEquals(List.of("system:profile:update"), result.getPermissions());
-        assertEquals(List.of("3"), result.getRoles());
+        assertEquals(List.of("user"), result.getRoles());
     }
 
     @Test

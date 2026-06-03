@@ -5,6 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * 登录请求
+ * 携带用户名、RSA 加密密码、滑块拼图 Token 与轨迹
+ *
+ * @author wms-team
+ * @since 1.0
+ */
 @Data
 @Schema(description = "登录请求")
 public class LoginReq {
@@ -18,9 +25,11 @@ public class LoginReq {
     @Schema(description = "RSA加密密码")
     private String encryptedPassword;
 
-    @Schema(description = "验证码Key")
-    private String captchaKey;
+    @NotBlank(message = "请完成滑块验证")
+    @Schema(description = "滑块拼图Token")
+    private String captchaToken;
 
-    @Schema(description = "验证码文本")
-    private String captchaText;
+    @NotBlank(message = "请完成滑块验证")
+    @Schema(description = "滑块拖动轨迹数据（前端采集后加密/编码的 JSON 字符串）")
+    private String captchaTrack;
 }

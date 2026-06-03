@@ -4,6 +4,7 @@ import com.wms.auth.config.AuthProperties;
 import com.wms.auth.domain.dto.LoginReq;
 import com.wms.auth.domain.vo.LoginResp;
 import com.wms.auth.domain.vo.TokenResp;
+import com.wms.auth.enums.AuthErrorCode;
 import com.wms.auth.service.AuthAuditService;
 import com.wms.auth.service.AuthorizeService;
 import com.wms.auth.service.CaptchaService;
@@ -32,7 +33,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +76,9 @@ class AuthServiceImplAuthFlowTest {
 
     @Mock
     private AuthProperties authProperties;
+
+    @Mock
+    private com.wms.system.service.SysRoleService sysRoleService;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -167,5 +173,93 @@ class AuthServiceImplAuthFlowTest {
         assertNotNull(operLog.getOperTime());
         verify(tokenService).revokeToken("access-token");
         verify(tokenService).revokeAllTokens(1001L);
+    }
+
+    @Test
+    @DisplayName("启用 captcha 但 captchaToken 缺失时应抛 CAPTCHA_REQUIRED, 不进入密码校验")
+    void shouldThrowRequiredWhenCaptchaTokenMissing() {
+        when(authProperties.isCaptchaEnabled()).thenReturn(true);
+
+        LoginReq req = new LoginReq();
+        req.setUsername("admin");
+        req.setEncryptedPassword("cipher");
+        // captchaToken / captchaTrack 均为空
+
+        BizException ex = assertThrows(BizException.class,
+                () -> authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA));
+        assertEquals(AuthErrorCode.CAPTCHA_REQUIRED.getCode(), ex.getCode());
+        // 关键：决不能跳过 captcha 校验直接进入密码分支
+        verify(captchaService, never()).validateCaptcha(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    @DisplayName("启用 captcha 且 token/track 都齐备时应调用 4 参 validateCaptcha 进行 IP+UA 绑定校验")
+    void shouldInvokeFourArgValidateCaptchaWhenEnabled() {
+        when(authProperties.isCaptchaEnabled()).thenReturn(true);
+        when(loginLockService.isLocked("admin")).thenReturn(false);
+
+        LoginReq req = new LoginReq();
+        req.setUsername("admin");
+        req.setEncryptedPassword("cipher");
+        req.setCaptchaToken("tok");
+        req.setCaptchaTrack("track");
+
+        // 后续密码/用户名校验会因缺 mock 抛异常, 包裹后仅验证 captcha 调用即可
+        try {
+            authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA);
+        } catch (BizException ignore) {
+            // 与本断言无关
+        }
+
+        // 4 参版本：token/track/IP/UA
+        verify(captchaService).validateCaptcha("tok", "track", "127.0.0.1", CHROME_ON_WINDOWS_UA);
+    }
+
+    @Test
+    @DisplayName("captcha 校验抛 CAPTCHA_MISMATCH 时应原样向上抛, 不再继续密码校验")
+    void shouldPropagateCaptchaMismatchException() {
+        when(authProperties.isCaptchaEnabled()).thenReturn(true);
+        doThrow(new BizException(AuthErrorCode.CAPTCHA_MISMATCH.getCode(),
+                AuthErrorCode.CAPTCHA_MISMATCH.getMsg()))
+                .when(captchaService).validateCaptcha("tok", "track", "127.0.0.1", CHROME_ON_WINDOWS_UA);
+
+        LoginReq req = new LoginReq();
+        req.setUsername("admin");
+        req.setEncryptedPassword("cipher");
+        req.setCaptchaToken("tok");
+        req.setCaptchaTrack("track");
+
+        BizException ex = assertThrows(BizException.class,
+                () -> authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA));
+        assertEquals(AuthErrorCode.CAPTCHA_MISMATCH.getCode(), ex.getCode());
+        // 抛 CAPTCHA_MISMATCH 后不应继续访问加密/查询用户
+        verify(cryptoService, never()).decryptPassword(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    @DisplayName("未启用 captcha 时不应调用 captchaService.validateCaptcha")
+    void shouldSkipCaptchaWhenDisabled() {
+        when(authProperties.isCaptchaEnabled()).thenReturn(false);
+        when(loginLockService.isLocked("admin")).thenReturn(false);
+
+        LoginReq req = new LoginReq();
+        req.setUsername("admin");
+        req.setEncryptedPassword("cipher");
+        // 没有 captchaToken/Track，关闭时应能通过
+
+        try {
+            authService.login(req, "127.0.0.1", CHROME_ON_WINDOWS_UA);
+        } catch (BizException ignore) {
+            // 后续密码/用户名校验可能失败，与本断言无关
+        }
+        verify(captchaService, never()).validateCaptcha(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString());
     }
 }

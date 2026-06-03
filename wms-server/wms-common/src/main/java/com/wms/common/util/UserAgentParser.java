@@ -1,5 +1,6 @@
 package com.wms.common.util;
 
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.regex.Matcher;
@@ -9,6 +10,7 @@ import java.util.regex.Pattern;
  * User-Agent 轻量解析工具
  * 提取浏览器与操作系统摘要，避免将整段 UA 直接写入日志字段
  */
+@Component
 public class UserAgentParser {
 
     private static final String UNKNOWN = "Unknown";
