@@ -8,8 +8,12 @@ public enum AuthErrorCode {
     CREDENTIAL_INVALID(401, "用户名或密码错误"),
     ACCOUNT_DISABLED(403, "账号已被禁用"),
     ACCOUNT_LOCKED(423, "账号已被锁定，请稍后再试"),
+    /** 验证码必传校验失败 */
+    CAPTCHA_REQUIRED(400, "请完成滑块验证"),
+    /** 验证码请求频率超限 */
+    CAPTCHA_FREQUENT(429, "验证码请求过于频繁"),
     CAPTCHA_INVALID(400, "验证码无效或已过期"),
-    CAPTCHA_MISMATCH(400, "验证码错误"),
+    CAPTCHA_MISMATCH(400, "验证未通过，请重试"),
     TOKEN_INVALID(401, "Token无效"),
     TOKEN_EXPIRED(401, "Token已过期"),
     TOKEN_REVOKED(401, "Token已被撤销"),
