@@ -156,4 +156,33 @@ class CaptchaServiceImplTest {
 
         assertDoesNotThrow(() -> service.validateCaptcha("tok-z", "{}", ip, ua));
     }
+
+    @Test
+    @DisplayName("UA 变化时绑定校验应抛 CAPTCHA_INVALID（防 UA 截获重放）")
+    void validate_shouldThrowInvalidWhenUserAgentMismatch() {
+        // generate 时 UA=ua
+        String ip = "127.0.0.1";
+        String origUa = "Mozilla/5.0";
+        String expectedFp = DigestUtil.sha256Hex(ip + "|" + userAgentParser.truncate(origUa));
+        when(valueOps.getAndDelete("auth:captcha:fp:tok-ua")).thenReturn(expectedFp);
+
+        // 校验时用不同 UA
+        BizException ex = assertThrows(BizException.class,
+                () -> service.validateCaptcha("tok-ua", "{}", ip, "Different-UA/6.0"));
+        assertEquals(AuthErrorCode.CAPTCHA_INVALID.getCode(), ex.getCode());
+    }
+
+    @Test
+    @DisplayName("track JSON 解析失败时应抛 CAPTCHA_MISMATCH")
+    void validate_shouldThrowMismatchWhenTrackJsonInvalid() {
+        String ip = "127.0.0.1";
+        String ua = "ua";
+        String expectedFp = DigestUtil.sha256Hex(ip + "|" + userAgentParser.truncate(ua));
+        when(valueOps.getAndDelete("auth:captcha:fp:tok-bad-json")).thenReturn(expectedFp);
+
+        // 非法 JSON
+        BizException ex = assertThrows(BizException.class,
+                () -> service.validateCaptcha("tok-bad-json", "not-valid-json{", ip, ua));
+        assertEquals(AuthErrorCode.CAPTCHA_MISMATCH.getCode(), ex.getCode());
+    }
 }
