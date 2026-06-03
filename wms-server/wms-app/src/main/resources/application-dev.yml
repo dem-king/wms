@@ -25,7 +25,7 @@ wms:
     login-fail-threshold: 5
     lock-duration: 1800
     ip-rate-limit-threshold: 10
-    captcha-expire: 300
+    captcha-expire: 120
     rsa-key-expire: 86400
     captcha-enabled: true
   default-password: ${WMS_DEFAULT_PASSWORD:dev_default_password}

@@ -112,10 +112,10 @@ class AuthConfigRefreshListenerTest {
     @Test
     @DisplayName("captchaExpireSeconds变更后刷新AuthProperties")
     void onConfigChange_captchaExpireSeconds_refreshesProperty() {
-        when(configManager.getLongValue("wms.security.captcha-expire-seconds", 300)).thenReturn(600L);
+        when(configManager.getLongValue("wms.security.captcha-expire-seconds", 120)).thenReturn(600L);
 
         ConfigChangeEvent event = new ConfigChangeEvent(
-                this, "wms.security.captcha-expire-seconds", "300", "600");
+                this, "wms.security.captcha-expire-seconds", "120", "600");
         listener.onConfigChange(event);
 
         verify(authProperties).setCaptchaExpire(600L);

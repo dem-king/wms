@@ -84,7 +84,7 @@ public class AuthConfigRefreshListener {
                 break;
             case "wms.security.captcha-expire-seconds":
                 authProperties.setCaptchaExpire(
-                        configManager.getLongValue(key, 300));
+                        configManager.getLongValue(key, 120));
                 break;
 
             // 文件上传相关配置
