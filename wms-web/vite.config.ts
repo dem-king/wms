@@ -42,6 +42,27 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
+    optimizeDeps: {
+      include: [
+        'three',
+        'three/examples/jsm/controls/OrbitControls.js',
+        'gsap',
+        // 提前预构建库房可视化懒加载页的 Element Plus 子依赖，避免首次点击时二次优化导致动态导入失效。
+        'element-plus/es/components/empty/style/css',
+        'element-plus/es/components/alert/style/css',
+        'element-plus/es/components/progress/style/css',
+        'element-plus/es/components/card/style/css',
+        'element-plus/es/components/select/style/css',
+        'element-plus/es/components/option/style/css',
+        'element-plus/es/components/radio-group/style/css',
+        'element-plus/es/components/radio-button/style/css',
+        'element-plus/es/components/button-group/style/css',
+        'element-plus/es/components/slider/style/css',
+        'element-plus/es/components/switch/style/css',
+        'element-plus/es/components/loading/style/css',
+        'element-plus/es/components/tooltip/style/css',
+      ],
+    },
     build: {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {

@@ -1327,7 +1327,7 @@ INSERT INTO `sys_user` (`id`, `username`, `password`, `real_name`, `dept_id`, `p
 
 -- 系统管理目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
-(100, '系统管理', 'system', 0, 1, 'system', NULL, '/system/user', 'Setting', 0, 0, 1, 1, 1, NULL, 0);
+(100, '系统管理', 'system', 0, 1, 'system', NULL, '/system/user', 'Setting', 0, 0, 1, 1, 7, NULL, 0);
 
 -- 系统管理子菜单
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
@@ -1442,7 +1442,8 @@ INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`
 (700, '预警监控', 'monitor', 0, 1, 'monitor', NULL, NULL, 'AlarmClock', 0, 0, 1, 1, 7, NULL, 0);
 
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES
-(701, '预警中心', 'monitor:alert', 700, 2, 'alert', 'monitor', NULL, 'Warning', 0, 0, 1, 1, 1, NULL, 0);
+(701, '库存预警', 'monitor:stock-alert', 700, 2, 'stock-alert', 'monitor/stock-alert', NULL, 'Warning', 0, 0, 1, 1, 1, NULL, 0),
+(702, '逾期归还', 'monitor:overdue-return', 700, 2, 'overdue-return', 'monitor/overdue-return', NULL, 'AlarmClock', 0, 0, 1, 1, 2, NULL, 0);
 
 -- 日志管理目录
 INSERT INTO `sys_menu` (`id`, `menu_name`, `menu_code`, `parent_id`, `menu_type`, `path`, `component`, `redirect`, `icon`, `is_external`, `is_cache`, `visible`, `status`, `sort_order`, `perm_code`, `del_flag`) VALUES

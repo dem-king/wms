@@ -59,3 +59,7 @@ target/
 # Documentation
 docs/
 wms-web/docs/
+
+# TypeScript check logs (临时构建/检查输出)
+tsc-output*.txt
+/tsc-output*.txt

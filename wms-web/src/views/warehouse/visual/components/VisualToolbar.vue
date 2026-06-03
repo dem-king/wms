@@ -1,22 +1,38 @@
 <script setup lang="ts">
+/**
+ * 库房可视化工具栏（重写版）
+ * 新增：3D/2D视图切换、预设视角按钮、返回全景按钮、底图透明度
+ * 保留：库房选择、编码搜索、编辑模式、保存/取消布局、缩放控制
+ */
 import { computed } from 'vue'
 import type { EntityId, WmsWarehouseVo } from '@/types/warehouse'
 import type { VisualViewMode } from '../visual-state'
+import type { PresetView } from '../types/three-visual'
 import type { ElementType } from '../types/layout-element'
 import { ELEMENT_TYPES } from '../types/layout-element'
-import BackgroundImageUploader from './BackgroundImageUploader.vue'
 
 const props = defineProps<{
+  /** 库房列表 */
   warehouseList: WmsWarehouseVo[]
+  /** 当前选中的库房ID */
   selectedWarehouseId?: EntityId
+  /** 是否加载中 */
   loading: boolean
+  /** 当前视图模式 */
   viewMode: VisualViewMode
+  /** 快速定位关键词 */
   quickLocateKeyword: string
+  /** 快速定位反馈信息 */
   quickLocateFeedback: string
+  /** 是否编辑模式 */
   isEditMode: boolean
+  /** 待保存布局数量 */
   pendingLayoutCount: number
+  /** 是否正在保存布局 */
   isSavingLayout: boolean
+  /** 布局反馈类型 */
   layoutFeedbackType: '' | 'success' | 'error'
+  /** 布局反馈消息 */
   layoutFeedbackMessage: string
   /** 缩放百分比 */
   scalePercent: string
@@ -54,12 +70,29 @@ const emit = defineEmits<{
   (e: 'undo'): void
   (e: 'redo'): void
   (e: 'save-elements'): void
+  (e: 'set-preset-view', preset: PresetView): void
+  (e: 'exit-detail'): void
 }>()
 
+/** 视图模式选项 */
 const viewModeOptions = computed(() => [
-  { label: '2D', value: '2d' },
-  { label: '2.5D', value: '2.5d' },
+  { label: '3D', value: '3d' as VisualViewMode },
+  { label: '2D', value: '2d' as VisualViewMode },
 ])
+
+/** 预设视角选项 */
+const presetViewOptions: { label: string; value: PresetView }[] = [
+  { label: '鸟瞰', value: 'bird-eye' },
+  { label: '正面', value: 'front' },
+  { label: '侧面', value: 'side' },
+  { label: '等轴测', value: 'isometric' },
+]
+
+/** 是否为3D视图模式 */
+const is3DMode = computed(() => props.viewMode === '3d')
+
+/** 是否为柜子详情视图 */
+const isDetailMode = computed(() => props.viewMode === 'detail')
 
 /** 元素类型选项列表 */
 const elementTypeOptions = computed(() =>
@@ -76,7 +109,7 @@ function handleWarehouseChange(value: EntityId | undefined) {
 }
 
 function handleViewModeChange(value: string | number | boolean | undefined) {
-  if (value === '2d' || value === '2.5d') {
+  if (value === '3d' || value === '2d' || value === 'detail') {
     emit('change-view-mode', value)
   }
 }
@@ -91,9 +124,6 @@ function resolveLayoutFeedbackType() {
   return 'info'
 }
 
-/**
- * 切换绘制模式
- */
 function handleDrawingModeToggle(elementType: ElementType) {
   if (props.drawingMode === elementType) {
     emit('set-drawing-mode', null)
@@ -102,9 +132,6 @@ function handleDrawingModeToggle(elementType: ElementType) {
   }
 }
 
-/**
- * 底图透明度百分比
- */
 const backgroundOpacityPercent = computed({
   get: () => Math.round(props.backgroundOpacity * 100),
   set: (val: number) => emit('update:backgroundOpacity', val / 100),
@@ -136,7 +163,7 @@ const backgroundOpacityPercent = computed({
         <div class="toolbar-group">
           <span class="toolbar-label">视图模式</span>
           <el-radio-group
-            :model-value="props.viewMode"
+            :model-value="isDetailMode ? '3d' : props.viewMode"
             @update:model-value="handleViewModeChange"
           >
             <el-radio-button
@@ -147,6 +174,28 @@ const backgroundOpacityPercent = computed({
               {{ option.label }}
             </el-radio-button>
           </el-radio-group>
+        </div>
+
+        <!-- 预设视角按钮（仅3D模式下可用） -->
+        <div v-if="is3DMode || isDetailMode" class="toolbar-group">
+          <span class="toolbar-label">视角</span>
+          <el-button-group>
+            <el-button
+              v-for="opt in presetViewOptions"
+              :key="opt.value"
+              size="small"
+              @click="emit('set-preset-view', opt.value)"
+            >
+              {{ opt.label }}
+            </el-button>
+          </el-button-group>
+        </div>
+
+        <!-- 返回全景按钮（柜子详情视图时显示） -->
+        <div v-if="isDetailMode" class="toolbar-group">
+          <el-button type="warning" size="small" @click="emit('exit-detail')">
+            返回全景
+          </el-button>
         </div>
 
         <div class="toolbar-group toolbar-search">
@@ -217,13 +266,15 @@ const backgroundOpacityPercent = computed({
       <!-- 底图控制区 -->
       <div class="toolbar-group">
         <span class="toolbar-label">底图</span>
-        <BackgroundImageUploader
-          v-if="selectedWarehouseId"
-          :warehouse-id="selectedWarehouseId"
-          :has-background="hasBackground"
-          @uploaded="emit('background-uploaded')"
-          @deleted="emit('background-deleted')"
-        />
+        <el-button
+          v-if="hasBackground"
+          size="small"
+          type="danger"
+          plain
+          @click="emit('background-deleted')"
+        >
+          删除底图
+        </el-button>
         <el-slider
           v-if="hasBackground"
           v-model="backgroundOpacityPercent"

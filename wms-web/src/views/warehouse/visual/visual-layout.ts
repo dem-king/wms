@@ -175,12 +175,13 @@ export function buildWarehouseVisualModel(input: WarehouseVisualBuildInput): War
     disabledBins: input.bins.filter(bin => bin.status === VISUAL_STATUS_DISABLED).length,
   }
 
-  // 库房布局参数（从warehouse扩展字段读取，使用unknown中转避免类型不兼容）
-  const warehouseAny = input.warehouse as unknown as Record<string, unknown>
-  const layoutWidth = (warehouseAny.layoutWidth as number) ?? 0
-  const layoutHeight = (warehouseAny.layoutHeight as number) ?? 0
-  const layoutScale = (warehouseAny.layoutScale as number) ?? null
-  const layoutBackgroundVersion = (warehouseAny.layoutBackgroundVersion as string) ?? null
+  // 库房布局参数（从warehouse扩展字段读取）
+  // WmsWarehouseVo可能包含扩展字段，使用unknown中转确保类型安全
+  const warehouseRecord = input.warehouse as unknown as Record<string, unknown>
+  const layoutWidth = (warehouseRecord.layoutWidth as number) ?? 0
+  const layoutHeight = (warehouseRecord.layoutHeight as number) ?? 0
+  const layoutScale = (warehouseRecord.layoutScale as number) ?? null
+  const layoutBackgroundVersion = (warehouseRecord.layoutBackgroundVersion as string) ?? null
 
   if (sortedAreas.length === 0) {
     return {

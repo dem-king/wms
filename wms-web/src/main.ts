@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import VueKonva from 'vue-konva'
+
 import App from './App.vue'
 import router from './router'
 import { setupStore } from './store'
@@ -42,6 +42,6 @@ initPreferences({
 setupStore(app)
 useUserStore().initializeFromStorage()
 app.use(ElementPlus, { locale: zhCn })
-app.use(VueKonva)
+
 app.use(router)
 app.mount('#app')

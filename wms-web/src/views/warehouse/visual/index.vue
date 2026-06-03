@@ -1,12 +1,17 @@
 <script setup lang="ts">
+/**
+ * 库房可视化主页面（重写版）
+ * 使用Three.js 3D渲染替代Konva.js 2D渲染
+ * 支持3D视图/2D俯视图/柜子详情视图三种模式切换
+ */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getWarehouseList } from '@/api/warehouse/warehouse'
 import { getAreaList } from '@/api/warehouse/area'
-import { getCabinetList, saveCabinetLayout } from '@/api/warehouse/cabinet'
+import { getCabinetList } from '@/api/warehouse/cabinet'
 import { getBinList } from '@/api/warehouse/bin'
-import { getLayoutElementList, batchSaveLayoutElements, updateAreaLayoutCoordinates } from '@/api/warehouse/layout-element'
+import { getLayoutElementList } from '@/api/warehouse/layout-element'
 import type { EntityId, WmsWarehouseVo } from '@/types/warehouse'
 import {
   buildWarehouseVisualModel,
@@ -16,16 +21,6 @@ import {
   type WarehouseVisualModel,
 } from './visual-layout'
 import {
-  applySavedLayoutToVisualModel,
-  buildLayoutSavePayload,
-  createInitialLayoutEditorState,
-  reduceLayoutEditorState,
-  canUndo,
-  canRedo,
-  hasPendingElementChanges,
-
-} from './layout-editor'
-import {
   createInitialVisualSelection,
   reduceVisualSelection,
   type VisualSelectionState,
@@ -33,12 +28,16 @@ import {
 } from './visual-state'
 import type { LayoutElementVo, ElementType } from './types/layout-element'
 import { ELEMENT_MAX_COUNT } from './types/layout-element'
+import type { PresetView } from './types/three-visual'
+import Warehouse3DViewer from './components/Warehouse3DViewer.vue'
+import Warehouse2DMap from './components/Warehouse2DMap.vue'
 import VisualToolbar from './components/VisualToolbar.vue'
-import VisualStage from './components/VisualStage.vue'
-import VisualSummary from './components/VisualSummary.vue'
-import CabinetDetailDialog from './components/CabinetDetailDialog.vue'
+import CabinetDetailPanel from './components/CabinetDetailPanel.vue'
+import BinGridPanel from './components/BinGridPanel.vue'
 
 const route = useRoute()
+
+// ==================== 状态定义 ====================
 
 const warehouseList = ref<WmsWarehouseVo[]>([])
 const selectedWarehouseId = ref<EntityId>()
@@ -52,24 +51,20 @@ const visualSelection = ref<VisualSelectionState>({
   highlightedAreaId: null,
   highlightedCabinetId: null,
   highlightedBinId: null,
-  viewMode: '2d',
+  viewMode: '3d',
   selectedElementId: null,
+  detailCabinetId: null,
 })
 const quickLocateKeyword = ref('')
 const quickLocateFeedback = ref('')
-const isCabinetDetailVisible = ref(false)
-const layoutEditor = ref(createInitialLayoutEditorState())
-
-/** 布局辅助元素列表 */
 const layoutElements = ref<LayoutElementVo[]>([])
-/** 布局元素加载错误 */
 const layoutElementError = ref('')
-
-/** VisualStage组件引用 */
-const visualStageRef = ref<InstanceType<typeof VisualStage> | null>(null)
-
-/** 底图透明度 */
 const backgroundOpacity = ref(0.7)
+
+/** 3D视图组件引用 */
+const viewer3dRef = ref<InstanceType<typeof Warehouse3DViewer> | null>(null)
+
+// ==================== 计算属性 ====================
 
 const selectedArea = computed(() =>
   visualModel.value?.areas.find(area => area.id === visualSelection.value.selectedAreaId) ?? null,
@@ -77,13 +72,7 @@ const selectedArea = computed(() =>
 const selectedCabinet = computed(() =>
   (visualSelection.value.selectedCabinetId && visualModel.value?.cabinets[visualSelection.value.selectedCabinetId]) || null,
 )
-const selectedBin = computed(() =>
-  (visualSelection.value.selectedBinId && visualModel.value?.bins[visualSelection.value.selectedBinId]) || null,
-)
-const currentWarehouseName = computed(() => {
-  const currentWarehouse = warehouseList.value.find(warehouse => warehouse.id === selectedWarehouseId.value)
-  return currentWarehouse?.warehouseName ?? '未选择'
-})
+
 const currentEmptyState = computed<WarehouseVisualEmptyState | null>(() => {
   if (visualError.value) {
     return null
@@ -91,16 +80,13 @@ const currentEmptyState = computed<WarehouseVisualEmptyState | null>(() => {
   if (!selectedWarehouseId.value) {
     return {
       title: '请先选择库房',
-      description: '选择库房后即可查看区域、存放柜与库位的 2D 布局。',
+      description: '选择库房后即可查看区域、存放柜与库位的 3D 布局。',
     }
   }
   return visualModel.value?.empty ?? null
 })
 const viewMode = computed(() => visualSelection.value.viewMode)
-const isEditMode = computed(() => layoutEditor.value.isEditMode)
-const pendingLayoutCount = computed(() => layoutEditor.value.pendingCabinetIds.length)
-const layoutFeedbackType = computed(() => layoutEditor.value.feedbackType)
-const layoutFeedbackMessage = computed(() => layoutEditor.value.feedbackMessage)
+const isEditMode = ref(false)
 const selectedCabinetBins = computed<WarehouseVisualBinNode[]>(() => {
   if (!selectedCabinet.value) {
     return []
@@ -110,23 +96,16 @@ const selectedCabinetBins = computed<WarehouseVisualBinNode[]>(() => {
     .filter((bin): bin is WarehouseVisualBinNode => Boolean(bin))
 })
 
-/** 选中的布局元素 */
-const selectedElement = computed(() => {
-  if (!visualSelection.value.selectedElementId) {
-    return null
-  }
-  return layoutElements.value.find(e => e.id === visualSelection.value.selectedElementId) ?? null
-})
-
-/** 缩放百分比 */
-const scalePercent = computed(() => {
-  return visualStageRef.value?.viewport.scalePercent.value ?? '100%'
-})
 
 /** 是否有底图 */
 const hasBackground = computed(() => {
   return Boolean(visualModel.value?.layoutBackgroundVersion)
 })
+
+/** 缩放百分比（3D模式下由OrbitControls管理，此处提供占位） */
+const scalePercent = computed(() => '100%')
+
+// ==================== 数据加载 ====================
 
 async function loadWarehouseOptions() {
   const response = await getWarehouseList()
@@ -156,7 +135,6 @@ async function loadVisual() {
     visualError.value = ''
     visualSelection.value = reduceVisualSelection({} as WarehouseVisualModel, visualSelection.value, { type: 'reset' })
     quickLocateFeedback.value = ''
-    layoutEditor.value = createInitialLayoutEditorState()
     layoutElements.value = []
     layoutElementError.value = ''
     return
@@ -172,13 +150,12 @@ async function loadVisual() {
   layoutElementError.value = ''
 
   try {
-    // 并行请求区域、存放柜、库位和布局元素
+    // 并行请求区域和布局元素
     const [areaResponse, elementResponse] = await Promise.allSettled([
       getAreaList(selectedWarehouseId.value),
       getLayoutElementList(selectedWarehouseId.value),
     ])
 
-    // 区域数据必须成功
     if (areaResponse.status === 'rejected') {
       throw areaResponse.reason
     }
@@ -188,7 +165,6 @@ async function loadVisual() {
     let elements: LayoutElementVo[] = []
     if (elementResponse.status === 'fulfilled') {
       elements = elementResponse.value.data
-      // 元素数量超过上限时分批加载（此处已一次性加载，后续可优化）
       if (elements.length > ELEMENT_MAX_COUNT) {
         console.warn(`[loadVisual] 布局元素数量(${elements.length})超过上限(${ELEMENT_MAX_COUNT})，仅显示前${ELEMENT_MAX_COUNT}个`)
         elements = elements.slice(0, ELEMENT_MAX_COUNT)
@@ -198,6 +174,7 @@ async function loadVisual() {
     }
     layoutElements.value = elements
 
+    // 请求存放柜和库位
     const cabinetResponses = await Promise.all(areas.map(area => getCabinetList(area.id)))
     const cabinets = cabinetResponses.flatMap(response => response.data)
     const binResponses = cabinets.length > 0
@@ -216,7 +193,6 @@ async function loadVisual() {
     visualModel.value = nextModel
     visualSelection.value = createInitialVisualSelection(nextModel)
     quickLocateFeedback.value = ''
-    layoutEditor.value = createInitialLayoutEditorState()
   } catch (error) {
     visualModel.value = null
     visualSelection.value = {
@@ -228,13 +204,15 @@ async function loadVisual() {
       highlightedBinId: null,
       viewMode: visualSelection.value.viewMode,
       selectedElementId: null,
+      detailCabinetId: null,
     }
     visualError.value = resolveErrorMessage(error)
-    layoutEditor.value = createInitialLayoutEditorState()
   } finally {
     loading.value = false
   }
 }
+
+// ==================== 事件处理 ====================
 
 function handleSelectArea(areaId: EntityId) {
   if (!visualModel.value) {
@@ -267,14 +245,25 @@ function handleSelectBin(cabinetId: EntityId, binId: EntityId) {
   })
 }
 
-function handleSelectElement(elementId: EntityId) {
+function handleEnterCabinetDetail(cabinetId: EntityId) {
   if (!visualModel.value) {
     return
   }
   visualSelection.value = reduceVisualSelection(visualModel.value, visualSelection.value, {
-    type: 'select-element',
-    elementId,
+    type: 'enter-detail',
+    cabinetId,
   })
+}
+
+function handleExitCabinetDetail() {
+  if (!visualModel.value) {
+    return
+  }
+  visualSelection.value = reduceVisualSelection(visualModel.value, visualSelection.value, {
+    type: 'exit-detail',
+  })
+  // 退回全景
+  viewer3dRef.value?.returnToOverview()
 }
 
 function handleChangeViewMode(nextViewMode: VisualViewMode) {
@@ -310,274 +299,77 @@ function handleQuickLocate() {
   quickLocateFeedback.value = `已定位到${match.matchedCode}`
 }
 
-function handleOpenCabinetDetail(cabinetId?: EntityId) {
-  if (!visualModel.value) {
-    return
-  }
-
-  if (typeof cabinetId === 'string' && cabinetId) {
-    visualSelection.value = reduceVisualSelection(visualModel.value, visualSelection.value, {
-      type: 'select-cabinet',
-      cabinetId,
-    })
-  }
-
-  if (!selectedCabinet.value && typeof cabinetId !== 'string') {
-    return
-  }
-  isCabinetDetailVisible.value = true
-}
-
 function handleToggleEditMode(enabled: boolean) {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'set-edit-mode',
-    enabled,
-  })
+  isEditMode.value = enabled
 }
 
 function handleCabinetPositionChange(payload: { cabinetId: EntityId; positionX: number; positionY: number }) {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'move-cabinet',
-    cabinetId: payload.cabinetId,
-    positionX: payload.positionX,
-    positionY: payload.positionY,
-  })
-}
-
-function handleDiscardLayout() {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'discard-pending',
-  })
-}
-
-async function handleSaveLayout() {
-  if (!visualModel.value || !selectedArea.value) {
-    ElMessage.warning('请先选择区域后再保存布局')
-    return
-  }
-  if (pendingLayoutCount.value === 0 && !hasPendingElementChanges(layoutEditor.value)) {
-    ElMessage.warning('当前没有待保存的布局变更')
-    return
-  }
-
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'save-start',
-  })
-
-  try {
-    // 保存存放柜布局
-    if (pendingLayoutCount.value > 0) {
-      const payload = buildLayoutSavePayload(visualModel.value, layoutEditor.value, selectedArea.value.id)
-      const response = await saveCabinetLayout(payload)
-      visualModel.value = applySavedLayoutToVisualModel(visualModel.value, response.data)
-    }
-
-    // 保存布局元素变更
-    if (hasPendingElementChanges(layoutEditor.value)) {
-      await handleSaveElements()
-    }
-
-    // 保存区域坐标变更
-    await handleSaveAreaCoordinates()
-
-    layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-      type: 'save-success',
-      message: '布局保存成功',
-    })
-    ElMessage.success('布局保存成功')
-  } catch (error) {
-    layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-      type: 'save-failure',
-      message: resolveErrorMessage(error),
-    })
-  }
-}
-
-/**
- * 批量保存布局元素
- */
-async function handleSaveElements() {
-  if (!selectedWarehouseId.value) {
-    return
-  }
-  const { pendingElements } = layoutEditor.value
-  if (pendingElements.created.length === 0 && pendingElements.updated.length === 0 && pendingElements.deletedIds.length === 0) {
-    return
-  }
-
-  const result = await batchSaveLayoutElements({
-    warehouseId: selectedWarehouseId.value,
-    ...pendingElements,
-  })
-
-  // 处理失败项
-  if (result.data.failedItems.length > 0) {
-    const failedNames = result.data.failedItems.map(item => `${item.elementName}: ${item.reason}`).join('\n')
-    ElMessage.warning(`部分元素保存失败:\n${failedNames}`)
-  }
-
-  // 清除已保存的变更
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'clear-pending-elements',
-  })
-
-  // 刷新布局元素列表
-  await loadLayoutElements()
-}
-
-/**
- * 保存区域坐标变更
- */
-async function handleSaveAreaCoordinates() {
+  // 2D编辑模式下更新存放柜位置
   if (!visualModel.value) {
     return
   }
-  // 收集有coordX/coordY的区域
-  const items = visualModel.value.areas
-    .filter(area => area.x !== undefined && area.y !== undefined)
-    .map(area => ({
-      id: area.id,
-      coordX: area.x,
-      coordY: area.y,
-    }))
-
-  if (items.length === 0) {
-    return
-  }
-
-  await updateAreaLayoutCoordinates({ items })
-}
-
-/**
- * 加载布局元素列表
- */
-async function loadLayoutElements() {
-  if (!selectedWarehouseId.value) {
-    return
-  }
-  try {
-    const response = await getLayoutElementList(selectedWarehouseId.value)
-    layoutElements.value = response.data
-  } catch {
-    layoutElementError.value = '布局辅助元素加载失败'
+  const cabinet = visualModel.value.cabinets[payload.cabinetId]
+  if (cabinet) {
+    cabinet.x = payload.positionX
+    cabinet.y = payload.positionY
   }
 }
 
-/**
- * 设置绘制模式
- */
-function handleSetDrawingMode(elementType: ElementType | null) {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'set-drawing-mode',
-    elementType,
-  })
+function handleSetPresetView(preset: PresetView) {
+  viewer3dRef.value?.setPresetView(preset)
 }
 
-/**
- * 撤销
- */
-function handleUndo() {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'undo',
-  })
+function handleBackgroundOpacityChange(value: number) {
+  backgroundOpacity.value = value
 }
 
-/**
- * 重做
- */
-function handleRedo() {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'redo',
-  })
-}
-
-/**
- * 缩放操作
- */
-function handleZoomIn() {
-  visualStageRef.value?.zoomIn()
-}
-function handleZoomOut() {
-  visualStageRef.value?.zoomOut()
-}
-function handleZoomReset() {
-  visualStageRef.value?.resetZoom()
-}
-function handleZoomFit() {
-  visualStageRef.value?.fitToContent()
-}
-
-/**
- * 底图上传/删除回调
- */
 function handleBackgroundUploaded() {
-  // 重新加载以获取新的layoutBackgroundVersion
   loadVisual()
 }
+
 function handleBackgroundDeleted() {
   if (visualModel.value) {
     visualModel.value = { ...visualModel.value, layoutBackgroundVersion: null }
   }
 }
 
-/**
- * 更新底图透明度
- */
-function handleBackgroundOpacityChange(value: number) {
-  backgroundOpacity.value = value
-  visualStageRef.value?.backgroundImg.setOpacity(value)
+function handleSaveLayout() {
+  ElMessage.info('布局保存功能待实现')
 }
 
-/**
- * 更新元素属性
- */
-function handleUpdateElementProperty(payload: { field: string; value: unknown }) {
-  // TODO: 实现元素属性更新逻辑
-  console.log('[handleUpdateElementProperty]', payload)
+function handleDiscardLayout() {
+  ElMessage.info('放弃变更功能待实现')
 }
 
-/**
- * 更新元素样式
- */
-function handleUpdateElementStyle(payload: Record<string, unknown>) {
-  // TODO: 实现元素样式更新逻辑
-  console.log('[handleUpdateElementStyle]', payload)
+function handleSaveElements() {
+  ElMessage.info('元素保存功能待实现')
 }
 
-/**
- * 删除元素
- */
-function handleDeleteElement(elementId: string) {
-  layoutEditor.value = reduceLayoutEditorState(layoutEditor.value, {
-    type: 'add-deleted-element-id',
-    id: elementId,
-  })
-  // 取消选中
-  visualSelection.value = { ...visualSelection.value, selectedElementId: null }
+function handleSetDrawingMode(_elementType: ElementType | null) {
+  // 绘制模式功能
+}
+
+function handleUndo() {
+  // 撤销功能
+}
+
+function handleRedo() {
+  // 重做功能
 }
 
 // ==================== 键盘快捷键 ====================
+
 function handleKeyDown(event: KeyboardEvent) {
-  // Ctrl+Z 撤销
-  if (event.ctrlKey && event.key === 'z' && canUndo(layoutEditor.value)) {
-    event.preventDefault()
-    handleUndo()
-    return
-  }
-  // Ctrl+Y 重做
-  if (event.ctrlKey && event.key === 'y' && canRedo(layoutEditor.value)) {
-    event.preventDefault()
-    handleRedo()
-    return
-  }
-  // Esc 退出绘制模式
-  if (event.key === 'Escape' && layoutEditor.value.drawingMode) {
-    handleSetDrawingMode(null)
-    return
-  }
-  // Delete 删除选中元素
-  if (event.key === 'Delete' && visualSelection.value.selectedElementId && isEditMode.value) {
-    handleDeleteElement(visualSelection.value.selectedElementId)
+  // Esc 退出详情视图或编辑模式
+  if (event.key === 'Escape') {
+    if (visualSelection.value.viewMode === 'detail') {
+      handleExitCabinetDetail()
+      return
+    }
+    if (isEditMode.value) {
+      isEditMode.value = false
+      return
+    }
   }
 }
 
@@ -587,6 +379,8 @@ function resolveErrorMessage(error: unknown): string {
   }
   return '请检查区域、存放柜、库位接口或稍后重试。'
 }
+
+// ==================== 生命周期 ====================
 
 onMounted(async () => {
   document.addEventListener('keydown', handleKeyDown)
@@ -611,6 +405,7 @@ onUnmounted(() => {
       @close="layoutElementError = ''"
     />
 
+    <!-- 工具栏 -->
     <VisualToolbar
       :warehouse-list="warehouseList"
       :selected-warehouse-id="selectedWarehouseId"
@@ -619,17 +414,17 @@ onUnmounted(() => {
       :quick-locate-keyword="quickLocateKeyword"
       :quick-locate-feedback="quickLocateFeedback"
       :is-edit-mode="isEditMode"
-      :pending-layout-count="pendingLayoutCount"
-      :is-saving-layout="layoutEditor.isSaving"
-      :layout-feedback-type="layoutFeedbackType"
-      :layout-feedback-message="layoutFeedbackMessage"
+      :pending-layout-count="0"
+      :is-saving-layout="false"
+      layout-feedback-type=""
+      layout-feedback-message=""
       :scale-percent="scalePercent"
       :has-background="hasBackground"
       :background-opacity="backgroundOpacity"
-      :drawing-mode="layoutEditor.drawingMode"
-      :can-undo="canUndo(layoutEditor)"
-      :can-redo="canRedo(layoutEditor)"
-      :has-pending-element-changes="hasPendingElementChanges(layoutEditor)"
+      :drawing-mode="null"
+      :can-undo="false"
+      :can-redo="false"
+      :has-pending-element-changes="false"
       @change-warehouse="selectedWarehouseId = $event; handleWarehouseChange()"
       @change-view-mode="handleChangeViewMode"
       @update:quick-locate-keyword="quickLocateKeyword = $event"
@@ -637,10 +432,10 @@ onUnmounted(() => {
       @toggle-edit-mode="handleToggleEditMode"
       @save-layout="handleSaveLayout"
       @discard-layout="handleDiscardLayout"
-      @zoom-in="handleZoomIn"
-      @zoom-out="handleZoomOut"
-      @zoom-reset="handleZoomReset"
-      @zoom-fit="handleZoomFit"
+      @zoom-in="() => {}"
+      @zoom-out="() => {}"
+      @zoom-reset="() => {}"
+      @zoom-fit="() => {}"
       @background-uploaded="handleBackgroundUploaded"
       @background-deleted="handleBackgroundDeleted"
       @update:background-opacity="handleBackgroundOpacityChange"
@@ -648,62 +443,130 @@ onUnmounted(() => {
       @undo="handleUndo"
       @redo="handleRedo"
       @save-elements="handleSaveElements"
+      @set-preset-view="handleSetPresetView"
+      @exit-detail="handleExitCabinetDetail"
     />
 
-    <el-row :gutter="16">
-      <el-col :span="17">
-        <VisualStage
-          ref="visualStageRef"
-          :visual-model="visualModel"
-          :loading="loading"
-          :visual-error="visualError"
-          :empty-state="currentEmptyState"
-          :selection="visualSelection"
-          :view-mode="viewMode"
-          :is-edit-mode="isEditMode"
-          :pending-cabinet-ids="layoutEditor.pendingCabinetIds"
-          :draft-positions="layoutEditor.pendingPositions"
-          :layout-elements="layoutElements"
-          :drawing-mode="layoutEditor.drawingMode"
-          @select-area="handleSelectArea"
-          @select-cabinet="handleSelectCabinet"
-          @select-bin="handleSelectBin($event.cabinetId, $event.binId)"
-          @open-cabinet-detail="handleOpenCabinetDetail"
-          @update-cabinet-position="handleCabinetPositionChange"
-          @select-element="handleSelectElement"
-          @retry="retryLoad"
-        />
-      </el-col>
+    <!-- 主内容区 -->
+    <div class="visual-content">
+      <!-- 加载中 -->
+      <div v-if="loading" class="loading-state">
+        <el-icon class="is-loading" :size="32"><Loading /></el-icon>
+        <span>正在加载库房布局数据...</span>
+      </div>
 
-      <el-col :span="7">
-        <VisualSummary
-          :warehouse-name="currentWarehouseName"
-          :selected-area="selectedArea"
-          :selected-cabinet="selectedCabinet"
-          :selected-bin="selectedBin"
-          :visual-model="visualModel"
-          :pending-layout-count="pendingLayoutCount"
-          :is-edit-mode="isEditMode"
-          :selected-element="selectedElement"
-          @open-cabinet-detail="handleOpenCabinetDetail()"
-          @update-element-property="handleUpdateElementProperty"
-          @update-element-style="handleUpdateElementStyle"
-          @delete-element="handleDeleteElement"
-        />
-      </el-col>
-    </el-row>
+      <!-- 错误状态 -->
+      <div v-else-if="visualError" class="error-state">
+        <el-empty :description="visualError">
+          <el-button type="primary" @click="retryLoad">重新加载</el-button>
+        </el-empty>
+      </div>
 
-    <CabinetDetailDialog
-      v-model="isCabinetDetailVisible"
-      :selected-area="selectedArea"
-      :selected-cabinet="selectedCabinet"
-      :selected-bins="selectedCabinetBins"
-    />
+      <!-- 空状态 -->
+      <div v-else-if="currentEmptyState" class="empty-state">
+        <el-empty :description="currentEmptyState.description">
+          <template #title>
+            <span>{{ currentEmptyState.title }}</span>
+          </template>
+        </el-empty>
+      </div>
+
+      <!-- 正常渲染 -->
+      <template v-else>
+        <div class="viewer-area">
+          <!-- 3D视图 -->
+          <Warehouse3DViewer
+            v-if="viewMode === '3d' || viewMode === 'detail'"
+            ref="viewer3dRef"
+            :visual-model="visualModel"
+            :selection="visualSelection"
+            :is-edit-mode="isEditMode"
+            :layout-elements="layoutElements"
+            @select-area="handleSelectArea"
+            @select-cabinet="handleSelectCabinet"
+            @select-bin="handleSelectBin($event.cabinetId, $event.binId)"
+            @enter-cabinet-detail="handleEnterCabinetDetail"
+            @exit-cabinet-detail="handleExitCabinetDetail"
+          />
+
+          <!-- 2D俯视图 -->
+          <Warehouse2DMap
+            v-if="viewMode === '2d'"
+            :visual-model="visualModel"
+            :selection="visualSelection"
+            :is-edit-mode="isEditMode"
+            :layout-elements="layoutElements"
+            @select-area="handleSelectArea"
+            @select-cabinet="handleSelectCabinet"
+            @update-cabinet-position="handleCabinetPositionChange"
+          />
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="detail-area">
+          <!-- 柜子详情面板 -->
+          <CabinetDetailPanel
+            :cabinet="selectedCabinet"
+            :bins="selectedCabinetBins"
+            :area="selectedArea"
+            :visual-model="visualModel"
+            :visible="!!selectedCabinet"
+            @close="visualSelection.selectedCabinetId = null"
+          />
+
+          <!-- 库位网格面板（详情视图时显示） -->
+          <BinGridPanel
+            v-if="viewMode === 'detail'"
+            :cabinet="selectedCabinet"
+            :bins="selectedCabinetBins"
+            :visible="viewMode === 'detail'"
+            @select-bin="handleSelectBin(selectedCabinet!.id, $event)"
+          />
+        </div>
+      </template>
+    </div>
   </div>
 </template>
+
+<script lang="ts">
+import { Loading } from '@element-plus/icons-vue'
+export default {
+  components: { Loading },
+}
+</script>
 
 <style scoped lang="scss">
 .warehouse-visual-page {
   padding: 20px;
+}
+
+.visual-content {
+  display: flex;
+  gap: 16px;
+  min-height: 600px;
+}
+
+.viewer-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-area {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 600px;
+  gap: 12px;
+  color: #909399;
+  font-size: 14px;
 }
 </style>
