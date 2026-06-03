@@ -739,9 +739,7 @@ DROP TABLE IF EXISTS `wms_return_order`;
 CREATE TABLE `wms_return_order` (
     `id`              BIGINT       NOT NULL COMMENT '主键',
     `order_no`        VARCHAR(50)  NOT NULL                COMMENT '归还单号',
-    `outbound_order_id` BIGINT     DEFAULT NULL            COMMENT '关联出库单ID',
-    `outbound_id`     BIGINT       NOT NULL                COMMENT '关联出库单ID',
-    `returner_id`     BIGINT       NOT NULL                COMMENT '归还人ID',
+    `outbound_order_id` BIGINT     NOT NULL                COMMENT '关联出库单ID',
     `receiver`        VARCHAR(64)  DEFAULT ''              COMMENT '归还人',
     `handler_id`      BIGINT       DEFAULT NULL            COMMENT '经办人ID',
     `return_time`     DATETIME     DEFAULT NULL            COMMENT '归还时间',
@@ -789,7 +787,7 @@ DROP TABLE IF EXISTS `wms_scrap_order`;
 CREATE TABLE `wms_scrap_order` (
     `id`                BIGINT       NOT NULL COMMENT '主键',
     `order_no`          VARCHAR(50)  NOT NULL                COMMENT '报废单号',
-    `applicant_id`      BIGINT       NOT NULL                COMMENT '申请人ID',
+    `applicant_id`      BIGINT       DEFAULT NULL            COMMENT '申请人ID',
     `scrap_reason`      VARCHAR(500) DEFAULT NULL            COMMENT '报废原因',
     `order_status`      TINYINT      DEFAULT 0               COMMENT '单据状态(0-草稿 1-待审批 2-审批中 3-已通过 4-已驳回 5-已完成)',
     `scrap_time`        DATETIME     DEFAULT NULL            COMMENT '报废时间',
@@ -831,7 +829,7 @@ DROP TABLE IF EXISTS `wms_transfer_order`;
 CREATE TABLE `wms_transfer_order` (
     `id`                BIGINT       NOT NULL COMMENT '主键',
     `order_no`          VARCHAR(50)  NOT NULL                COMMENT '调拨单号',
-    `applicant_id`      BIGINT       NOT NULL                COMMENT '申请人ID',
+    `applicant_id`      BIGINT       DEFAULT NULL            COMMENT '申请人ID',
     `from_warehouse_id` BIGINT       DEFAULT NULL            COMMENT '调出库房ID',
     `from_area_id`      BIGINT       DEFAULT NULL            COMMENT '调出区域ID',
     `from_cabinet_id`   BIGINT       DEFAULT NULL            COMMENT '调出存放柜ID',
@@ -872,6 +870,54 @@ CREATE TABLE `wms_transfer_detail` (
     KEY `idx_order_id` (`order_id`),
     KEY `idx_item_id` (`item_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='调拨明细表';
+
+-- 34. 盘点单主表
+DROP TABLE IF EXISTS `wms_stock_check_detail`;
+DROP TABLE IF EXISTS `wms_stock_check_order`;
+CREATE TABLE `wms_stock_check_order` (
+    `id`              BIGINT       NOT NULL COMMENT '主键(雪花ID)',
+    `check_no`        VARCHAR(50)  NOT NULL                COMMENT '盘点单号',
+    `warehouse_id`    BIGINT       NOT NULL                COMMENT '库房ID',
+    `area_id`         BIGINT       DEFAULT NULL            COMMENT '区域ID',
+    `check_type`      TINYINT      NOT NULL                COMMENT '盘点类型(1-全盘 2-抽盘)',
+    `status`          TINYINT      DEFAULT 0               COMMENT '盘点状态(0-草稿 1-已提交 2-已确认)',
+    `system_count`    INT          DEFAULT 0               COMMENT '系统在库标签数',
+    `actual_count`    INT          DEFAULT 0               COMMENT '实际读取标签数',
+    `match_count`     INT          DEFAULT 0               COMMENT '匹配标签数',
+    `remark`          VARCHAR(500) DEFAULT NULL            COMMENT '备注',
+    `del_flag`        TINYINT      DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64)  DEFAULT ''              COMMENT '创建人',
+    `update_time`     DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64)  DEFAULT ''              COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_check_no` (`check_no`, `del_flag`),
+    KEY `idx_warehouse_id` (`warehouse_id`),
+    KEY `idx_area_id` (`area_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='盘点单主表';
+
+-- 35. 盘点差异明细表
+CREATE TABLE `wms_stock_check_detail` (
+    `id`              BIGINT      NOT NULL COMMENT '主键(雪花ID)',
+    `check_order_id`  BIGINT      NOT NULL                COMMENT '盘点单ID',
+    `label_no`        VARCHAR(64) DEFAULT NULL            COMMENT '标签编号',
+    `item_id`         BIGINT      NOT NULL                COMMENT '物品ID',
+    `diff_type`       VARCHAR(20) NOT NULL                COMMENT '差异类型(surplus-盘盈 deficit-盘亏)',
+    `system_qty`      INT         DEFAULT 0               COMMENT '系统数量',
+    `actual_qty`      INT         DEFAULT 0               COMMENT '实际数量',
+    `bin_id`          BIGINT      DEFAULT NULL            COMMENT '库位ID',
+    `del_flag`        TINYINT     DEFAULT 0               COMMENT '逻辑删除(0-正常 1-已删除)',
+    `create_time`     DATETIME    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_by`       VARCHAR(64) DEFAULT ''              COMMENT '创建人',
+    `update_time`     DATETIME    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `update_by`       VARCHAR(64) DEFAULT ''              COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    KEY `idx_check_order_id` (`check_order_id`),
+    KEY `idx_item_id` (`item_id`),
+    KEY `idx_bin_id` (`bin_id`),
+    KEY `idx_diff_type` (`diff_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='盘点差异明细表';
 
 -- ============================================================
 -- 第三部分: 审批模块表 (approval_tables.sql)
@@ -914,6 +960,16 @@ CREATE TABLE `wms_approval_node` (
     `update_by`       VARCHAR(64)  DEFAULT '' COMMENT '更新人',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批节点配置表';
+
+-- 默认免审审批配置：保障新环境业务单据可提交，人工审批可在后台配置中调整
+INSERT INTO `wms_approval_config`
+(`id`, `biz_type`, `enabled`, `auto_approve`, `config_name`, `remark`, `timeout_hours`, `timeout_action`, `del_flag`, `create_by`, `update_by`)
+VALUES
+(7001, 1, 1, 1, '入库默认免审', '系统初始化默认免审配置，可在审批配置中调整', 24, 1, 0, 'system', 'system'),
+(7002, 2, 1, 1, '出库默认免审', '系统初始化默认免审配置，可在审批配置中调整', 24, 1, 0, 'system', 'system'),
+(7003, 3, 1, 1, '报废默认免审', '系统初始化默认免审配置，可在审批配置中调整', 24, 1, 0, 'system', 'system'),
+(7004, 4, 1, 1, '调拨默认免审', '系统初始化默认免审配置，可在审批配置中调整', 24, 1, 0, 'system', 'system'),
+(7005, 5, 1, 1, '归还默认免审', '系统初始化默认免审配置，可在审批配置中调整', 24, 1, 0, 'system', 'system');
 
 -- 审批单表
 CREATE TABLE `wms_approval_order` (

@@ -24,6 +24,18 @@ public final class OrderConstants {
     /** 调拨单号前缀 */
     public static final String TRANSFER_NO_PREFIX = "DB";
 
+    /** 单据类型最小值 */
+    public static final int ORDER_TYPE_MIN = 1;
+
+    /** 单据类型最大值 */
+    public static final int ORDER_TYPE_MAX = 3;
+
+    /** 单据明细最小条数 */
+    public static final int ORDER_DETAIL_MIN_SIZE = 1;
+
+    /** 单据明细数量最小值 */
+    public static final int ORDER_DETAIL_QUANTITY_MIN = 1;
+
     /** 归还物品状态：正常 */
     public static final int RETURN_CONDITION_NORMAL = 1;
 
@@ -35,4 +47,10 @@ public final class OrderConstants {
 
     /** 归还物品状态：数量不符 */
     public static final int RETURN_CONDITION_MISMATCH = 4;
+
+    /** 归还物品状态最小值 */
+    public static final int RETURN_CONDITION_MIN = RETURN_CONDITION_NORMAL;
+
+    /** 归还物品状态最大值 */
+    public static final int RETURN_CONDITION_MAX = RETURN_CONDITION_MISMATCH;
 }

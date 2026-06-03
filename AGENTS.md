@@ -191,14 +191,32 @@ public final class DelFlagConstants {
 |--------|------|---------|
 | `DelFlagConstants` | wms-common | NORMAL=0, DELETED=1 |
 | `BizConstants` | wms-common | STATUS_ENABLED/DISABLED, DEFAULT_SORT_ORDER, TOP_PARENT_ID, STOCK_SYNC_IN/OUT |
-| `WarehouseConstants` | wms-warehouse | 编码前缀(KF/QY/CG), IS_OCCUPIED_NO/YES |
+| `DataScopeConstants` | wms-common | 数据权限范围枚举（ALL/DEPT_AND_SUB/DEPT/SELF/CUSTOM） |
+| `PermissionConstants` | wms-common | 超级管理员标记、菜单/按钮类型、权限通配符 |
+| `StorageConstants` | wms-common/storage | 对象存储桶名、URL 过期时间、本地存储根路径 |
+| `WarehouseConstants` | wms-warehouse | 编码前缀(KF/QY/CG), IS_OCCUPIED_NO/YES, LAYOUT_ELEMENT_TYPE_* |
+| `LayoutElementConstants` | wms-warehouse | 库房布局元素类型(WALL/AISLE/RESERVED/DEVICE/TEXT/DIMENSION) 与默认属性 |
 | `ItemConstants` | wms-item | 编码前缀(WP), IS_CONSUMABLE_NO, IS_RETURNABLE_YES, DEFAULT_STOCK_QTY, QUICK_SEARCH_LIMIT |
-| `LabelConstants` | wms-item | 编码前缀(BQ), 打印状态, RFID类型, 闲置阈值 |
-| `TagConstants` | wms-item | SCOPE_TYPE_GLOBAL |
-| `OrderConstants` | wms-business | 单据编号前缀(RK/CK/GH/BF/DB) |
+| `LabelConstants` | wms-item | 编码前缀(BQ), 打印状态, LABEL_TYPE_RFID 等标签类型, 闲置阈值 |
+| `TagConstants` | wms-item | SCOPE_TYPE_GLOBAL, 标签颜色与状态 |
+| `OrderConstants` | wms-business | 单据编号前缀(RK/CK/GH/BF/DB/PD) |
+| `OrderScanConstants` | wms-business | 扫码模式、扫码结果枚举 |
+| `PdaConstants` | wms-business | PDA 任务状态、RFID 批量读取阈值 |
 | `AuthConstants` | wms-auth | 验证码参数, 限流窗口, 缓存过期, 操作结果, UA长度 |
 | `TokenConstants` | wms-auth | TOKEN_TYPE_BEARER, HMAC_KEY_LENGTH, REVOKE_FLAG, TOKEN_TYPE_REFRESH |
+| `ApprovalConstants` | wms-approval | 审批流类型(ORDER/CONFIG), 节点状态, 审批结果枚举 |
 | `SysMenuConstants` | wms-system | 菜单状态/可见性/类型常量 |
+| `SysMessageConstants` | wms-system | 消息类型、消息状态、推送渠道 |
+| `SysLogConstants` | wms-system | 操作类型、登录结果、日志级别 |
+| `ReportConstants` | wms-report | 报表类型、聚合周期、导出格式 |
+| `MonitorConstants` | wms-monitor | 预警类型、预警状态、提醒级别 |
+
+> 公共工具（与常量同性质，单独列出）：
+>
+> | 工具类 | 模块 | 用途 |
+> |--------|------|------|
+> | `LogicDeleteHelper` | wms-common/util | 逻辑删除统一入口（`markDeleted` / `markDeletedEntities`） |
+> | `SequenceGenerator` | wms-common/util | Redis INCR 序列号生成器 |
 
 #### 4.3.3 使用示例
 

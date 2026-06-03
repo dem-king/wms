@@ -12,6 +12,7 @@ import com.wms.business.mapper.WmsTransferDetailMapper;
 import com.wms.business.mapper.WmsTransferOrderMapper;
 import com.wms.business.service.TransferService;
 import com.wms.business.service.support.BinWarehouseValidator;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -146,6 +147,9 @@ public class TransferServiceImpl implements TransferService {
         if (fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调出库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(fromWarehouse.getStatus())) {
+            throw new BizException("调出库房已禁用");
+        }
         // 校验调入库房存在
         WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
         if (toWarehouse == null) {
@@ -153,6 +157,9 @@ public class TransferServiceImpl implements TransferService {
         }
         if (toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调入库房已删除");
+        }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(toWarehouse.getStatus())) {
+            throw new BizException("调入库房已禁用");
         }
         // 调出库房和调入库房不能相同
         if (dto.getFromWarehouseId().equals(dto.getToWarehouseId())) {
@@ -246,6 +253,9 @@ public class TransferServiceImpl implements TransferService {
         if (fromWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调出库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(fromWarehouse.getStatus())) {
+            throw new BizException("调出库房已禁用");
+        }
         // 校验调入库房存在
         WmsWarehouse toWarehouse = wmsWarehouseMapper.selectById(dto.getToWarehouseId());
         if (toWarehouse == null) {
@@ -253,6 +263,9 @@ public class TransferServiceImpl implements TransferService {
         }
         if (toWarehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("调入库房已删除");
+        }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(toWarehouse.getStatus())) {
+            throw new BizException("调入库房已禁用");
         }
         // 调出库房和调入库房不能相同
         if (dto.getFromWarehouseId().equals(dto.getToWarehouseId())) {
@@ -386,6 +399,6 @@ public class TransferServiceImpl implements TransferService {
                 .filter(detail -> detail.getItemId() != null && detail.getToBinId() != null)
                 .collect(Collectors.groupingBy(WmsTransferDetail::getItemId,
                         Collectors.mapping(WmsTransferDetail::getToBinId, Collectors.toList())))
-                .forEach(itemService::appendDefaultBins);
+                .forEach((itemId, binIds) -> itemService.appendDefaultBins(itemId, binIds));
     }
 }

@@ -383,7 +383,7 @@ public class ReturnServiceImpl implements ReturnService {
                 .filter(detail -> detail.getItemId() != null && detail.getBinId() != null)
                 .collect(Collectors.groupingBy(WmsReturnDetail::getItemId,
                         Collectors.mapping(WmsReturnDetail::getBinId, Collectors.toList())))
-                .forEach(itemService::appendDefaultBins);
+                .forEach((itemId, binIds) -> itemService.appendDefaultBins(itemId, binIds));
     }
 
     /**

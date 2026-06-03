@@ -74,7 +74,7 @@ esac
 
 echo ""
 echo "============================================================"
-echo "  Harness Rule Checker v1.1"
+echo "  Harness Rule Checker v1.2"
 echo "  AGENTS.md → CI 自动化迁移"
 echo "============================================================"
 echo ""
@@ -278,6 +278,41 @@ check_DB04
 check_DB05
 check_DB06
 
+# DB-07: 禁止 setDelFlag + updateById / Db.updateBatchById 删除模式
+# @TableLogic 字段在普通 update 路径中会被跳过，导致 del_flag=1 写不进去
+check_DB07() {
+  local ok=true
+  # 模式 A：setDelFlag(.*) 紧跟 mapper.updateById(entity) / updateById(...)
+  # 在同一个方法/相邻行（10 行内）出现则违规
+  local matches_a=$(grep -rn -A 10 'setDelFlag\s*(' $(find_java -not -path "*/test/*" -not -path "*/LogicDeleteHelper.java") 2>/dev/null \
+    | grep -E 'updateById\s*\(' \
+    | grep -v 'LogicDeleteHelper' || true)
+  if [ -n "$matches_a" ]; then
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local file=$(echo "$match" | cut -d: -f1)
+      local line=$(echo "$match" | cut -d: -f2)
+      local rel="${file#$SERVER_DIR/}"
+      fail_ "DB-07" "$rel:$line: 禁止 setDelFlag + updateById 模式（@TableLogic 字段会被跳过），请改用 LogicDeleteHelper 或 UpdateWrapper.set(\"del_flag\", DelFlagConstants.DELETED)"
+      ok=false
+    done <<< "$matches_a"
+  fi
+  # 模式 B：Db.updateBatchById 整段禁用
+  local matches_b=$(grep -rn 'Db\.updateBatchById\|updateBatchById(' $(find_java -not -path "*/test/*" -not -path "*/LogicDeleteHelper.java") 2>/dev/null || true)
+  if [ -n "$matches_b" ]; then
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local file=$(echo "$match" | cut -d: -f1)
+      local line=$(echo "$match" | cut -d: -f2)
+      local rel="${file#$SERVER_DIR/}"
+      fail_ "DB-07" "$rel:$line: 禁止 Db.updateBatchById 用于删除（@TableLogic 字段会被跳过），请改用 LogicDeleteHelper.markDeletedEntities 显式更新 del_flag"
+      ok=false
+    done <<< "$matches_b"
+  fi
+  $ok && pass_ "DB-07: 无 setDelFlag+updateById / Db.updateBatchById 删除模式"
+}
+check_DB07
+
 # ============================================================================
 # 三、编号生成规则（阻断级）
 # ============================================================================
@@ -427,6 +462,51 @@ check_ARCH02
 check_ARCH03
 check_ARCH04
 
+# CONST-03: 常量类位置合规
+# - 公共常量必须放 wms-common.constant
+# - 模块常量必须放 module.domain.constant
+# - ServiceImpl/Controller 中禁止 public static final 业务常量
+check_CONST03() {
+  local ok=true
+  # 检测 ServiceImpl 中出现 public static final 的业务常量（放行 SerialVersionUID、log、logger）
+  local matches=$(grep -rn 'public static final' $(find_java -path "*/service/impl/*.java") 2>/dev/null \
+    | grep -v 'SerialVersionUID\|log\b\|logger\b\|LOG\b' || true)
+  if [ -n "$matches" ]; then
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local rel=$(echo "$match" | sed "s|$SERVER_DIR/||")
+      fail_ "CONST-03" "$rel: ServiceImpl 中禁止 public static final 业务常量，请提取到模块的 domain.constant 或 wms-common.constant"
+      ok=false
+    done <<< "$matches"
+  fi
+  # Controller 同理
+  local matches2=$(grep -rn 'public static final' $(find_java -path "*/controller/*.java") 2>/dev/null \
+    | grep -v 'SerialVersionUID\|log\b\|logger\b\|LOG\b' || true)
+  if [ -n "$matches2" ]; then
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local rel=$(echo "$match" | sed "s|$SERVER_DIR/||")
+      fail_ "CONST-03" "$rel: Controller 中禁止 public static final 业务常量，请提取到模块的 domain.constant 或 wms-common.constant"
+      ok=false
+    done <<< "$matches2"
+  fi
+  # 校验 XxxConstants 类是否在合法位置：wms-common.constant 或 module.domain.constant
+  # 如果类在 service/impl 或 controller 等位置 → 违规
+  local misplaced=$(find_java -name "*Constants.java" 2>/dev/null \
+    | grep -v '/wms-common/.*/constant/' \
+    | grep -v '/domain/constant/' || true)
+  if [ -n "$misplaced" ]; then
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      local rel=$(echo "$file" | sed "s|$SERVER_DIR/||")
+      fail_ "CONST-03" "$rel: *Constants 类必须放在 wms-common.constant 或 module.domain.constant 包下"
+      ok=false
+    done <<< "$misplaced"
+  fi
+  $ok && pass_ "CONST-03: 常量类位置合规"
+}
+check_CONST03
+
 # ============================================================================
 # 五、性能规则
 # ============================================================================
@@ -472,6 +552,73 @@ check_PERF02() {
 
 check_PERF01
 check_PERF02
+
+# INV-01: 库存不足必须抛 BizException，禁止静默 setQuantity(0)
+# 检测 setQuantity(0) 出现在 service/impl 中，且前 5 行内无 throw BizException
+check_INV01() {
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    local matches=$(grep -n 'setQuantity\s*(\s*0\s*)' "$file" 2>/dev/null || true)
+    [ -z "$matches" ] && continue
+    while IFS=: read -r line_num rest; do
+      [ -z "$line_num" ] && continue
+      local ctx_start=$((line_num - 5))
+      [ $ctx_start -lt 1 ] && ctx_start=1
+      # 前 5 行内若已有 throw new BizException，则视为合理处理；否则警告
+      if ! sed -n "${ctx_start},${line_num}p" "$file" | grep -q 'throw.*BizException'; then
+        local rel="${file#$SERVER_DIR/}"
+        warn_ "INV-01" "$rel:$line_num: setQuantity(0) 前未抛 BizException，疑似静默修正库存"
+      fi
+    done <<< "$matches"
+  done < <(find_java -path "*/service/impl/*.java")
+}
+
+# NAME-01: 前后端命名一致性 — DTO/VO 字段名禁止下划线
+check_NAME01() {
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # 检查 DTO/VO 字段定义（private String/Long/Integer/... xxx_yyy;）
+    local matches=$(grep -nE 'private\s+\w+(<[^>]+>)?\s+[a-z]+_[a-z_]+\s*[=;]' "$file" 2>/dev/null || true)
+    [ -z "$matches" ] && continue
+    while IFS= read -r match; do
+      [ -z "$match" ] && continue
+      local line_num=$(echo "$match" | cut -d: -f1)
+      local rel="${file#$SERVER_DIR/}"
+      fail_ "NAME-01" "$rel:$line_num: DTO/VO 字段名禁止下划线（NAME-01 / AGENTS.md 8.1），应使用小驼峰"
+    done <<< "$matches"
+  done < <(find_java \( -path "*/domain/dto/*.java" -o -path "*/domain/vo/*.java" \) ! -name "*Dto.java.bak" ! -name "*Vo.java.bak")
+}
+
+# DDL-01: SQL 建表必须包含完整公共字段
+# 必须包含: del_flag, create_time, create_by, update_time, update_by
+check_DDL01() {
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # 仅检查 CREATE TABLE 语句
+    local create_lines=$(grep -niE 'CREATE\s+TABLE' "$file" 2>/dev/null || true)
+    [ -z "$create_lines" ] && continue
+    while IFS=: read -r line_num rest; do
+      [ -z "$line_num" ] && continue
+      # 从 CREATE TABLE 行开始，向后扫描直到遇到 );  或下一个 CREATE
+      local ctx_end=$((line_num + 60))
+      local block=$(sed -n "${line_num},${ctx_end}p" "$file" 2>/dev/null)
+      local missing=()
+      echo "$block" | grep -qi 'del_flag'        || missing+=("del_flag")
+      echo "$block" | grep -qi 'create_time'     || missing+=("create_time")
+      echo "$block" | grep -qi 'create_by'       || missing+=("create_by")
+      echo "$block" | grep -qi 'update_time'     || missing+=("update_time")
+      echo "$block" | grep -qi 'update_by'       || missing+=("update_by")
+      if [ ${#missing[@]} -gt 0 ]; then
+        local rel=$(echo "$file" | sed "s|$SERVER_DIR/||")
+        fail_ "DDL-01" "$rel:$line_num: CREATE TABLE 缺少公共字段: ${missing[*]}"
+      fi
+    done <<< "$create_lines"
+  done < <(find . \( -name "*.sql" -o -name "*.ddl" \) -not -path "*/target/*" -not -path "*/wms_complete_init.sql")
+}
+
+check_INV01
+check_NAME01
+check_DDL01
 
 # ============================================================================
 # 六、命名规范（阻断级）

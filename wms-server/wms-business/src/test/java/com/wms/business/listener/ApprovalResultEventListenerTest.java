@@ -2,6 +2,7 @@ package com.wms.business.listener;
 
 import com.wms.business.domain.entity.WmsInboundDetail;
 import com.wms.business.domain.entity.WmsInboundOrder;
+import com.wms.business.domain.entity.WmsReturnOrder;
 import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsInboundDetailMapper;
 import com.wms.business.mapper.WmsInboundOrderMapper;
@@ -17,6 +18,7 @@ import com.wms.common.constant.BizConstants;
 import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.event.ApprovalResultEvent;
+import com.wms.common.exception.BizException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +31,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,6 +75,7 @@ class ApprovalResultEventListenerTest {
         WmsInboundOrder order = new WmsInboundOrder();
         order.setId(9001L);
         order.setWarehouseId(10L);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
         WmsInboundDetail detail = new WmsInboundDetail();
         detail.setItemId(1001L);
         detail.setBinId(2001L);
@@ -89,6 +94,43 @@ class ApprovalResultEventListenerTest {
         assertEquals(2001L, stockSyncEvent.getBinId());
         assertEquals(5, stockSyncEvent.getQuantity());
         assertEquals(BizConstants.STOCK_SYNC_IN, stockSyncEvent.getType());
+    }
+
+    @Test
+    @DisplayName("completed inbound order approval event should not sync stock again")
+    void shouldIgnoreCompletedInboundOrderApprovalEvent() {
+        ApprovalResultEventListener listener = buildListener();
+        WmsInboundOrder order = new WmsInboundOrder();
+        order.setId(9001L);
+        order.setWarehouseId(10L);
+        order.setStatus(OrderStatusEnum.COMPLETED.getCode());
+        when(wmsInboundOrderMapper.selectById(9001L)).thenReturn(order);
+
+        listener.handleApprovalResult(new ApprovalResultEvent(9001L, BizTypeEnum.INBOUND.getCode(), true));
+
+        verify(wmsInboundOrderMapper, never()).updateById(any());
+        verify(wmsInboundDetailMapper, never()).selectList(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("return approval should fail before completion when outbound order is missing")
+    void shouldFailReturnApprovalBeforeCompletingWhenOutboundOrderMissing() {
+        ApprovalResultEventListener listener = buildListener();
+        WmsReturnOrder order = new WmsReturnOrder();
+        order.setId(9005L);
+        order.setOutboundOrderId(7005L);
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
+        when(wmsReturnOrderMapper.selectById(9005L)).thenReturn(order);
+        when(wmsOutboundOrderMapper.selectById(7005L)).thenReturn(null);
+
+        assertThrows(BizException.class,
+                () -> listener.handleApprovalResult(new ApprovalResultEvent(9005L, BizTypeEnum.RETURN.getCode(), true)));
+
+        assertEquals(OrderStatusEnum.PENDING.getCode(), order.getStatus());
+        verify(wmsReturnOrderMapper, never()).updateById(any());
+        verify(wmsReturnDetailMapper, never()).selectList(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     private ApprovalResultEventListener buildListener() {

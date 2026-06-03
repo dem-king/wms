@@ -37,13 +37,21 @@
 | 需求关键词 | 涉及模块 |
 |-----------|---------|
 | 库房/区域/货架/库位 | wms-warehouse |
+| **库房布局/可视化/编辑器** | **wms-warehouse (LayoutElement)** |
 | 物品/分类/标签/库存 | wms-item |
+| **电子标签/RFID** | **wms-item (ElectronicLabel) + wms-business (Pda)** |
+| **机器备品/设备配件** | **wms-item (MachineSpare)** |
 | 入库/出库 | wms-business (Inbound/Outbound) |
 | 归还/报废/调拨 | wms-business (Return/Scrap/Transfer) |
+| **库存盘点/扫码盘点** | **wms-business (StockCheck)** |
+| **PDA/手持设备** | **wms-business (controller/pda)** |
+| **审批策略/审批配置** | **wms-approval (strategy + ApprovalConfig)** |
 | 用户/角色/菜单/权限 | wms-system + wms-auth |
+| 登录认证/JWT | wms-auth (security) |
 | 审批 | wms-approval |
 | 报表/统计/导出 | wms-report |
-| 监控/预警 | wms-monitor |
+| **日报聚合/定时报表** | **wms-report (task)** |
+| 监控/预警/逾期 | wms-monitor |
 
 ### Step 5: 检查已有代码
 

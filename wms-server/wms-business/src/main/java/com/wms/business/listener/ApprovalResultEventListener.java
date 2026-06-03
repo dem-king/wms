@@ -27,6 +27,7 @@ import com.wms.common.constant.BizConstants;
 import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.event.ApprovalResultEvent;
+import com.wms.common.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -124,6 +125,9 @@ public class ApprovalResultEventListener {
             log.warn("入库单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "inbound", bizId)) {
+            return;
+        }
         // 标记为已完成
         order.setStatus(OrderStatusEnum.COMPLETED.getCode());
         wmsInboundOrderMapper.updateById(order);
@@ -149,6 +153,9 @@ public class ApprovalResultEventListener {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(bizId);
         if (order == null) {
             log.warn("出库单不存在: {}", bizId);
+            return;
+        }
+        if (!canApplyApprovalResult(order.getStatus(), "outbound", bizId)) {
             return;
         }
         // 标记为已完成
@@ -178,6 +185,9 @@ public class ApprovalResultEventListener {
             log.warn("报废单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "scrap", bizId)) {
+            return;
+        }
         // 标记为已完成
         order.setStatus(OrderStatusEnum.COMPLETED.getCode());
         wmsScrapOrderMapper.updateById(order);
@@ -203,6 +213,9 @@ public class ApprovalResultEventListener {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(bizId);
         if (order == null) {
             log.warn("调拨单不存在: {}", bizId);
+            return;
+        }
+        if (!canApplyApprovalResult(order.getStatus(), "transfer", bizId)) {
             return;
         }
         // 标记为已完成
@@ -238,16 +251,18 @@ public class ApprovalResultEventListener {
             log.warn("归还单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "return", bizId)) {
+            return;
+        }
+        WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(order.getOutboundOrderId());
+        if (outboundOrder == null) {
+            throw new BizException("关联出库单不存在: " + order.getOutboundOrderId());
+        }
         // 标记为已完成
         order.setStatus(OrderStatusEnum.COMPLETED.getCode());
         wmsReturnOrderMapper.updateById(order);
 
-        // 归还入库：查关联出库单获取库房ID
-        WmsOutboundOrder outboundOrder = wmsOutboundOrderMapper.selectById(order.getOutboundOrderId());
-        if (outboundOrder == null) {
-            log.warn("关联出库单不存在: {}", order.getOutboundOrderId());
-            return;
-        }
+        // 归还入库：使用关联出库单库房ID
         List<WmsReturnDetail> details = wmsReturnDetailMapper.selectList(
                 new LambdaQueryWrapper<WmsReturnDetail>()
                         .eq(WmsReturnDetail::getOrderId, bizId));
@@ -321,6 +336,9 @@ public class ApprovalResultEventListener {
             log.warn("入库单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "inbound", bizId)) {
+            return;
+        }
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
         wmsInboundOrderMapper.updateById(order);
     }
@@ -335,6 +353,9 @@ public class ApprovalResultEventListener {
         WmsOutboundOrder order = wmsOutboundOrderMapper.selectById(bizId);
         if (order == null) {
             log.warn("出库单不存在: {}", bizId);
+            return;
+        }
+        if (!canApplyApprovalResult(order.getStatus(), "outbound", bizId)) {
             return;
         }
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
@@ -353,6 +374,9 @@ public class ApprovalResultEventListener {
             log.warn("报废单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "scrap", bizId)) {
+            return;
+        }
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
         wmsScrapOrderMapper.updateById(order);
     }
@@ -367,6 +391,9 @@ public class ApprovalResultEventListener {
         WmsTransferOrder order = wmsTransferOrderMapper.selectById(bizId);
         if (order == null) {
             log.warn("调拨单不存在: {}", bizId);
+            return;
+        }
+        if (!canApplyApprovalResult(order.getStatus(), "transfer", bizId)) {
             return;
         }
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
@@ -385,7 +412,26 @@ public class ApprovalResultEventListener {
             log.warn("归还单不存在: {}", bizId);
             return;
         }
+        if (!canApplyApprovalResult(order.getStatus(), "return", bizId)) {
+            return;
+        }
         order.setStatus(OrderStatusEnum.DRAFT.getCode());
         wmsReturnOrderMapper.updateById(order);
+    }
+
+    /**
+     * 审批结果只能作用于待审批业务单据，避免重复或乱序事件造成库存重复同步。
+     *
+     * @param status 单据当前状态
+     * @param orderType 单据类型
+     * @param bizId 业务单据ID
+     * @return 是否允许处理审批结果
+     */
+    private boolean canApplyApprovalResult(Integer status, String orderType, Long bizId) {
+        if (status != null && status == OrderStatusEnum.PENDING.getCode()) {
+            return true;
+        }
+        log.warn("Ignore approval result for non-pending {} order: bizId={}, status={}", orderType, bizId, status);
+        return false;
     }
 }

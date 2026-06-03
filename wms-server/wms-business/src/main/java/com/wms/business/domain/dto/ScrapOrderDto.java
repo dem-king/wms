@@ -1,9 +1,12 @@
 package com.wms.business.domain.dto;
 
+import com.wms.business.domain.constant.OrderConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -30,6 +33,7 @@ public class ScrapOrderDto {
     @Valid
     @NotNull(message = "报废明细不能为空")
     @Schema(description = "报废明细列表")
+    @Size(min = OrderConstants.ORDER_DETAIL_MIN_SIZE, message = "报废明细不能为空")
     private List<ScrapDetailDto> details;
 
     /**
@@ -52,6 +56,7 @@ public class ScrapOrderDto {
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")
+        @Min(value = OrderConstants.ORDER_DETAIL_QUANTITY_MIN, message = "数量必须大于0")
         private Integer quantity;
     }
 }

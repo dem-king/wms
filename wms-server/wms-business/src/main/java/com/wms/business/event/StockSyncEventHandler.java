@@ -1,6 +1,7 @@
 package com.wms.business.event;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.exception.BizException;
 import com.wms.item.domain.entity.WmsStock;
 import com.wms.item.mapper.WmsStockMapper;
@@ -59,9 +60,9 @@ public class StockSyncEventHandler {
                         + ", 扣减数量=" + Math.abs(event.getQuantity()));
             }
             // 根据事件类型更新最后操作时间
-            if ("IN".equals(event.getType())) {
+            if (BizConstants.STOCK_SYNC_IN.equals(event.getType())) {
                 stock.setLastInboundTime(LocalDateTime.now());
-            } else if ("OUT".equals(event.getType())) {
+            } else if (BizConstants.STOCK_SYNC_OUT.equals(event.getType())) {
                 stock.setLastOutboundTime(LocalDateTime.now());
             }
             wmsStockMapper.updateById(stock);
@@ -74,10 +75,16 @@ public class StockSyncEventHandler {
                 stock.setBinId(event.getBinId());
                 stock.setQuantity(event.getQuantity());
                 stock.setLockedQuantity(0);
-                if ("IN".equals(event.getType())) {
+                if (BizConstants.STOCK_SYNC_IN.equals(event.getType())) {
                     stock.setLastInboundTime(LocalDateTime.now());
                 }
                 wmsStockMapper.insert(stock);
+            } else {
+                throw new BizException("库存不足: itemId=" + event.getItemId()
+                        + ", warehouseId=" + event.getWarehouseId()
+                        + ", binId=" + event.getBinId()
+                        + ", 当前库存=0"
+                        + ", 扣减数量=" + Math.abs(event.getQuantity()));
             }
         }
     }

@@ -1,8 +1,12 @@
 package com.wms.business.domain.dto;
 
+import com.wms.business.domain.constant.OrderConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -32,6 +36,7 @@ public class ReturnOrderDto {
     @Valid
     @NotNull(message = "归还明细不能为空")
     @Schema(description = "归还明细列表")
+    @Size(min = OrderConstants.ORDER_DETAIL_MIN_SIZE, message = "归还明细不能为空")
     private List<ReturnDetailDto> details;
 
     /**
@@ -53,10 +58,13 @@ public class ReturnOrderDto {
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")
+        @Min(value = OrderConstants.ORDER_DETAIL_QUANTITY_MIN, message = "数量必须大于0")
         private Integer quantity;
 
         /** 物品状态(1-正常 2-损坏 3-丢失 4-数量不符) */
         @Schema(description = "物品状态(1-正常 2-损坏 3-丢失 4-数量不符)")
+        @Min(value = OrderConstants.RETURN_CONDITION_MIN, message = "物品状态不正确")
+        @Max(value = OrderConstants.RETURN_CONDITION_MAX, message = "物品状态不正确")
         private Integer conditionStatus;
 
         /** 异常说明 */

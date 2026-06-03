@@ -1,5 +1,10 @@
 package com.wms.business.event;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wms.common.constant.BizConstants;
+import com.wms.common.exception.BizException;
+import com.wms.item.domain.entity.WmsStock;
+import com.wms.item.mapper.WmsStockMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,23 +13,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wms.common.constant.BizConstants;
-import com.wms.common.exception.BizException;
-import com.wms.item.domain.entity.WmsStock;
-import com.wms.item.mapper.WmsStockMapper;
-
-import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * StockSyncEventHandler 单元测试
- * 验证库存同步事件处理的核心业务规则
+ * Stock sync event handler tests.
  */
-@DisplayName("StockSyncEventHandler 测试")
+@DisplayName("StockSyncEventHandler tests")
 @ExtendWith(MockitoExtension.class)
 class StockSyncEventHandlerTest {
 
@@ -35,7 +35,7 @@ class StockSyncEventHandlerTest {
     private StockSyncEventHandler handler;
 
     @Test
-    @DisplayName("入库事件 - 库存记录不存在时应新增库存")
+    @DisplayName("IN event should create stock when record does not exist")
     void shouldCreateNewStockWhenNotExists() {
         StockSyncEvent event = new StockSyncEvent(1L, 10L, 100L, 50, BizConstants.STOCK_SYNC_IN);
         when(wmsStockMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
@@ -53,7 +53,7 @@ class StockSyncEventHandlerTest {
     }
 
     @Test
-    @DisplayName("库存同步事件 - 缺少库位时应拒绝处理")
+    @DisplayName("stock sync should reject missing bin")
     void shouldRejectStockSyncWhenBinIdMissing() {
         StockSyncEvent event = new StockSyncEvent(1L, 10L, null, 50, BizConstants.STOCK_SYNC_IN);
 
@@ -67,7 +67,7 @@ class StockSyncEventHandlerTest {
     }
 
     @Test
-    @DisplayName("入库事件 - 已有库存记录应累加数量")
+    @DisplayName("IN event should increase existing stock")
     void shouldIncreaseStockWhenExists() {
         StockSyncEvent event = new StockSyncEvent(1L, 10L, 100L, 30, BizConstants.STOCK_SYNC_IN);
         WmsStock existingStock = new WmsStock();
@@ -82,12 +82,11 @@ class StockSyncEventHandlerTest {
 
         ArgumentCaptor<WmsStock> stockCaptor = ArgumentCaptor.forClass(WmsStock.class);
         verify(wmsStockMapper).updateById(stockCaptor.capture());
-        WmsStock updatedStock = stockCaptor.getValue();
-        assertEquals(130, updatedStock.getQuantity());
+        assertEquals(130, stockCaptor.getValue().getQuantity());
     }
 
     @Test
-    @DisplayName("出库事件 - 库存不足时应抛出BizException")
+    @DisplayName("OUT event should fail when stock is insufficient")
     void shouldThrowBizExceptionWhenStockInsufficient() {
         StockSyncEvent event = new StockSyncEvent(2L, 10L, 100L, -50, BizConstants.STOCK_SYNC_OUT);
         WmsStock existingStock = new WmsStock();
@@ -103,7 +102,21 @@ class StockSyncEventHandlerTest {
     }
 
     @Test
-    @DisplayName("出库事件 - 库存刚好充足时应成功扣减")
+    @DisplayName("OUT event should fail when stock record does not exist")
+    void shouldThrowBizExceptionWhenOutboundStockRecordMissing() {
+        StockSyncEvent event = new StockSyncEvent(4L, 10L, 100L, -1, BizConstants.STOCK_SYNC_OUT);
+        when(wmsStockMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
+
+        BizException ex = assertThrows(BizException.class,
+                () -> handler.handleStockSync(event));
+
+        assertTrue(ex.getMessage().contains("itemId=4"));
+        verify(wmsStockMapper, never()).insert(any(WmsStock.class));
+        verify(wmsStockMapper, never()).updateById(any(WmsStock.class));
+    }
+
+    @Test
+    @DisplayName("OUT event should deduct stock when exactly sufficient")
     void shouldDeductStockWhenSufficient() {
         StockSyncEvent event = new StockSyncEvent(3L, 10L, 100L, -30, BizConstants.STOCK_SYNC_OUT);
         WmsStock existingStock = new WmsStock();

@@ -13,6 +13,7 @@ import com.wms.business.mapper.WmsInboundDetailMapper;
 import com.wms.business.mapper.WmsInboundOrderMapper;
 import com.wms.business.service.InboundService;
 import com.wms.business.service.support.BinWarehouseValidator;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -153,6 +154,9 @@ public class InboundServiceImpl implements InboundService {
         if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(warehouse.getStatus())) {
+            throw new BizException("库房已禁用");
+        }
         if (dto.getSupplierId() != null) {
             SysSupplier supplier = sysSupplierMapper.selectById(dto.getSupplierId());
             if (supplier == null) {
@@ -244,6 +248,9 @@ public class InboundServiceImpl implements InboundService {
         if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(warehouse.getStatus())) {
+            throw new BizException("库房已禁用");
+        }
 
         order.setWarehouseId(dto.getWarehouseId());
         order.setSupplierId(dto.getSupplierId());
@@ -270,6 +277,13 @@ public class InboundServiceImpl implements InboundService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<WmsInboundDetail> newDetailList = new ArrayList<>();
         for (InboundOrderDto.InboundDetailDto detailDto : dto.getDetails()) {
+            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
+            if (item == null) {
+                throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
+            }
             WmsInboundDetail detail = new WmsInboundDetail();
             detail.setOrderId(id);
             detail.setItemId(detailDto.getItemId());
@@ -378,6 +392,6 @@ public class InboundServiceImpl implements InboundService {
                 .filter(detail -> detail.getItemId() != null && detail.getBinId() != null)
                 .collect(Collectors.groupingBy(WmsInboundDetail::getItemId,
                         Collectors.mapping(WmsInboundDetail::getBinId, Collectors.toList())))
-                .forEach(itemService::appendDefaultBins);
+                .forEach((itemId, binIds) -> itemService.appendDefaultBins(itemId, binIds));
     }
 }

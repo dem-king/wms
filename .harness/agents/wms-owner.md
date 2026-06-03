@@ -17,17 +17,17 @@
 
 | 模块 | 路径 | 职责 |
 |------|------|------|
-| wms-common | wms-server/wms-common/ | 公共基础设施：BaseEntity、BizException、注解、枚举、常量、工具类 |
-| wms-auth | wms-server/wms-auth/ | 认证鉴权：登录、JWT、验证码、限流、操作日志 |
-| wms-system | wms-server/wms-system/ | 系统管理：用户、角色、菜单、权限、部门、供应商、系统配置 |
-| wms-warehouse | wms-server/wms-warehouse/ | 库房管理：库房、区域、存放柜、库位 |
-| wms-item | wms-server/wms-item/ | 物品管理：物品、分类、标签、库存、二维码 |
-| wms-business | wms-server/wms-business/ | 业务单据：入库、出库、归还、报废、调拨 |
-| wms-approval | wms-server/wms-approval/ | 审批流程 |
-| wms-report | wms-server/wms-report/ | 报表模块 |
-| wms-monitor | wms-server/wms-monitor/ | 监控预警：逾期归还、库存预警、预警任务 |
+| wms-common | wms-server/wms-common/ | 公共基础设施：BaseEntity、BizException、注解、枚举、常量、工具、事件、数据权限、存储策略 |
+| wms-auth | wms-server/wms-auth/ | 认证鉴权：登录、JWT、验证码、限流、操作日志、Spring Security 配置、认证事件监听 |
+| wms-system | wms-server/wms-system/ | 系统管理：用户、角色、菜单、权限、部门、供应商、系统配置、操作/登录日志、数据权限切面、操作日志切面 |
+| wms-warehouse | wms-server/wms-warehouse/ | 库房管理：库房、区域、存放柜、库位、库房布局元素（LayoutElement，可视化编辑器） |
+| wms-item | wms-server/wms-item/ | 物品管理：物品、分类、库存、电子标签（ElectronicLabel，含 RFID）、机器备品（MachineSpare）、闲置检测任务 |
+| wms-business | wms-server/wms-business/ | 业务单据：入库、出库、归还、报废、调拨、库存盘点、PDA 专用接口、库存事件发布与监听、跨 Service 校验工具 |
+| wms-approval | wms-server/wms-approval/ | 审批流程：审批配置、审批单、审批记录、策略模式（Free/Single/Multi）、审批事件监听、超时任务 |
+| wms-report | wms-server/wms-report/ | 报表模块：日报聚合任务、Excel/PDF 导出、图表服务、高德地图配置 |
+| wms-monitor | wms-server/wms-monitor/ | 监控预警：逾期归还、库存预警、预警任务调度 |
 | wms-app | wms-server/wms-app/ | 启动模块 |
-| wms-web | wms-web/ | 前端 Vue 3 应用 |
+| wms-web | wms-web/ | 前端 Vue 3 应用（含 PDA 移动端 wms-pda） |
 
 ## 配置中枢索引
 

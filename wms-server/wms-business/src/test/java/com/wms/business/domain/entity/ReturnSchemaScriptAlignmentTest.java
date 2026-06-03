@@ -35,9 +35,20 @@ class ReturnSchemaScriptAlignmentTest {
 
     private void assertScriptContainsRequiredColumns(Path scriptPath) throws IOException {
         String content = Files.readString(scriptPath);
+        String returnOrderTable = extractTableDefinition(content, "wms_return_order");
+        String scrapOrderTable = extractTableDefinition(content, "wms_scrap_order");
+        String transferOrderTable = extractTableDefinition(content, "wms_transfer_order");
 
-        assertTrue(content.contains("`outbound_order_id`"), scriptPath + " missing outbound_order_id");
-        assertTrue(content.contains("`receiver`"), scriptPath + " missing receiver");
+        assertTrue(returnOrderTable.contains("`outbound_order_id`"), scriptPath + " missing return outbound_order_id");
+        assertTrue(returnOrderTable.contains("`receiver`"), scriptPath + " missing return receiver");
+        assertFalse(returnOrderTable.contains("`outbound_id`"), scriptPath + " contains obsolete return outbound_id");
+        assertFalse(returnOrderTable.contains("`returner_id`"), scriptPath + " contains unused returner_id");
+        assertTrue(scrapOrderTable.contains("`applicant_id`"), scriptPath + " missing scrap applicant_id");
+        assertFalse(scrapOrderTable.contains("`applicant_id`      BIGINT       NOT NULL"),
+                scriptPath + " scrap applicant_id must align with service insert fields");
+        assertTrue(transferOrderTable.contains("`applicant_id`"), scriptPath + " missing transfer applicant_id");
+        assertFalse(transferOrderTable.contains("`applicant_id`      BIGINT       NOT NULL"),
+                scriptPath + " transfer applicant_id must align with service insert fields");
         assertTrue(content.contains("`order_status`"), scriptPath + " missing order_status");
         assertTrue(content.contains("`condition_status`"), scriptPath + " missing condition_status");
         assertTrue(content.contains("`abnormal_remark`"), scriptPath + " missing abnormal_remark");
@@ -45,5 +56,18 @@ class ReturnSchemaScriptAlignmentTest {
         assertTrue(content.contains("`bin_id`"), scriptPath + " missing bin_id");
         assertTrue(content.contains("`from_bin_id`"), scriptPath + " missing from_bin_id");
         assertTrue(content.contains("`to_bin_id`"), scriptPath + " missing to_bin_id");
+        for (int bizType = 1; bizType <= 5; bizType++) {
+            assertTrue(content.contains("(" + (7000 + bizType) + ", " + bizType + ", 1, 1,"),
+                    scriptPath + " missing default auto-approve config for bizType=" + bizType);
+        }
+    }
+
+    private String extractTableDefinition(String content, String tableName) {
+        String marker = "CREATE TABLE `" + tableName + "`";
+        int start = content.indexOf(marker);
+        assertTrue(start >= 0, "missing table " + tableName);
+        int end = content.indexOf(") ENGINE=", start);
+        assertTrue(end > start, "missing table terminator for " + tableName);
+        return content.substring(start, end);
     }
 }

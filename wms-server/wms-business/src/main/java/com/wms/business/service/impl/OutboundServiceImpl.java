@@ -12,6 +12,7 @@ import com.wms.business.mapper.WmsOutboundDetailMapper;
 import com.wms.business.mapper.WmsOutboundOrderMapper;
 import com.wms.business.service.OutboundService;
 import com.wms.business.service.support.BinWarehouseValidator;
+import com.wms.common.constant.BizConstants;
 import com.wms.common.constant.DelFlagConstants;
 import com.wms.common.util.LogicDeleteHelper;
 import com.wms.common.domain.PageParam;
@@ -149,6 +150,9 @@ public class OutboundServiceImpl implements OutboundService {
         if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(warehouse.getStatus())) {
+            throw new BizException("库房已禁用");
+        }
 
         WmsOutboundOrder order = new WmsOutboundOrder();
         // 生成出库单号：格式为CK + 年月日 + 4位流水号
@@ -223,6 +227,9 @@ public class OutboundServiceImpl implements OutboundService {
         if (warehouse.getDelFlag() == DelFlagConstants.DELETED) {
             throw new BizException("库房已删除");
         }
+        if (!Integer.valueOf(BizConstants.STATUS_ENABLED).equals(warehouse.getStatus())) {
+            throw new BizException("库房已禁用");
+        }
 
         order.setWarehouseId(dto.getWarehouseId());
         order.setOrderType(dto.getOrderType());
@@ -252,6 +259,13 @@ public class OutboundServiceImpl implements OutboundService {
         }
         List<WmsOutboundDetail> newDetailList = new ArrayList<>();
         for (OutboundOrderDto.OutboundDetailDto detailDto : dto.getDetails()) {
+            WmsItem item = wmsItemMapper.selectById(detailDto.getItemId());
+            if (item == null) {
+                throw new BizException("物品不存在: " + detailDto.getItemId());
+            }
+            if (item.getDelFlag() == DelFlagConstants.DELETED) {
+                throw new BizException("物品已删除: " + detailDto.getItemId());
+            }
             WmsOutboundDetail detail = new WmsOutboundDetail();
             detail.setOrderId(id);
             detail.setItemId(detailDto.getItemId());
