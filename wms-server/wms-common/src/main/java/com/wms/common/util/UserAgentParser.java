@@ -9,9 +9,11 @@ import java.util.regex.Pattern;
  * User-Agent 轻量解析工具
  * 提取浏览器与操作系统摘要，避免将整段 UA 直接写入日志字段
  */
-public final class UserAgentParser {
+public class UserAgentParser {
 
     private static final String UNKNOWN = "Unknown";
+    /** UA 截取最大长度（写入日志/指纹时防爆） */
+    private static final int TRUNCATE_MAX_LENGTH = 200;
     private static final Pattern EDGE_PATTERN = Pattern.compile("Edg/(\\d+)");
     private static final Pattern OPERA_PATTERN = Pattern.compile("OPR/(\\d+)");
     private static final Pattern CHROME_PATTERN = Pattern.compile("Chrome/(\\d+)");
@@ -21,7 +23,7 @@ public final class UserAgentParser {
     private static final Pattern ANDROID_PATTERN = Pattern.compile("Android (\\d+)");
     private static final Pattern MAC_OS_PATTERN = Pattern.compile("Mac OS X (\\d+)[_\\.](\\d+)");
 
-    private UserAgentParser() {
+    public UserAgentParser() {
     }
 
     /**
@@ -98,6 +100,23 @@ public final class UserAgentParser {
             return null;
         }
         return prefix + matcher.group(1);
+    }
+
+    /**
+     * 截断 User-Agent 字符串到安全长度
+     * 用于日志或指纹等场景，避免长 UA 撑爆存储/摘要字段
+     *
+     * @param userAgent 原始 User-Agent
+     * @return 截断后的字符串（为空时返回 Unknown）
+     */
+    public String truncate(String userAgent) {
+        if (!StringUtils.hasText(userAgent)) {
+            return UNKNOWN;
+        }
+        if (userAgent.length() <= TRUNCATE_MAX_LENGTH) {
+            return userAgent;
+        }
+        return userAgent.substring(0, TRUNCATE_MAX_LENGTH);
     }
 
     /**
