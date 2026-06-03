@@ -1,5 +1,6 @@
 package com.wms.auth.service.impl;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import cloud.tianai.captcha.application.ImageCaptchaApplication;
 import cloud.tianai.captcha.application.vo.CaptchaResponse;
 import cloud.tianai.captcha.application.vo.ImageCaptchaVO;
@@ -110,29 +111,49 @@ class CaptchaServiceImplTest {
         when(valueOps.getAndDelete("auth:captcha:fp:tok-x")).thenReturn(null);
 
         BizException ex = assertThrows(BizException.class,
-                () -> service.validateCaptcha("tok-x", "{}"));
+                () -> service.validateCaptcha("tok-x", "{}", "127.0.0.1", "ua"));
+        assertEquals(AuthErrorCode.CAPTCHA_INVALID.getCode(), ex.getCode());
+    }
+
+    @Test
+    @DisplayName("校验时若指纹哈希不匹配应抛 CAPTCHA_INVALID（防 token 被其他 IP 截获重放）")
+    void validate_shouldThrowInvalidWhenFingerprintMismatch() {
+        // 存储的 fp 来自 IP=10.0.0.1, UA=ua（与当前请求 IP 不同）
+        when(valueOps.getAndDelete("auth:captcha:fp:tok-mismatch"))
+                .thenReturn("stored-fp-different-from-current");
+
+        BizException ex = assertThrows(BizException.class,
+                () -> service.validateCaptcha("tok-mismatch", "track", "192.168.1.1", "ua"));
         assertEquals(AuthErrorCode.CAPTCHA_INVALID.getCode(), ex.getCode());
     }
 
     @Test
     @DisplayName("tianai 校验失败时应抛 CAPTCHA_MISMATCH")
     void validate_shouldThrowMismatchWhenTianaiReturnsFail() {
-        when(valueOps.getAndDelete("auth:captcha:fp:tok-y")).thenReturn("fphash");
+        // 算出与 generate 相同的指纹值，让绑定校验通过
+        String ip = "127.0.0.1";
+        String ua = "ua";
+        String expectedFp = DigestUtil.sha256Hex(ip + "|" + userAgentParser.truncate(ua));
+        when(valueOps.getAndDelete("auth:captcha:fp:tok-y")).thenReturn(expectedFp);
         doReturn(ApiResponse.ofError("坐标错误")).when(application)
                 .matching(eq("tok-y"), any(ImageCaptchaTrack.class));
 
         BizException ex = assertThrows(BizException.class,
-                () -> service.validateCaptcha("tok-y", "{}"));
+                () -> service.validateCaptcha("tok-y", "{}", ip, ua));
         assertEquals(AuthErrorCode.CAPTCHA_MISMATCH.getCode(), ex.getCode());
     }
 
     @Test
     @DisplayName("tianai 校验成功时不应抛异常")
     void validate_shouldPassWhenTianaiReturnsSuccess() {
-        when(valueOps.getAndDelete("auth:captcha:fp:tok-z")).thenReturn("fphash");
+        // 算出与 generate 相同的指纹值，让 stub 匹配
+        String ip = "127.0.0.1";
+        String ua = "ua";
+        String expectedFp = DigestUtil.sha256Hex(ip + "|" + userAgentParser.truncate(ua));
+        when(valueOps.getAndDelete("auth:captcha:fp:tok-z")).thenReturn(expectedFp);
         doReturn(ApiResponse.ofSuccess()).when(application)
                 .matching(eq("tok-z"), any(ImageCaptchaTrack.class));
 
-        assertDoesNotThrow(() -> service.validateCaptcha("tok-z", "{}"));
+        assertDoesNotThrow(() -> service.validateCaptcha("tok-z", "{}", ip, ua));
     }
 }

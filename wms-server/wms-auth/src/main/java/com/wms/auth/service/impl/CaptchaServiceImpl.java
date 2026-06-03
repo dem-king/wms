@@ -89,14 +89,17 @@ public class CaptchaServiceImpl implements CaptchaService {
     /**
      * 校验滑块拼图
      * 1) 校验 Redis 中的客户端指纹（一次性消费：getAndDelete）
-     * 2) 解析前端轨迹 JSON 为 ImageCaptchaTrack，调用 tianai SDK 做采样点/坐标校验
+     * 2) 校验当前请求的 IP+UA 哈希与生成时一致，防止 token 被其他 IP/UA 截获重放
+     * 3) 解析前端轨迹 JSON 为 ImageCaptchaTrack，调用 tianai SDK 做采样点/坐标校验
      *
      * @param captchaToken 验证码 Token
      * @param captchaTrack 前端采集的拖动轨迹数据（JSON 字符串）
-     * @throws BizException 校验失败时抛出 CAPTCHA_INVALID 或 CAPTCHA_MISMATCH
+     * @param clientIp     客户端 IP（用于绑定校验）
+     * @param userAgent    User-Agent 头（用于绑定校验）
+     * @throws BizException 校验失败时抛出 CAPTCHA_INVALID（指纹缺失或不匹配）或 CAPTCHA_MISMATCH（轨迹错误）
      */
     @Override
-    public void validateCaptcha(String captchaToken, String captchaTrack) {
+    public void validateCaptcha(String captchaToken, String captchaTrack, String clientIp, String userAgent) {
         // 1. 校验客户端指纹（一次性消费：取出后立即删除）
         String fingerprintKey = FINGERPRINT_KEY_PREFIX + captchaToken;
         String storedFingerprint = stringRedisTemplate.opsForValue().getAndDelete(fingerprintKey);
@@ -105,7 +108,16 @@ public class CaptchaServiceImpl implements CaptchaService {
                     AuthErrorCode.CAPTCHA_INVALID.getMsg());
         }
 
-        // 2. 解析前端轨迹 JSON 为 ImageCaptchaTrack，调用 tianai SDK 校验
+        // 2. 客户端绑定校验：当前请求的 ip+ua 哈希必须与生成时一致（防 token 被其他 IP/UA 截获重放）
+        String currentFingerprint = DigestUtil.sha256Hex(
+                clientIp + "|" + userAgentParser.truncate(userAgent));
+        if (!currentFingerprint.equals(storedFingerprint)) {
+            log.warn("滑块拼图客户端绑定校验失败: token={}, clientIp={}", captchaToken, clientIp);
+            throw new BizException(AuthErrorCode.CAPTCHA_INVALID.getCode(),
+                    AuthErrorCode.CAPTCHA_INVALID.getMsg());
+        }
+
+        // 3. 解析前端轨迹 JSON 为 ImageCaptchaTrack，调用 tianai SDK 校验
         ImageCaptchaTrack track;
         try {
             track = objectMapper.readValue(captchaTrack, ImageCaptchaTrack.class);
