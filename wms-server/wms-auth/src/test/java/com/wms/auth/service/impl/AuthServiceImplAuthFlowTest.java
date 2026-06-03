@@ -194,6 +194,12 @@ class AuthServiceImplAuthFlowTest {
                 org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString());
+        // 应记录 CAPTCHA_REQUIRED 审计
+        verify(authAuditService).recordCaptchaFailure(
+                org.mockito.ArgumentMatchers.eq("CAPTCHA_REQUIRED"),
+                org.mockito.ArgumentMatchers.eq("127.0.0.1"),
+                org.mockito.ArgumentMatchers.eq(CHROME_ON_WINDOWS_UA),
+                org.mockito.ArgumentMatchers.isNull());
     }
 
     @Test
@@ -238,6 +244,12 @@ class AuthServiceImplAuthFlowTest {
         assertEquals(AuthErrorCode.CAPTCHA_MISMATCH.getCode(), ex.getCode());
         // 抛 CAPTCHA_MISMATCH 后不应继续访问加密/查询用户
         verify(cryptoService, never()).decryptPassword(org.mockito.ArgumentMatchers.anyString());
+        // 应记录 CAPTCHA_MISMATCH 审计
+        verify(authAuditService).recordCaptchaFailure(
+                org.mockito.ArgumentMatchers.eq("CAPTCHA_MISMATCH"),
+                org.mockito.ArgumentMatchers.eq("127.0.0.1"),
+                org.mockito.ArgumentMatchers.eq(CHROME_ON_WINDOWS_UA),
+                org.mockito.ArgumentMatchers.eq("tok"));
     }
 
     @Test

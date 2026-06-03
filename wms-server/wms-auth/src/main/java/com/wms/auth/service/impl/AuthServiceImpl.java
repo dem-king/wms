@@ -68,12 +68,25 @@ public class AuthServiceImpl implements AuthService {
             // 强制要求 captchaToken/Track 必传，杜绝"前端不传 captcha 字段即可跳过校验"的绕过后门
             if (!StringUtils.hasText(req.getCaptchaToken())
                     || !StringUtils.hasText(req.getCaptchaTrack())) {
+                authAuditService.recordCaptchaFailure("CAPTCHA_REQUIRED", clientIp, userAgent,
+                        req.getCaptchaToken());
                 throw new BizException(AuthErrorCode.CAPTCHA_REQUIRED.getCode(),
                         AuthErrorCode.CAPTCHA_REQUIRED.getMsg());
             }
-            // 4 参版本：除 tianai 轨迹校验外，还会对 IP+UA 指纹做绑定校验，防止 token 被其他客户端重放
-            captchaService.validateCaptcha(req.getCaptchaToken(), req.getCaptchaTrack(),
-                    clientIp, userAgent);
+            try {
+                // 4 参版本：除 tianai 轨迹校验外，还会对 IP+UA 指纹做绑定校验，防止 token 被其他客户端重放
+                captchaService.validateCaptcha(req.getCaptchaToken(), req.getCaptchaTrack(),
+                        clientIp, userAgent);
+            } catch (BizException e) {
+                // 滑块校验失败：CAPTCHA_INVALID(指纹缺失/不匹配, msg="验证码无效或已过期") 与
+                // CAPTCHA_MISMATCH(轨迹不通过, msg="验证未通过，请重试") 共享 code=400,
+                // 必须按 msg 区分以产出正确的审计原因
+                String reason = AuthErrorCode.CAPTCHA_INVALID.getMsg().equals(e.getMessage())
+                        ? "CAPTCHA_INVALID" : "CAPTCHA_MISMATCH";
+                authAuditService.recordCaptchaFailure(reason, clientIp, userAgent,
+                        req.getCaptchaToken());
+                throw e;
+            }
         }
 
         if (loginLockService.isLocked(req.getUsername())) {
