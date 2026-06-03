@@ -9,18 +9,6 @@ public final class AuthConstants {
     private AuthConstants() {
     }
 
-    /** 验证码宽度 */
-    public static final int CAPTCHA_WIDTH = 120;
-
-    /** 验证码高度 */
-    public static final int CAPTCHA_HEIGHT = 40;
-
-    /** 验证码字符数 */
-    public static final int CAPTCHA_CHAR_COUNT = 4;
-
-    /** 验证码干扰线数 */
-    public static final int CAPTCHA_LINE_COUNT = 6;
-
     /** IP限流时间窗口（秒） */
     public static final int RATE_LIMIT_WINDOW_SECONDS = 60;
 
