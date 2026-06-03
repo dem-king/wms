@@ -108,8 +108,8 @@ describe('user store', () => {
     await userStore.login({
       username: 'zhangsan',
       encryptedPassword: 'encrypted-password',
-      captchaKey: 'captcha-key',
-      captchaText: '1234',
+      captchaToken: 'captcha-token',
+      captchaTrack: '{"id":"captcha-token","type":"SLIDER","data":[],"stop":true}',
     })
 
     expect(userStore.userInfo?.realName).toBe('张三')
