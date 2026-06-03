@@ -2,9 +2,9 @@
  * WMS-PDA 认证接口
  * 封装认证相关的API请求
  */
-import type { LoginDto, LoginResultVo, RefreshTokenDto, RefreshTokenResultVo, AuthProfileVo } from '@/utils/constants'
+import type { CaptchaImageResp, LoginDto, LoginResultVo, RefreshTokenDto, RefreshTokenResultVo, AuthProfileVo } from '@/utils/constants'
 import { RequestTimeout } from '@/utils/constants'
-import { post, get, request } from '@/api/request'
+import { post, get } from '@/api/request'
 
 /**
  * 登录
@@ -14,7 +14,12 @@ import { post, get, request } from '@/api/request'
  * @returns 登录结果（含双Token）
  */
 export function loginApi(data: LoginDto): Promise<LoginResultVo> {
-  return post<LoginResultVo>('/api/auth/login', data, RequestTimeout.DEFAULT)
+  return post<LoginResultVo>('/api/auth/login', {
+    username: data.username,
+    password: data.password,
+    captchaToken: data.captchaToken,
+    captchaTrack: data.captchaTrack,
+  }, RequestTimeout.DEFAULT)
 }
 
 /**
@@ -44,4 +49,12 @@ export function refreshTokenApi(data: RefreshTokenDto): Promise<RefreshTokenResu
  */
 export function getProfileApi(): Promise<AuthProfileVo> {
   return get<AuthProfileVo>('/api/auth/profile')
+}
+
+/**
+ * 获取滑块拼图验证码
+ * 返回背景图 / 拼图块 (Base64)、缺口 Y 坐标、Token 与过期秒数
+ */
+export function getSliderCaptcha() {
+  return get<CaptchaImageResp>('/api/auth/captcha/slider')
 }

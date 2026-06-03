@@ -80,7 +80,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(dto: LoginDto): Promise<void> {
     const result = await post<LoginResultVo>('/api/auth/login', {
       username: dto.username,
-      password: dto.password
+      password: dto.password,
+      captchaToken: dto.captchaToken,
+      captchaTrack: dto.captchaTrack,
     })
 
     // 存储Token

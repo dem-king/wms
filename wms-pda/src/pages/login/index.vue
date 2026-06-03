@@ -48,6 +48,19 @@
         />
       </view>
 
+      <!-- 滑块拼图验证码 -->
+      <view class="login-page__field login-page__field--captcha">
+        <text class="login-page__label">安全验证</text>
+        <SliderPuzzle
+          v-if="sliderData"
+          :data="sliderData"
+          :status="sliderStatus"
+          @change="onSliderChange"
+          @reset="onSliderReset"
+        />
+        <view v-else class="login-page__captcha-loading">正在加载验证码...</view>
+      </view>
+
       <!-- 登录按钮 -->
       <view
         class="login-page__btn"
@@ -75,6 +88,9 @@ import { ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useAppStore } from '@/store/app'
 import { isValidServerUrl } from '@/utils/validate'
+import { getSliderCaptcha } from '@/api/auth'
+import SliderPuzzle from '@/components/SliderPuzzle/index.vue'
+import type { CaptchaImageResp } from '@/utils/constants'
 
 /** authStore实例 */
 const authStore = useAuthStore()
@@ -89,6 +105,44 @@ const username = ref<string>('')
 const password = ref<string>('')
 /** 登录中状态 */
 const loading = ref<boolean>(false)
+/** 滑块拼图数据 */
+const sliderData = ref<CaptchaImageResp | null>(null)
+/** 滑块状态 */
+const sliderStatus = ref<'idle' | 'success' | 'failed'>('idle')
+/** 滑块 Token */
+const captchaToken = ref<string>('')
+/** 滑块轨迹 */
+const captchaTrack = ref<string>('')
+
+/**
+ * 刷新滑块拼图验证码
+ * 失败时降级到 toast 提示, 不阻塞登录页其它流程
+ */
+async function refreshSlider(): Promise<void> {
+  sliderStatus.value = 'idle'
+  captchaToken.value = ''
+  captchaTrack.value = ''
+  try {
+    const res = await getSliderCaptcha()
+    sliderData.value = res.data
+  } catch {
+    uni.showToast({ title: '验证码加载失败, 请重试', icon: 'none' })
+  }
+}
+
+function onSliderChange(payload: { token: string; trackJson: string }) {
+  captchaToken.value = payload.token
+  captchaTrack.value = payload.trackJson
+}
+
+function onSliderReset() {
+  // 用户只点了一下没拖动, 不需要做任何事
+}
+
+/** 进入页面时主动拉一次滑块拼图 */
+onShow(() => {
+  refreshSlider()
+})
 
 /**
  * 处理登录操作
@@ -133,9 +187,16 @@ async function handleLogin(): Promise<void> {
   loading.value = true
   try {
     // 调用登录接口
+    if (!captchaToken.value || !captchaTrack.value) {
+      uni.showToast({ title: '请完成滑块验证', icon: 'none' })
+      loading.value = false
+      return
+    }
     await authStore.login({
       username: username.value.trim(),
-      password: password.value
+      password: password.value,
+      captchaToken: captchaToken.value,
+      captchaTrack: captchaTrack.value,
     })
 
     // 登录成功，跳转首页
@@ -145,8 +206,23 @@ async function handleLogin(): Promise<void> {
   } catch (error: unknown) {
     // 登录失败，显示错误信息
     const errMsg = error instanceof Error ? error.message : '登录失败'
-    // 区分网络不可达和其他错误
-    if (errMsg.includes('network') || errMsg.includes('connect') || errMsg.includes('网络')) {
+    if (errMsg.includes('CAPTCHA_MISMATCH') || errMsg.includes('验证未通过')) {
+      sliderStatus.value = 'failed'
+      setTimeout(() => refreshSlider(), 600)
+      uni.showToast({ title: '验证未通过, 请重试', icon: 'none' })
+    } else if (errMsg.includes('CAPTCHA_INVALID') || errMsg.includes('验证码无效')) {
+      refreshSlider()
+      uni.showToast({ title: '验证码已过期, 请重试', icon: 'none' })
+    } else if (errMsg.includes('CAPTCHA_REQUIRED') || errMsg.includes('请完成滑块验证')) {
+      refreshSlider()
+      uni.showToast({ title: '请完成滑块验证', icon: 'none' })
+    } else if (errMsg.includes('LOCKED') || errMsg.includes('锁定')) {
+      refreshSlider()
+      uni.showToast({ title: '账号已被锁定, 请稍后重试', icon: 'none' })
+    } else if (errMsg.includes('CREDENTIAL_INVALID') || errMsg.includes('用户名或密码错误')) {
+      refreshSlider()
+      uni.showToast({ title: '用户名或密码错误', icon: 'none' })
+    } else if (errMsg.includes('network') || errMsg.includes('connect') || errMsg.includes('网络')) {
       uni.showToast({ title: '无法连接服务器，请检查服务器地址', icon: 'none', duration: 2000 })
     } else {
       uni.showToast({ title: errMsg || '登录失败', icon: 'none', duration: 2000 })
@@ -203,6 +279,21 @@ async function handleLogin(): Promise<void> {
 
   &__field {
     margin-bottom: $spacing-lg;
+
+    &--captcha {
+      margin-top: $spacing-md;
+    }
+  }
+
+  &__captcha-loading {
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $bg-color-page;
+    border-radius: $border-radius-md;
+    color: $text-color-secondary;
+    font-size: $font-size-md;
   }
 
   &__label {

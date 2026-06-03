@@ -190,6 +190,24 @@ export interface LoginDto {
   username: string
   /** 密码 */
   password: string
+  /** 滑块拼图 Token（来自 getSliderCaptcha 响应） */
+  captchaToken: string
+  /** 滑块拖动轨迹 JSON 字符串，由 SliderPuzzle 组件采集 */
+  captchaTrack: string
+}
+
+/** 滑块拼图验证码响应 */
+export interface CaptchaImageResp {
+  /** 滑块拼图 Token，登录时需回传 */
+  captchaToken: string
+  /** 背景图 Base64 (data:image/png;base64,...) */
+  backgroundImage: string
+  /** 拼图块 Base64 */
+  blockImage: string
+  /** 拼图缺口 Y 坐标 */
+  blockY: number
+  /** Token 过期秒数 */
+  expiresIn: number
 }
 
 /** 登录响应 */
