@@ -14,7 +14,7 @@
         <div class="floating-stats">
           <div class="stat-card stat-1">
             <span class="stat-label">系统状态</span>
-            <span class="stat-value status-online">● 在线</span>
+            <span class="stat-value status-online">在线</span>
           </div>
           <div class="stat-card stat-2">
             <div class="stat-item">
@@ -40,7 +40,7 @@
         </div>
 
         <div class="copyright">
-          <p>© 2026 西安东信软件技术有限公司 版权所有</p>
+          <p>Copyright 2026 西安东信软件技术有限公司 版权所有</p>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@
           <el-form-item prop="username">
             <el-input
               v-model="loginForm.username"
-              placeholder="用户名/邮箱"
+              placeholder="用户名 / 邮箱"
               :prefix-icon="User"
               size="large"
               class="form-input"
@@ -91,17 +91,6 @@
               show-password
               class="form-input"
             />
-          </el-form-item>
-
-          <el-form-item class="captcha-row">
-            <SliderPuzzle
-              v-if="sliderData"
-              :data="sliderData"
-              :status="sliderStatus"
-              @change="onSliderChange"
-              @reset="onSliderReset"
-            />
-            <div v-else class="captcha-loading">正在加载验证码...</div>
           </el-form-item>
 
           <el-form-item class="options-row">
@@ -132,10 +121,20 @@
         </div>
 
         <div class="page-copyright">
-          <p>© 2026 西东信软件技术有限公司. 保留所有权利.</p>
+          <p>Copyright 2026 西安东信软件技术有限公司 保留所有权利</p>
         </div>
       </div>
     </div>
+
+    <teleport to="body">
+      <Verify
+        ref="verifyRef"
+        mode="pop"
+        :captcha-type="captchaType"
+        :img-size="{ width: '310px', height: '155px' }"
+        @success="verifySuccess"
+      />
+    </teleport>
   </div>
 </template>
 
@@ -146,10 +145,9 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
-import { getRsaPublicKey, getSliderCaptcha } from '@/api/system/auth'
+import { getRsaPublicKey } from '@/api/system/auth'
 import { rsaEncrypt } from '@/utils/crypto'
-import SliderPuzzle from '@/components/SliderPuzzle/index.vue'
-import type { CaptchaImageResp } from '@/types/auth'
+import Verify from '@/components/verifition/index.vue'
 
 const REMEMBER_KEY = 'wms_login_remembered_username'
 
@@ -158,12 +156,10 @@ const route = useRoute()
 const userStore = useUserStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
+const verifyRef = ref<{ show: () => void; refresh: () => void }>()
+const captchaType = ref('blockPuzzle')
 
 const loginForm = reactive({ username: '', password: '' })
-const sliderData = ref<CaptchaImageResp | null>(null)
-const sliderStatus = ref<'idle' | 'success' | 'failed'>('idle')
-const captchaToken = ref('')
-const captchaTrack = ref('')
 const rsaPublicKey = ref('')
 const rsaKeyId = ref('')
 const rsaReady = ref(false)
@@ -177,7 +173,7 @@ if (rememberedUsername) {
 const rules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 50, message: '用户名长度2-50位', trigger: 'blur' },
+    { min: 2, max: 50, message: '用户名长度 2-50 位', trigger: 'blur' },
   ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 }
@@ -194,47 +190,29 @@ async function initRsaKey() {
   }
 }
 
-async function refreshSlider() {
-  sliderStatus.value = 'idle'
-  captchaToken.value = ''
-  captchaTrack.value = ''
-  try {
-    const res = await getSliderCaptcha()
-    sliderData.value = res.data
-  } catch {
-    ElMessage.error('验证码获取失败，请刷新页面重试')
-  }
-}
-
-function onSliderChange(payload: { token: string; trackJson: string }) {
-  captchaToken.value = payload.token
-  captchaTrack.value = payload.trackJson
-  // 不立即显示 success, 等待登录接口返回后再切 status
-  // 这里仅保留 token/track, 由 handleLogin 调用 store.login 后根据结果切换
-}
-
-function onSliderReset() {
-  // 用户只点了一下没拖动, 不需要做任何事
-}
-
+/** 登录表单提交后弹出行为验证码。 */
 async function handleLogin() {
-  await formRef.value?.validate()
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) {
+    return
+  }
   if (!rsaReady.value) {
     ElMessage.error('安全认证服务不可用，请稍后重试')
     return
   }
-  if (!captchaToken.value || !captchaTrack.value) {
-    ElMessage.error('请完成滑块验证')
-    return
-  }
+  verifyRef.value?.show()
+}
+
+/** 验证码校验成功后，使用后端 RSA 公钥加密密码并登录。 */
+async function verifySuccess(params: { captchaVerification: string }) {
   loading.value = true
   try {
     const encryptedPassword = rsaEncrypt(loginForm.password, rsaPublicKey.value)
     await userStore.login({
       username: loginForm.username,
       encryptedPassword,
-      captchaToken: captchaToken.value,
-      captchaTrack: captchaTrack.value,
+      code: params.captchaVerification,
+      randomStr: captchaType.value,
     })
     if (rememberMe.value) {
       localStorage.setItem(REMEMBER_KEY, loginForm.username)
@@ -255,20 +233,14 @@ function handleLoginError(msg: string) {
   if (msg.includes('用户名或密码错误') || msg.includes('CREDENTIAL_INVALID')) {
     ElMessage.error('用户名或密码错误')
     loginForm.password = ''
-    refreshSlider()
   } else if (msg.includes('验证未通过') || msg.includes('CAPTCHA_MISMATCH')) {
-    ElMessage.error('验证未通过, 请重新拖动')
-    sliderStatus.value = 'failed'
-    setTimeout(() => refreshSlider(), 600)
-  } else if (msg.includes('验证码无效') || msg.includes('CAPTCHA_INVALID')) {
-    ElMessage.error('验证码已过期, 请重新拖动')
-    refreshSlider()
+    ElMessage.error('验证未通过，请重新验证')
+  } else if (msg.includes('验证码已过期') || msg.includes('CAPTCHA_EXPIRED')) {
+    ElMessage.error('验证码已过期，请重新验证')
   } else if (msg.includes('请完成滑块验证') || msg.includes('CAPTCHA_REQUIRED')) {
     ElMessage.error('请完成滑块验证')
-    refreshSlider()
   } else if (msg.includes('锁定') || msg.includes('LOCKED')) {
     ElMessage.error('账号已被锁定，请稍后重试')
-    refreshSlider()
   } else if (msg.includes('禁用') || msg.includes('DISABLED')) {
     ElMessage.error('账号已被禁用')
   } else if (msg.includes('频繁') || msg.includes('RATE_LIMITED')) {
@@ -276,14 +248,15 @@ function handleLoginError(msg: string) {
   } else if (msg.includes('解密') || msg.includes('DECRYPT')) {
     ElMessage.error('认证信息异常，请重新登录')
     initRsaKey()
-    refreshSlider()
   } else if (msg.includes('加密')) {
     ElMessage.error(msg)
+  } else {
+    ElMessage.error(msg || '登录失败')
   }
 }
 
 onMounted(() => {
-  Promise.all([initRsaKey(), refreshSlider()])
+  initRsaKey()
 })
 </script>
 
@@ -535,21 +508,6 @@ $card-radius: 16px;
     :deep(.el-input__inner) {
       font-size: 14px;
       line-height: 1.5;
-    }
-  }
-
-  .captcha-row {
-    margin-bottom: 16px !important;
-
-    .captcha-loading {
-      height: 130px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: $input-bg;
-      border-radius: 10px;
-      color: $text-muted;
-      font-size: 13px;
     }
   }
 

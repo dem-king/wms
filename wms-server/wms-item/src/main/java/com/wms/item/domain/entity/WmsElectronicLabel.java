@@ -29,6 +29,10 @@ public class WmsElectronicLabel extends BaseEntity {
     @Schema(description = "绑定物品ID")
     private Long itemId;
 
+    /** 绑定库位ID */
+    @Schema(description = "绑定库位ID")
+    private Long binId;
+
     /** 批次号 */
     @Schema(description = "批次号")
     private String batchNo;
@@ -65,9 +69,21 @@ public class WmsElectronicLabel extends BaseEntity {
     @Schema(description = "借出时间")
     private LocalDateTime borrowTime;
 
+    /** 领用人姓名 */
+    @Schema(description = "领用人姓名")
+    private String borrowerName;
+
     /** 预计归还时间 */
     @Schema(description = "预计归还时间")
     private LocalDateTime expectedReturn;
+
+    /** 归还人姓名 */
+    @Schema(description = "归还人姓名")
+    private String returnerName;
+
+    /** 归还时间 */
+    @Schema(description = "归还时间")
+    private LocalDateTime returnTime;
 
     /** 打印状态(0-未打印 1-已打印) */
     @Schema(description = "打印状态(0-未打印 1-已打印)")

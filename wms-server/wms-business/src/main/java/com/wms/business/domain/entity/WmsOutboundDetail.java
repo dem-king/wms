@@ -23,6 +23,10 @@ public class WmsOutboundDetail extends BaseEntity {
     @Schema(description = "物品ID")
     private Long itemId;
 
+    /** 电子标签ID */
+    @Schema(description = "电子标签ID")
+    private Long labelId;
+
     /** 数量 */
     @Schema(description = "数量")
     private Integer quantity;

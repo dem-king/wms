@@ -69,6 +69,10 @@ public class ReturnOrderVo {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 电子标签ID */
+        @Schema(description = "电子标签ID")
+        private Long labelId;
+
         /** 物品名称 */
         @Schema(description = "物品名称")
         private String itemName;

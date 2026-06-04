@@ -1,5 +1,8 @@
 package com.wms.auth.service.impl;
 
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
 import com.wms.auth.config.AuthProperties;
 import com.wms.auth.domain.constant.AuthConstants;
 import com.wms.auth.domain.dto.LoginReq;
@@ -19,6 +22,7 @@ import com.wms.common.exception.BizException;
 import com.wms.common.storage.StorageConstants;
 import com.wms.common.storage.StorageStrategy;
 import com.wms.common.util.SecurityUtil;
+import com.wms.common.util.SpringUtils;
 import com.wms.common.util.UserAgentParser;
 import com.wms.system.domain.entity.SysUser;
 import com.wms.system.domain.entity.SysLoginLog;
@@ -48,7 +52,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final RateLimiterService rateLimiterService;
-    private final CaptchaService captchaService;
+
     private final LoginLockService loginLockService;
     private final CryptoService cryptoService;
     private final TokenService tokenService;
@@ -65,26 +69,32 @@ public class AuthServiceImpl implements AuthService {
         rateLimiterService.tryAcquire(clientIp);
 
         if (authProperties.isCaptchaEnabled()) {
-            // 强制要求 captchaToken/Track 必传，杜绝"前端不传 captcha 字段即可跳过校验"的绕过后门
-            if (!StringUtils.hasText(req.getCaptchaToken())
-                    || !StringUtils.hasText(req.getCaptchaTrack())) {
-                authAuditService.recordCaptchaFailure("CAPTCHA_REQUIRED", clientIp, userAgent,
-                        req.getCaptchaToken());
+            // 强制要求 code（captchaVerification）必传，杜绝"前端不传验证码字段即可跳过校验"的绕过后门
+            if (!StringUtils.hasText(req.getCode())) {
+                authAuditService.recordCaptchaFailure("CAPTCHA_REQUIRED", clientIp, userAgent, null);
                 throw new BizException(AuthErrorCode.CAPTCHA_REQUIRED.getCode(),
                         AuthErrorCode.CAPTCHA_REQUIRED.getMsg());
             }
             try {
-                // 4 参版本：除 tianai 轨迹校验外，还会对 IP+UA 指纹做绑定校验，防止 token 被其他客户端重放
-                captchaService.validateCaptcha(req.getCaptchaToken(), req.getCaptchaTrack(),
-                        clientIp, userAgent);
+                // 调用 anji-plus SDK 的 verification() 二次校验
+                // 确保一次 check 对应一次登录，防止 captchaVerification 被重放
+                CaptchaService captchaService = SpringUtils.getBean(CaptchaService.class);
+                CaptchaVO vo = new CaptchaVO();
+                vo.setCaptchaVerification(req.getCode());
+                vo.setCaptchaType(AuthConstants.CAPTCHA_TYPE_BLOCK_PUZZLE);
+                ResponseModel responseModel = captchaService.verification(vo);
+                if (!responseModel.isSuccess()) {
+                    // 根据返回码区分过期（6110）和校验失败
+                    if ("6110".equals(responseModel.getRepCode())) {
+                        authAuditService.recordCaptchaFailure("CAPTCHA_EXPIRED", clientIp, userAgent, null);
+                        throw new BizException(AuthErrorCode.CAPTCHA_EXPIRED.getCode(),
+                                AuthErrorCode.CAPTCHA_EXPIRED.getMsg());
+                    }
+                    authAuditService.recordCaptchaFailure("CAPTCHA_MISMATCH", clientIp, userAgent, null);
+                    throw new BizException(AuthErrorCode.CAPTCHA_MISMATCH.getCode(),
+                            AuthErrorCode.CAPTCHA_MISMATCH.getMsg());
+                }
             } catch (BizException e) {
-                // 滑块校验失败：CAPTCHA_INVALID(指纹缺失/不匹配, msg="验证码无效或已过期") 与
-                // CAPTCHA_MISMATCH(轨迹不通过, msg="验证未通过，请重试") 共享 code=400,
-                // 必须按 msg 区分以产出正确的审计原因
-                String reason = AuthErrorCode.CAPTCHA_INVALID.getMsg().equals(e.getMessage())
-                        ? "CAPTCHA_INVALID" : "CAPTCHA_MISMATCH";
-                authAuditService.recordCaptchaFailure(reason, clientIp, userAgent,
-                        req.getCaptchaToken());
                 throw e;
             }
         }

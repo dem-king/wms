@@ -7,7 +7,7 @@ import lombok.Data;
 
 /**
  * 登录请求
- * 携带用户名、RSA 加密密码、滑块拼图 Token 与轨迹
+ * 携带用户名、RSA 加密密码、验证码二次校验串
  *
  * @author wms-team
  * @since 1.0
@@ -26,10 +26,9 @@ public class LoginReq {
     private String encryptedPassword;
 
     @NotBlank(message = "请完成滑块验证")
-    @Schema(description = "滑块拼图Token")
-    private String captchaToken;
+    @Schema(description = "验证码二次校验串（captchaVerification）")
+    private String code;
 
-    @NotBlank(message = "请完成滑块验证")
-    @Schema(description = "滑块拖动轨迹数据（前端采集后加密/编码的 JSON 字符串）")
-    private String captchaTrack;
+    @Schema(description = "验证码类型（blockPuzzle/clickWord）")
+    private String randomStr;
 }

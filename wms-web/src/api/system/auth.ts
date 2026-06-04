@@ -3,7 +3,7 @@ import type {
   LoginReq,
   LoginResp,
   RsaKeyPairResp,
-  CaptchaImageResp,
+
   RefreshTokenReq,
   TokenResp,
   PasswordReq,
@@ -28,13 +28,6 @@ export function getRsaPublicKey() {
   return get<RsaKeyPairResp>('/auth/crypto/rsa-public-key')
 }
 
-/**
- * 获取滑块拼图验证码
- * 返回背景图 / 拼图块 (Base64)、缺口 Y 坐标、Token 与过期秒数
- */
-export function getSliderCaptcha() {
-  return get<CaptchaImageResp>('/auth/captcha/slider')
-}
 
 export function changePassword(data: PasswordReq) {
   return put<void>('/auth/password', data)

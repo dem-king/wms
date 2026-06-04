@@ -135,17 +135,17 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 20px;
     padding: 14px 20px;
-    background: linear-gradient(90deg, #ffffff 0%, #f0f7ff 50%, #e0f2fe 100%);
     border-radius: 12px;
-    border: 1px solid #dbeafe;
-    
+    border: 1px solid hsl(var(--border));
+    background: linear-gradient(90deg, hsl(var(--card)) 0%, hsl(var(--accent-lighter)) 50%, hsl(var(--accent)) 100%);
+
     .title {
       margin-left: 24px;
 
       h2 {
         margin: 0;
         font-size: 20px;
-        color: #1f2937;
+        color: hsl(var(--card-foreground));
         font-weight: 600;
       }
 
@@ -153,10 +153,10 @@ onMounted(() => {
         margin: 4px 0 0;
         font-size: 13px;
         line-height: 1.5;
-        color: #6b7280;
+        color: hsl(var(--muted-foreground));
       }
     }
-    
+
     .actions {
       display: flex;
       align-items: center;
@@ -187,8 +187,8 @@ onMounted(() => {
         justify-content: center;
         padding: 2px 8px;
         border-radius: 999px;
-        background: rgba(59, 130, 246, 0.12);
-        color: #2563eb;
+        background: hsl(var(--primary) / 12%);
+        color: hsl(var(--primary));
         font-size: 11px;
         font-weight: 600;
       }
@@ -197,14 +197,14 @@ onMounted(() => {
         margin: 0;
         font-size: 15px;
         line-height: 1.3;
-        color: #111827;
+        color: hsl(var(--card-foreground));
         font-weight: 600;
       }
 
       &__weather {
         margin: 2px 0 0;
         font-size: 13px;
-        color: #1f2937;
+        color: hsl(var(--card-foreground));
         font-weight: 600;
       }
 
@@ -212,7 +212,7 @@ onMounted(() => {
         margin: 4px 0 0;
         font-size: 12px;
         line-height: 1.4;
-        color: #6b7280;
+        color: hsl(var(--muted-foreground));
       }
     }
   }

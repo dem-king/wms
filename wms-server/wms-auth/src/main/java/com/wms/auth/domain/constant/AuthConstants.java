@@ -29,4 +29,10 @@ public final class AuthConstants {
 
     /** 锁定标记值 */
     public static final String LOCK_FLAG = "1";
+
+    /** 验证码类型：滑块拼图 */
+    public static final String CAPTCHA_TYPE_BLOCK_PUZZLE = "blockPuzzle";
+
+    /** 验证码类型：文字点选 */
+    public static final String CAPTCHA_TYPE_CLICK_WORD = "clickWord";
 }

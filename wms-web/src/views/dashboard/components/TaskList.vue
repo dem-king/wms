@@ -65,12 +65,12 @@ const handleAction = (task: TaskItem) => {
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {
@@ -105,7 +105,7 @@ const handleAction = (task: TaskItem) => {
       display: flex;
       align-items: flex-start;
       padding: 14px 0;
-      border-bottom: 1px solid #eef2f7;
+      border-bottom: 1px solid hsl(var(--border));
       
       &:last-child {
         border-bottom: none;
@@ -121,7 +121,7 @@ const handleAction = (task: TaskItem) => {
         margin-right: 12px;
         margin-top: 2px;
         border-radius: 10px;
-        background: #f8fafc;
+        background: hsl(var(--accent));
       }
       
       .task-content {
@@ -130,7 +130,7 @@ const handleAction = (task: TaskItem) => {
         
         .task-title {
           font-size: 14px;
-          color: #1f2937;
+          color: hsl(var(--card-foreground));
           margin-bottom: 6px;
           font-weight: 500;
         }
@@ -138,7 +138,7 @@ const handleAction = (task: TaskItem) => {
         .task-desc {
           font-size: 12px;
           line-height: 1.6;
-          color: #6b7280;
+          color: hsl(var(--muted-foreground));
         }
       }
       

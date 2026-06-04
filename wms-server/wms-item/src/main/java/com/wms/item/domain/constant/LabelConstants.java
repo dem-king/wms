@@ -16,6 +16,9 @@ public final class LabelConstants {
     /** 标签编号前缀 */
     public static final String LABEL_NO_PREFIX = "BQ";
 
+    /** RFID缂栫爜鍓嶇紑 */
+    public static final String RFID_CODE_PREFIX = "RFID";
+
     /** 打印状态：未打印 */
     public static final int PRINT_STATUS_NOT = 0;
 
@@ -24,6 +27,9 @@ public final class LabelConstants {
 
     /** 标签类型：RFID */
     public static final int LABEL_TYPE_RFID = 3;
+
+    /** 绑定类型：单库位对应 */
+    public static final int BIND_TYPE_SINGLE = 1;
 
     /** 闲置判定天数阈值 */
     public static final int IDLE_THRESHOLD_DAYS = 90;

@@ -1,5 +1,6 @@
 package com.wms.warehouse.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -25,10 +26,12 @@ public class BinDto {
     private String binCode;
 
     /** 行号 */
+    @JsonAlias("row")
     @Schema(description = "行号")
     private Integer rowNum;
 
     /** 列号 */
+    @JsonAlias("col")
     @Schema(description = "列号")
     private Integer colNum;
 
@@ -45,6 +48,7 @@ public class BinDto {
     private Integer isOccupied;
 
     /** 状态(0-禁用 1-正常 2-满) */
+    @JsonAlias("status")
     @Schema(description = "状态(0-禁用 1-正常 2-满)")
     private Integer binStatus;
 }

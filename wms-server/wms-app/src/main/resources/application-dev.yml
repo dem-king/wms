@@ -25,7 +25,7 @@ wms:
     login-fail-threshold: 5
     lock-duration: 1800
     ip-rate-limit-threshold: 10
-    captcha-expire: 120
+
     rsa-key-expire: 86400
     captcha-enabled: true
   default-password: ${WMS_DEFAULT_PASSWORD:dev_default_password}
@@ -38,3 +38,16 @@ wms:
     minio-secret-key: ${MINIO_SECRET_KEY:dev_minio_secret_key}
     minio-bucket-name: ${MINIO_BUCKET:wms}
     minio-public-domain: ${MINIO_PUBLIC_DOMAIN:}
+
+aj:
+  captcha:
+    cache-type: redis
+    water-mark: wms
+    slip-offset: 5
+    timestamp: 2
+    font-size: 25
+    intercept-urls: /captcha/get,/captcha/check,/captcha/verify
+    intercept-login: false
+
+encode:
+  key: ${ENCODE_KEY:VyBcekSelErhMYN4}

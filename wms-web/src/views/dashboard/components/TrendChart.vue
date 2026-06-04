@@ -32,15 +32,27 @@ const handleRangeChange = (val: string | number | boolean | undefined) => {
   emit('rangeChange', String(val))
 }
 
+/** 检测当前是否为暗黑模式 */
+const isDark = computed(() => document.documentElement.classList.contains('dark'))
+
+/** 暗黑模式下 ECharts 文字颜色 */
+const textColor = computed(() => isDark.value ? '#e2e8f0' : '#333')
+const axisLineColor = computed(() => isDark.value ? 'rgba(255,255,255,0.1)' : '#eee')
+const tooltipBg = computed(() => isDark.value ? '#1e293b' : '#fff')
+
 const chartOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'cross' }
+      axisPointer: { type: 'cross' },
+      backgroundColor: tooltipBg.value,
+        borderColor: axisLineColor.value,
+      textStyle: { color: textColor.value }
     },
     legend: {
       data: ['库存数量', '库存金额'],
-      bottom: 0
+      bottom: 0,
+      textStyle: { color: textColor.value }
     },
     grid: {
       left: '3%',
@@ -51,20 +63,27 @@ const chartOption = computed(() => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: props.data.map(d => d.date)
+      data: props.data.map(d => d.date),
+      axisLine: { lineStyle: { color: axisLineColor.value } },
+      axisLabel: { color: textColor.value },
+      splitLine: { show: false }
     },
     yAxis: [
       {
         type: 'value',
         name: '数量',
         position: 'left',
-        splitLine: { lineStyle: { type: 'dashed' } }
+        nameTextStyle: { color: textColor.value },
+        splitLine: { lineStyle: { color: axisLineColor.value, type: 'dashed' } },
+        axisLabel: { color: textColor.value }
       },
       {
         type: 'value',
         name: '金额',
         position: 'right',
-        splitLine: { show: false }
+        nameTextStyle: { color: textColor.value },
+        splitLine: { show: false },
+        axisLabel: { color: textColor.value }
       }
     ],
     series: [
@@ -103,12 +122,12 @@ const chartOption = computed(() => {
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {

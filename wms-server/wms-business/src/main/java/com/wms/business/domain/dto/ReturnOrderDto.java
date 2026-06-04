@@ -51,6 +51,10 @@ public class ReturnOrderDto {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 电子标签ID */
+        @Schema(description = "电子标签ID")
+        private Long labelId;
+
         /** 归还库位ID */
         @Schema(description = "归还库位ID")
         private Long binId;

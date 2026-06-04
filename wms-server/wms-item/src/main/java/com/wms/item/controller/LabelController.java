@@ -45,9 +45,10 @@ public class LabelController {
             @RequestParam(defaultValue = "20") Long size,
             @RequestParam(required = false) Integer labelType,
             @RequestParam(required = false) Integer labelStatus,
-            @RequestParam(required = false) Long itemId) {
+            @RequestParam(required = false) Long itemId,
+            @RequestParam(required = false) String keyword) {
         Page<ElectronicLabelVo> page = new Page<>(current, size);
-        return R.ok(electronicLabelService.page(page, itemId, labelType, labelStatus));
+        return R.ok(electronicLabelService.page(page, itemId, labelType, labelStatus, keyword));
     }
 
     /**

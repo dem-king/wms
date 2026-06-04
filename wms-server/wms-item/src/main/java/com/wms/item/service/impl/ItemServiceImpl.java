@@ -22,6 +22,7 @@ import com.wms.item.domain.vo.ItemVo;
 import com.wms.item.domain.vo.TagVo;
 import com.wms.item.converter.ItemConverter;
 import com.wms.item.mapper.*;
+import com.wms.item.service.ElectronicLabelService;
 import com.wms.item.service.ItemService;
 import com.wms.warehouse.domain.constant.WarehouseConstants;
 import com.wms.warehouse.domain.entity.WmsArea;
@@ -75,6 +76,7 @@ public class ItemServiceImpl implements ItemService {
     private final WmsCabinetMapper wmsCabinetMapper;
     private final WmsAreaMapper wmsAreaMapper;
     private final WmsWarehouseMapper wmsWarehouseMapper;
+    private final ElectronicLabelService electronicLabelService;
 
     /**
      * 分页查询物品
@@ -224,6 +226,7 @@ public class ItemServiceImpl implements ItemService {
         List<Long> normalizedBinIds = normalizeBinIds(binIds == null ? List.of() : new ArrayList<>(binIds));
         validateBins(normalizedBinIds);
         appendItemBins(itemId, normalizedBinIds);
+        electronicLabelService.ensureRfidLabelsForItemBins(itemId, normalizedBinIds);
         return getById(itemId);
     }
 
@@ -288,6 +291,7 @@ public class ItemServiceImpl implements ItemService {
             saveItemTags(item.getId(), dto.getTagIds());
         }
         syncItemBins(item.getId(), binIds);
+        electronicLabelService.ensureRfidLabelsForItemBins(item.getId(), binIds);
         return withLocations(itemConverter.toVo(item, getCategoryName(item.getCategoryId()), getSubCategoryName(item.getSubCategoryId())),
                 loadItemLocationsMap(List.of(item.getId())).get(item.getId()));
     }
@@ -345,6 +349,7 @@ public class ItemServiceImpl implements ItemService {
         }
         if (binIds != null) {
             syncItemBins(id, binIds);
+            electronicLabelService.ensureRfidLabelsForItemBins(id, binIds);
         }
         return withLocations(itemConverter.toVo(existing, getCategoryName(existing.getCategoryId()), getSubCategoryName(existing.getSubCategoryId())),
                 loadItemLocationsMap(List.of(id)).get(id));

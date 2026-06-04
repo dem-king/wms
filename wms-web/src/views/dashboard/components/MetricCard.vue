@@ -45,13 +45,13 @@ const formattedValue = computed(() => {
   height: 100%;
   border: none;
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  background: hsl(var(--card));
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__body) {
@@ -74,7 +74,7 @@ const formattedValue = computed(() => {
 
     .metric-title {
       font-size: 14px;
-      color: #909399;
+      color: hsl(var(--muted-foreground));
     }
 
     .metric-icon {
@@ -97,13 +97,13 @@ const formattedValue = computed(() => {
       .value {
         font-size: 30px;
         font-weight: 600;
-        color: #303133;
+        color: hsl(var(--card-foreground));
         line-height: 1;
       }
 
       .unit {
         font-size: 12px;
-        color: #909399;
+        color: hsl(var(--muted-foreground));
         margin-left: 4px;
       }
     }
@@ -121,20 +121,20 @@ const formattedValue = computed(() => {
         font-weight: 500;
 
         &.up {
-          color: #f56c6c;
+          color: var(--el-color-danger);
         }
 
         &.down {
-          color: #67c23a;
+          color: var(--el-color-success);
         }
 
         &.flat {
-          color: #909399;
+          color: hsl(var(--muted-foreground));
         }
       }
 
       .trend-label {
-        color: #909399;
+        color: hsl(var(--muted-foreground));
       }
     }
   }

@@ -1,29 +1,32 @@
 /**
- * WMS-PDA 认证接口
- * 封装认证相关的API请求
+ * WMS-PDA 认证接口。
  */
-import type { CaptchaImageResp, LoginDto, LoginResultVo, RefreshTokenDto, RefreshTokenResultVo, AuthProfileVo } from '@/utils/constants'
+import type {
+  AuthProfileVo,
+  LoginDto,
+  LoginResultVo,
+  RefreshTokenDto,
+  RefreshTokenResultVo,
+  RsaKeyPairResp
+} from '@/utils/constants'
 import { RequestTimeout } from '@/utils/constants'
-import { post, get } from '@/api/request'
+import { get, post } from '@/api/request'
 
 /**
- * 登录
+ * 登录。
  * POST /api/auth/login
- *
- * @param data 登录请求参数
- * @returns 登录结果（含双Token）
  */
 export function loginApi(data: LoginDto): Promise<LoginResultVo> {
   return post<LoginResultVo>('/api/auth/login', {
     username: data.username,
-    password: data.password,
-    captchaToken: data.captchaToken,
-    captchaTrack: data.captchaTrack,
+    encryptedPassword: data.encryptedPassword,
+    code: data.code,
+    randomStr: data.randomStr,
   }, RequestTimeout.DEFAULT)
 }
 
 /**
- * 登出
+ * 登出。
  * POST /api/auth/logout
  */
 export function logoutApi(): Promise<void> {
@@ -31,30 +34,25 @@ export function logoutApi(): Promise<void> {
 }
 
 /**
- * 刷新Token
+ * 获取 RSA 登录公钥。
+ * GET /api/auth/crypto/rsa-public-key
+ */
+export function getRsaPublicKey(): Promise<RsaKeyPairResp> {
+  return get<RsaKeyPairResp>('/api/auth/crypto/rsa-public-key')
+}
+
+/**
+ * 刷新 Token。
  * POST /api/auth/token/refresh
- *
- * @param data Token刷新请求参数
- * @returns Token刷新结果
  */
 export function refreshTokenApi(data: RefreshTokenDto): Promise<RefreshTokenResultVo> {
   return post<RefreshTokenResultVo>('/api/auth/token/refresh', data, RequestTimeout.DEFAULT)
 }
 
 /**
- * 获取用户档案
+ * 获取用户档案。
  * GET /api/auth/profile
- *
- * @returns 用户档案信息
  */
 export function getProfileApi(): Promise<AuthProfileVo> {
   return get<AuthProfileVo>('/api/auth/profile')
-}
-
-/**
- * 获取滑块拼图验证码
- * 返回背景图 / 拼图块 (Base64)、缺口 Y 坐标、Token 与过期秒数
- */
-export function getSliderCaptcha() {
-  return get<CaptchaImageResp>('/api/auth/captcha/slider')
 }

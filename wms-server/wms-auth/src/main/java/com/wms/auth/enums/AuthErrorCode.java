@@ -10,10 +10,12 @@ public enum AuthErrorCode {
     ACCOUNT_LOCKED(423, "账号已被锁定，请稍后再试"),
     /** 验证码必传校验失败 */
     CAPTCHA_REQUIRED(400, "请完成滑块验证"),
-    /** 验证码请求频率超限 */
-    CAPTCHA_FREQUENT(429, "验证码请求过于频繁"),
-    CAPTCHA_INVALID(400, "验证码无效或已过期"),
+    /** 验证码已失效 */
+    CAPTCHA_EXPIRED(400, "验证码已失效，请重新获取"),
+    /** 验证未通过 */
     CAPTCHA_MISMATCH(400, "验证未通过，请重试"),
+    /** 验证码服务异常 */
+    CAPTCHA_ERROR(500, "验证码服务异常"),
     TOKEN_INVALID(401, "Token无效"),
     TOKEN_EXPIRED(401, "Token已过期"),
     TOKEN_REVOKED(401, "Token已被撤销"),

@@ -42,12 +42,12 @@ defineEmits<{
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {

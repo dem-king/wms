@@ -17,15 +17,25 @@ const props = defineProps<{
   data: { date: string; inbound: number; outbound: number }[]
 }>()
 
+/** 检测当前是否为暗黑模式 */
+const isDark = computed(() => document.documentElement.classList.contains('dark'))
+
+const textColor = computed(() => isDark.value ? '#e2e8f0' : '#333')
+const axisLineColor = computed(() => isDark.value ? 'rgba(255,255,255,0.1)' : '#eee')
+
 const chartOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      axisPointer: { type: 'shadow' }
+      axisPointer: { type: 'shadow' },
+      backgroundColor: isDark.value ? '#1e293b' : '#fff',
+      borderColor: axisLineColor.value,
+      textStyle: { color: textColor.value }
     },
     legend: {
       data: ['入库', '出库'],
-      bottom: 0
+      bottom: 0,
+      textStyle: { color: textColor.value }
     },
     grid: {
       left: '3%',
@@ -35,11 +45,14 @@ const chartOption = computed(() => {
     },
     xAxis: {
       type: 'category',
-      data: props.data.map(d => d.date)
+      data: props.data.map(d => d.date),
+      axisLine: { lineStyle: { color: axisLineColor.value } },
+      axisLabel: { color: textColor.value }
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { type: 'dashed' } }
+      splitLine: { lineStyle: { color: axisLineColor.value, type: 'dashed' } },
+      axisLabel: { color: textColor.value }
     },
     series: [
       {
@@ -66,12 +79,12 @@ const chartOption = computed(() => {
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {

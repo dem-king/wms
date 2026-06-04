@@ -2,6 +2,15 @@
   <div class="app-container">
     <!-- 搜索栏 -->
     <el-form :model="queryParams" :inline="true" class="search-form">
+      <el-form-item label="关键字">
+        <el-input
+          v-model="queryParams.keyword"
+          placeholder="标签编号 / RFID / 物品 / 库位"
+          clearable
+          style="width: 240px"
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="标签类型">
         <el-select v-model="queryParams.labelType" placeholder="全部" clearable>
           <el-option v-for="(label, value) in labelTypeMap" :key="value" :label="label" :value="Number(value)" />
@@ -35,7 +44,7 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button v-if="userStore.hasPermission('item:label:generate')" type="primary" plain :icon="Plus" @click="handleGenerate">批量生成</el-button>
+        <el-button v-if="userStore.hasPermission('item:label:generate')" type="primary" plain :icon="Plus" @click="handleGenerate">生成库位标签</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="warning" plain :icon="Clock" @click="handleIdleLabels">闲置标签</el-button>
@@ -49,6 +58,9 @@
     <el-table v-loading="loading" :data="tableData" border @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="50" align="center" />
       <el-table-column prop="labelNo" label="标签编号" min-width="150" />
+      <el-table-column prop="rfidCode" label="RFID编码" min-width="150" show-overflow-tooltip />
+      <el-table-column prop="binCode" label="库位编码" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="locationText" label="存放位置" min-width="180" show-overflow-tooltip />
       <el-table-column prop="labelType" label="标签类型" min-width="100">
         <template #default="{ row }">
           <el-tag :type="labelTypeTagType(row.labelType)">{{ labelTypeMap[row.labelType] }}</el-tag>
@@ -56,6 +68,11 @@
       </el-table-column>
       <el-table-column prop="itemName" label="物品名称" min-width="140" show-overflow-tooltip />
       <el-table-column prop="itemCode" label="物品编码" min-width="120" />
+      <el-table-column prop="categoryName" label="主类目" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="subCategoryName" label="细分类目" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="stockQuantity" label="库存数量" min-width="90" align="right">
+        <template #default="{ row }">{{ row.stockQuantity ?? 0 }}</template>
+      </el-table-column>
       <el-table-column prop="bindType" label="绑定类型" min-width="100">
         <template #default="{ row }">
           {{ bindTypeMap[row.bindType] }}
@@ -98,8 +115,14 @@
     />
 
     <!-- 批量生成弹窗 -->
-    <el-dialog v-model="generateVisible" title="批量生成标签" width="520px" @close="handleGenerateClose">
+    <el-dialog v-model="generateVisible" title="生成库位RFID标签" width="520px" @close="handleGenerateClose">
       <el-form ref="generateFormRef" :model="generateForm" :rules="generateRules" label-width="100px">
+        <el-form-item label="库位ID" prop="binId">
+          <el-input v-model="generateForm.binId" placeholder="请输入库位ID" />
+        </el-form-item>
+        <el-form-item label="标签前缀" prop="labelPrefix">
+          <el-input v-model="generateForm.labelPrefix" placeholder="不填则使用默认前缀" />
+        </el-form-item>
         <el-form-item label="物品" prop="itemId">
           <el-select
             v-model="generateForm.itemId"
@@ -115,10 +138,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="生成数量" prop="count">
-          <el-input-number v-model="generateForm.count" :min="1" :max="100" style="width: 100%" />
+          <el-input-number v-model="generateForm.count" :min="1" :max="1" disabled style="width: 100%" />
         </el-form-item>
         <el-form-item label="标签类型" prop="labelType">
-          <el-radio-group v-model="generateForm.labelType">
+          <el-radio-group v-model="generateForm.labelType" disabled>
             <el-radio :value="1">二维码</el-radio>
             <el-radio :value="2">条形码</el-radio>
             <el-radio :value="3">RFID</el-radio>
@@ -166,6 +189,11 @@
           </el-descriptions-item>
           <el-descriptions-item label="物品名称">{{ detailData.itemName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="物品编码">{{ detailData.itemCode || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="主类目">{{ detailData.categoryName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="细分类目">{{ detailData.subCategoryName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="库位编码">{{ detailData.binCode || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="存放位置">{{ detailData.locationText || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="库存数量">{{ detailData.stockQuantity ?? 0 }}</el-descriptions-item>
           <el-descriptions-item label="批次号">{{ detailData.batchNo || '-' }}</el-descriptions-item>
           <el-descriptions-item label="绑定类型">{{ bindTypeMap[detailData.bindType] }}</el-descriptions-item>
           <el-descriptions-item label="标签状态">
@@ -175,8 +203,11 @@
             <el-tag :type="detailData.printStatus === 1 ? 'success' : 'info'" size="small">{{ printStatusMap[detailData.printStatus] }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="RFID编码" v-if="detailData.rfidCode">{{ detailData.rfidCode }}</el-descriptions-item>
+          <el-descriptions-item label="领用人">{{ detailData.borrowerName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="借用时间">{{ detailData.borrowTime || '-' }}</el-descriptions-item>
           <el-descriptions-item label="预计归还">{{ detailData.expectedReturn || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="归还人">{{ detailData.returnerName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="归还时间">{{ detailData.returnTime || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ detailData.createTime }}</el-descriptions-item>
         </el-descriptions>
         <div class="detail-code" v-if="detailCodeDisplay">
@@ -298,6 +329,7 @@ const itemOptions = ref<WmsItemVo[]>([])
 const queryParams = reactive({
   page: 1,
   size: 20,
+  keyword: '',
   labelType: undefined as number | undefined,
   labelStatus: undefined as number | undefined,
   itemId: undefined as EntityId | undefined,
@@ -327,6 +359,7 @@ async function handleQuery() {
 }
 
 function handleReset() {
+  queryParams.keyword = ''
   queryParams.labelType = undefined
   queryParams.labelStatus = undefined
   queryParams.itemId = undefined
@@ -351,14 +384,16 @@ const generateItemLoading = ref(false)
 const generateItemOptions = ref<WmsItemVo[]>([])
 
 const generateForm = reactive<LabelGenerateDto>({
-  itemId: undefined as unknown as EntityId,
+  itemId: undefined,
+  binId: undefined as unknown as EntityId,
+  labelPrefix: '',
   count: 1,
-  labelType: 1,
+  labelType: 3,
   bindType: 1,
 })
 
 const generateRules: FormRules = {
-  itemId: [{ required: true, message: '请选择物品', trigger: 'change' }],
+  binId: [{ required: true, message: '请输入库位ID', trigger: 'blur' }],
   count: [{ required: true, message: '请输入生成数量', trigger: 'blur' }],
   labelType: [{ required: true, message: '请选择标签类型', trigger: 'change' }],
   bindType: [{ required: true, message: '请选择绑定类型', trigger: 'change' }],
@@ -376,7 +411,7 @@ async function handleGenerateItemSearch(keyword: string) {
 }
 
 function handleGenerate() {
-  Object.assign(generateForm, { itemId: undefined, count: 1, labelType: 1, bindType: 1 })
+  Object.assign(generateForm, { itemId: undefined, binId: undefined, labelPrefix: '', count: 1, labelType: 3, bindType: 1 })
   generateVisible.value = true
 }
 

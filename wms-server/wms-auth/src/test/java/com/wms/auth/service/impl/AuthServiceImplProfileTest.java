@@ -7,7 +7,7 @@ import com.wms.auth.domain.vo.AuthProfileVo;
 import com.wms.auth.domain.vo.UploadAvatarVo;
 import com.wms.auth.service.AuthAuditService;
 import com.wms.auth.service.AuthorizeService;
-import com.wms.auth.service.CaptchaService;
+
 import com.wms.auth.service.CryptoService;
 import com.wms.auth.service.LoginLockService;
 import com.wms.auth.service.RateLimiterService;
@@ -56,9 +56,7 @@ class AuthServiceImplProfileTest {
     private RateLimiterService rateLimiterService;
 
     @Mock
-    private CaptchaService captchaService;
 
-    @Mock
     private LoginLockService loginLockService;
 
     @Mock

@@ -17,6 +17,7 @@
     "@vueuse/core": "^10.9.0",
     "@zxing/browser": "^0.2.0",
     "axios": "^1.7.2",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.11",
     "defu": "^6.1.7",
     "echarts": "^5.5.0",

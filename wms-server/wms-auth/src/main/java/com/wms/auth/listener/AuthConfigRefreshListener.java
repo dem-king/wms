@@ -82,10 +82,7 @@ public class AuthConfigRefreshListener {
                 authProperties.setCaptchaEnabled(
                         configManager.getBooleanValue(key, true));
                 break;
-            case "wms.security.captcha-expire-seconds":
-                authProperties.setCaptchaExpire(
-                        configManager.getLongValue(key, 120));
-                break;
+
 
             // 文件上传相关配置
             case "wms.storage.avatar-max-size-mb":

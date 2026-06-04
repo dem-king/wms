@@ -74,6 +74,7 @@ public class OutboundOrderConverter {
         OutboundOrderVo.OutboundDetailVo vo = new OutboundOrderVo.OutboundDetailVo();
         vo.setId(detail.getId());
         vo.setItemId(detail.getItemId());
+        vo.setLabelId(detail.getLabelId());
         vo.setQuantity(detail.getQuantity());
         vo.setBinId(detail.getBinId());
         // 从Map中填充物品信息

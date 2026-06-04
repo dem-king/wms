@@ -36,3 +36,16 @@ jwt:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+aj:
+  captcha:
+    cache-type: redis
+    water-mark: wms
+    slip-offset: 5
+    timestamp: 2
+    font-size: 25
+    intercept-urls: /captcha/get,/captcha/check,/captcha/verify
+    intercept-login: false
+
+encode:
+  key: ${ENCODE_KEY}

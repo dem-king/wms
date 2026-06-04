@@ -28,6 +28,7 @@ import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.event.ApprovalResultEvent;
 import com.wms.common.exception.BizException;
+import com.wms.item.service.ElectronicLabelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,6 +59,7 @@ public class ApprovalResultEventListener {
     private final WmsReturnDetailMapper wmsReturnDetailMapper;
 
     private final ApplicationEventPublisher eventPublisher;
+    private final ElectronicLabelService electronicLabelService;
 
     /**
      * 处理审批结果事件
@@ -167,6 +169,8 @@ public class ApprovalResultEventListener {
                 new LambdaQueryWrapper<WmsOutboundDetail>()
                         .eq(WmsOutboundDetail::getOrderId, bizId));
         for (WmsOutboundDetail detail : details) {
+            electronicLabelService.markBorrowed(detail.getLabelId(), detail.getBinId(),
+                    order.getReceiver(), order.getExpectedReturnDate());
             eventPublisher.publishEvent(new StockSyncEvent(
                     detail.getItemId(), order.getWarehouseId(), detail.getBinId(),
                     -detail.getQuantity(), BizConstants.STOCK_SYNC_OUT));
@@ -282,6 +286,7 @@ public class ApprovalResultEventListener {
                 returnQty = detail.getActualQuantity();
             }
             if (returnQty > 0) {
+                electronicLabelService.markReturned(detail.getLabelId(), detail.getBinId(), order.getReceiver());
                 eventPublisher.publishEvent(new StockSyncEvent(
                         detail.getItemId(), outboundOrder.getWarehouseId(), detail.getBinId(),
                         returnQty, BizConstants.STOCK_SYNC_IN));

@@ -50,12 +50,12 @@ const getActionColor = (color?: string) => color ?? '#409EFF'
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {
@@ -97,12 +97,12 @@ const getActionColor = (color?: string) => color ?? '#409EFF'
     padding: 14px 10px;
     cursor: pointer;
     border-radius: 12px;
-    background: #f8fafc;
+    background: hsl(var(--accent));
     transition: transform 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
     
     &:hover {
-      background-color: #eff6ff;
-      box-shadow: 0 12px 24px rgba(59, 130, 246, 0.12);
+      background-color: hsl(var(--accent-dark));
+      box-shadow: 0 12px 24px hsl(var(--primary) / 12%);
       
       .action-icon-wrap {
         transform: translateY(-2px);
@@ -123,7 +123,7 @@ const getActionColor = (color?: string) => color ?? '#409EFF'
     .action-name {
       font-size: 13px;
       line-height: 1.4;
-      color: #4b5563;
+      color: hsl(var(--card-foreground));
       text-align: center;
     }
   }

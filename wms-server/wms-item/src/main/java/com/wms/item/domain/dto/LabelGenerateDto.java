@@ -14,9 +14,17 @@ import lombok.Data;
 public class LabelGenerateDto {
 
     /** 绑定物品ID */
-    @NotNull(message = "物品ID不能为空")
     @Schema(description = "绑定物品ID")
     private Long itemId;
+
+    /** 绑定库位ID */
+    @NotNull(message = "库位ID不能为空")
+    @Schema(description = "绑定库位ID")
+    private Long binId;
+
+    /** 标签编号前缀 */
+    @Schema(description = "标签编号前缀")
+    private String labelPrefix;
 
     /** 生成数量 */
     @NotNull(message = "生成数量不能为空")

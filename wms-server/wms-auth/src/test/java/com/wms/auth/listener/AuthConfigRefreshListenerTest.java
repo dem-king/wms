@@ -109,17 +109,6 @@ class AuthConfigRefreshListenerTest {
         verify(authProperties).setCaptchaEnabled(false);
     }
 
-    @Test
-    @DisplayName("captchaExpireSeconds变更后刷新AuthProperties")
-    void onConfigChange_captchaExpireSeconds_refreshesProperty() {
-        when(configManager.getLongValue("wms.security.captcha-expire-seconds", 120)).thenReturn(600L);
-
-        ConfigChangeEvent event = new ConfigChangeEvent(
-                this, "wms.security.captcha-expire-seconds", "120", "600");
-        listener.onConfigChange(event);
-
-        verify(authProperties).setCaptchaExpire(600L);
-    }
 
     // ==================== storage配置变更 ====================
 
@@ -162,7 +151,7 @@ class AuthConfigRefreshListenerTest {
         verify(authProperties, never()).setLoginFailThreshold(anyInt());
         verify(authProperties, never()).setLockDuration(anyLong());
         verify(authProperties, never()).setCaptchaEnabled(anyBoolean());
-        verify(authProperties, never()).setCaptchaExpire(anyLong());
+
         verify(authProperties, never()).setAvatarMaxSizeBytes(anyLong());
     }
 

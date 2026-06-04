@@ -17,6 +17,16 @@ spring:
       max-file-size: 10MB
       max-request-size: 20MB
 
+aj:
+  captcha:
+    cache-type: redis
+    water-mark: wms
+    slip-offset: 5
+    timestamp: 2
+    font-size: 25
+    intercept-urls: /captcha/get,/captcha/check,/captcha/verify
+    intercept-login: false
+
 wms:
   amap:
     key: ${AMAP_KEY:}

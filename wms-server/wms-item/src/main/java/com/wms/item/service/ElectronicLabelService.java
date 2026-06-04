@@ -6,6 +6,7 @@ import com.wms.item.domain.dto.LabelGenerateDto;
 import com.wms.item.domain.dto.LabelStatusDto;
 import com.wms.item.domain.vo.ElectronicLabelVo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,6 +28,18 @@ public interface ElectronicLabelService {
     Page<ElectronicLabelVo> page(Page<ElectronicLabelVo> page, Long itemId, Integer labelType, Integer labelStatus);
 
     /**
+     * 鏍囩鍒嗛〉鍒楄〃
+     * 鏀寔鎸夌墿鍝両D銆佹爣绛剧被鍨嬨€佹爣绛剧姸鎬佸拰鍏抽敭瀛楃瓫閫?     *
+     * @param page        鍒嗛〉瀵硅薄
+     * @param itemId      鐗╁搧ID(鍙€?
+     * @param labelType   鏍囩绫诲瀷(鍙€?
+     * @param labelStatus 鏍囩鐘舵€?鍙€?
+     * @param keyword     鏍囩/RFID/鐗╁搧/搴撲綅鍏抽敭瀛?     * @return 鍒嗛〉缁撴灉
+     */
+    Page<ElectronicLabelVo> page(Page<ElectronicLabelVo> page, Long itemId, Integer labelType,
+                                  Integer labelStatus, String keyword);
+
+    /**
      * 标签详情(含物品信息)
      *
      * @param id 标签ID
@@ -43,6 +56,13 @@ public interface ElectronicLabelService {
      * @return 生成的标签VO列表
      */
     List<ElectronicLabelVo> generate(LabelGenerateDto dto);
+
+    /**
+     * 涓虹墿鍝佸垎閰嶇殑搴撲綅纭繚瀛樺湪鍞竴RFID鐢靛瓙鏍囩銆?     *
+     * @param itemId 鐗╁搧ID
+     * @param binIds 搴撲綅ID鍒楄〃
+     */
+    void ensureRfidLabelsForItemBins(Long itemId, List<Long> binIds);
 
     /**
      * 标签绑定物品
@@ -63,6 +83,23 @@ public interface ElectronicLabelService {
      * @return 更新后的标签VO
      */
     ElectronicLabelVo updateStatus(Long id, LabelStatusDto dto);
+
+    /**
+     * 鍑哄簱瀹℃壒閫氳繃鍚庢爣璁版爣绛句负姝ｅ湪浣跨敤銆?     *
+     * @param labelId            鏍囩ID(鍙€?
+     * @param binId              搴撲綅ID(鍏滃簳)
+     * @param borrowerName       棰嗙敤浜?
+     * @param expectedReturnTime 棰勮褰掕繕鏃堕棿
+     */
+    void markBorrowed(Long labelId, Long binId, String borrowerName, LocalDateTime expectedReturnTime);
+
+    /**
+     * 褰掕繕瀹℃壒閫氳繃鍚庢爣璁版爣绛句负宸插綊杩樸€?     *
+     * @param labelId      鏍囩ID(鍙€?
+     * @param binId        搴撲綅ID(鍏滃簳)
+     * @param returnerName 褰掕繕浜?
+     */
+    void markReturned(Long labelId, Long binId, String returnerName);
 
     /**
      * 批量打印标签(更新打印状态为已打印)

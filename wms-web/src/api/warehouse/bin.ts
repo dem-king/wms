@@ -27,5 +27,10 @@ export function deleteBin(id: EntityId) {
 }
 
 export function batchCreateBin(data: WmsBinBatchDto) {
-  return post<WmsBinVo[]>('/warehouse/bins/batch', data)
+  const rows = data.endRow - data.startRow + 1
+  const cols = data.endCol - data.startCol + 1
+
+  return post<WmsBinVo[]>(`/warehouse/bins/cabinet/${data.cabinetId}/batch`, undefined, {
+    params: { rows, cols },
+  })
 }

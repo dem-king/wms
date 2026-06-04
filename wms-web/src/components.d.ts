@@ -72,8 +72,10 @@ declare module 'vue' {
     QrBarCode: typeof import('./components/QrBarCode/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SliderPuzzle: typeof import('./components/SliderPuzzle/index.vue')['default']
     TableActionGroup: typeof import('./components/TableActionGroup/TableActionGroup.vue')['default']
+    Verifition: typeof import('./components/verifition/index.vue')['default']
+    VerifyPoints: typeof import('./components/verifition/Verify/VerifyPoints.vue')['default']
+    VerifySlide: typeof import('./components/verifition/Verify/VerifySlide.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

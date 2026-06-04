@@ -25,6 +25,7 @@ import com.wms.item.mapper.WmsItemTagMapper;
 import com.wms.item.mapper.WmsStockMapper;
 import com.wms.item.mapper.WmsSubCategoryMapper;
 import com.wms.item.mapper.WmsTagMapper;
+import com.wms.item.service.ElectronicLabelService;
 import com.wms.warehouse.domain.entity.WmsArea;
 import com.wms.warehouse.domain.entity.WmsBin;
 import com.wms.warehouse.domain.entity.WmsCabinet;
@@ -83,6 +84,8 @@ class ItemServiceImplLocationTest {
     private WmsAreaMapper wmsAreaMapper;
     @Mock
     private WmsWarehouseMapper wmsWarehouseMapper;
+    @Mock
+    private ElectronicLabelService electronicLabelService;
 
     private ItemServiceImpl itemService;
 
@@ -91,7 +94,7 @@ class ItemServiceImplLocationTest {
         itemService = new ItemServiceImpl(wmsItemMapper, wmsItemTagMapper, wmsItemImageMapper,
                 wmsStockMapper, wmsCategoryMapper, wmsSubCategoryMapper, wmsTagMapper, null,
                 new ItemConverter(), wmsItemBinMapper, wmsBinMapper, wmsCabinetMapper,
-                wmsAreaMapper, wmsWarehouseMapper);
+                wmsAreaMapper, wmsWarehouseMapper, electronicLabelService);
     }
 
     @Test
@@ -119,6 +122,7 @@ class ItemServiceImplLocationTest {
         ArgumentCaptor<WmsItemBin> captor = ArgumentCaptor.forClass(WmsItemBin.class);
         verify(wmsItemBinMapper, org.mockito.Mockito.times(2)).insert(captor.capture());
         assertEquals(List.of(101L, 102L), captor.getAllValues().stream().map(WmsItemBin::getBinId).toList());
+        verify(electronicLabelService).ensureRfidLabelsForItemBins(10L, List.of(101L, 102L));
     }
 
     @Test
@@ -267,6 +271,7 @@ class ItemServiceImplLocationTest {
         verify(wmsItemBinMapper).insert(captor.capture());
         assertEquals(103L, captor.getValue().getBinId());
         assertEquals(List.of(102L, 103L), result.getBinIds());
+        verify(electronicLabelService).ensureRfidLabelsForItemBins(10L, List.of(102L, 103L));
     }
 
     @Test
@@ -296,6 +301,7 @@ class ItemServiceImplLocationTest {
         assertEquals(102L, captor.getValue().getBinId());
         assertEquals(2, captor.getValue().getSortOrder());
         assertEquals(List.of(101L, 102L), result.getBinIds());
+        verify(electronicLabelService).ensureRfidLabelsForItemBins(10L, List.of(101L, 102L));
     }
 
     @Test

@@ -65,6 +65,7 @@ public class ReturnOrderConverter {
         ReturnOrderVo.ReturnDetailVo vo = new ReturnOrderVo.ReturnDetailVo();
         vo.setId(detail.getId());
         vo.setItemId(detail.getItemId());
+        vo.setLabelId(detail.getLabelId());
         vo.setBinId(detail.getBinId());
         vo.setQuantity(detail.getQuantity());
         vo.setConditionStatus(detail.getConditionStatus());

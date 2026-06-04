@@ -189,25 +189,11 @@ export interface LoginDto {
   /** 用户名 */
   username: string
   /** 密码 */
-  password: string
-  /** 滑块拼图 Token（来自 getSliderCaptcha 响应） */
-  captchaToken: string
-  /** 滑块拖动轨迹 JSON 字符串，由 SliderPuzzle 组件采集 */
-  captchaTrack: string
-}
-
-/** 滑块拼图验证码响应 */
-export interface CaptchaImageResp {
-  /** 滑块拼图 Token，登录时需回传 */
-  captchaToken: string
-  /** 背景图 Base64 (data:image/png;base64,...) */
-  backgroundImage: string
-  /** 拼图块 Base64 */
-  blockImage: string
-  /** 拼图缺口 Y 坐标 */
-  blockY: number
-  /** Token 过期秒数 */
-  expiresIn: number
+  encryptedPassword: string
+  /** 验证码校验串（由 verifition 组件生成的 captchaVerification） */
+  code: string
+  /** 验证码类型（如 'blockPuzzle'、'clickWord'） */
+  randomStr: string
 }
 
 /** 登录响应 */
@@ -218,6 +204,14 @@ export interface LoginResultVo {
   refreshToken: string
   /** accessToken过期时间（秒） */
   expiresIn: number
+}
+
+/** RSA 公钥响应 */
+export interface RsaKeyPairResp {
+  /** RSA 公钥 */
+  publicKey: string
+  /** RSA 密钥标识 */
+  keyId: string
 }
 
 /** Token刷新请求 */

@@ -67,6 +67,10 @@ public class OutboundOrderDto {
         @Schema(description = "物品ID")
         private Long itemId;
 
+        /** 电子标签ID */
+        @Schema(description = "电子标签ID")
+        private Long labelId;
+
         /** 数量 */
         @NotNull(message = "数量不能为空")
         @Schema(description = "数量")

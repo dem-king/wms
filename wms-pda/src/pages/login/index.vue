@@ -1,245 +1,224 @@
-<!--
-  WMS-PDA 登录页面
-  服务器地址配置 + 用户名密码登录 + URL格式校验 + 网络异常提示
-  navigationStyle:custom 自定义导航栏
--->
 <template>
   <view class="login-page">
-    <!-- Logo与标题 -->
     <view class="login-page__header">
-      <text class="login-page__logo">📦</text>
+      <text class="login-page__logo">WMS</text>
       <text class="login-page__title">WMS-PDA</text>
       <text class="login-page__subtitle">备品备件库房管理</text>
     </view>
 
-    <!-- 登录表单 -->
     <view class="login-page__form">
-      <!-- 服务器地址 -->
       <view class="login-page__field">
         <text class="login-page__label">服务器地址</text>
         <input
-          class="login-page__input"
           v-model="serverUrlInput"
+          class="login-page__input"
           placeholder="http://192.168.1.100:8080"
-          :disabled="loading"
+          :disabled="loading || captchaSubmitting"
         />
       </view>
 
-      <!-- 用户名 -->
       <view class="login-page__field">
         <text class="login-page__label">用户名</text>
         <input
-          class="login-page__input"
           v-model="username"
+          class="login-page__input"
           placeholder="请输入用户名"
-          :disabled="loading"
+          :disabled="loading || captchaSubmitting"
         />
       </view>
 
-      <!-- 密码 -->
       <view class="login-page__field">
         <text class="login-page__label">密码</text>
         <input
-          class="login-page__input"
           v-model="password"
+          class="login-page__input"
           placeholder="请输入密码"
-          password
-          :disabled="loading"
+          type="password"
+          :disabled="loading || captchaSubmitting"
         />
       </view>
 
-      <!-- 滑块拼图验证码 -->
-      <view class="login-page__field login-page__field--captcha">
-        <text class="login-page__label">安全验证</text>
-        <SliderPuzzle
-          v-if="sliderData"
-          :data="sliderData"
-          :status="sliderStatus"
-          @change="onSliderChange"
-          @reset="onSliderReset"
-        />
-        <view v-else class="login-page__captcha-loading">正在加载验证码...</view>
-      </view>
-
-      <!-- 登录按钮 -->
       <view
         class="login-page__btn"
-        :class="{ 'login-page__btn--disabled': loading }"
+        :class="{ 'login-page__btn--disabled': loading || captchaSubmitting }"
         @click="handleLogin"
       >
-        <text class="login-page__btn-text">{{ loading ? '登录中...' : '登 录' }}</text>
+        <text class="login-page__btn-text">{{ loading ? '验证准备中...' : '登录' }}</text>
       </view>
     </view>
 
-    <!-- 底部版本信息 -->
     <view class="login-page__footer">
       <text class="login-page__version">v1.0.0</text>
     </view>
+
+    <Verify
+      ref="verifyRef"
+      :captcha-type="captchaType"
+      mode="pop"
+      @success="verifySuccess"
+      @error="verifyError"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-/**
- * 登录页面
- * 服务器地址配置 + 用户名密码登录
- * URL格式校验、网络异常提示、登录成功跳转首页
- */
 import { ref } from 'vue'
+import { getRsaPublicKey } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { useAppStore } from '@/store/app'
+import { rsaEncrypt } from '@/utils/crypto'
 import { isValidServerUrl } from '@/utils/validate'
-import { getSliderCaptcha } from '@/api/auth'
-import SliderPuzzle from '@/components/SliderPuzzle/index.vue'
-import type { CaptchaImageResp } from '@/utils/constants'
+import Verify from '@/components/verifition/index.vue'
 
-/** authStore实例 */
 const authStore = useAuthStore()
-/** appStore实例 */
 const appStore = useAppStore()
 
-/** 服务器地址输入值 */
 const serverUrlInput = ref<string>(authStore.serverUrl || '')
-/** 用户名 */
 const username = ref<string>('')
-/** 密码 */
 const password = ref<string>('')
-/** 登录中状态 */
 const loading = ref<boolean>(false)
-/** 滑块拼图数据 */
-const sliderData = ref<CaptchaImageResp | null>(null)
-/** 滑块状态 */
-const sliderStatus = ref<'idle' | 'success' | 'failed'>('idle')
-/** 滑块 Token */
-const captchaToken = ref<string>('')
-/** 滑块轨迹 */
-const captchaTrack = ref<string>('')
+const captchaSubmitting = ref<boolean>(false)
+const verifyRef = ref<{ show: () => void; refresh: () => void }>()
+const captchaType = ref<string>('blockPuzzle')
+const rsaPublicKey = ref<string>('')
+
+function showToast(title: string, duration = 2000): void {
+  uni.showToast({ title, icon: 'none', duration })
+}
+
+async function prepareRsaKey(): Promise<void> {
+  const keyPair = await getRsaPublicKey()
+  rsaPublicKey.value = keyPair.publicKey
+}
 
 /**
- * 刷新滑块拼图验证码
- * 失败时降级到 toast 提示, 不阻塞登录页其它流程
- */
-async function refreshSlider(): Promise<void> {
-  sliderStatus.value = 'idle'
-  captchaToken.value = ''
-  captchaTrack.value = ''
-  try {
-    const res = await getSliderCaptcha()
-    sliderData.value = res.data
-  } catch {
-    uni.showToast({ title: '验证码加载失败, 请重试', icon: 'none' })
-  }
-}
-
-function onSliderChange(payload: { token: string; trackJson: string }) {
-  captchaToken.value = payload.token
-  captchaTrack.value = payload.trackJson
-}
-
-function onSliderReset() {
-  // 用户只点了一下没拖动, 不需要做任何事
-}
-
-/** 进入页面时主动拉一次滑块拼图 */
-onShow(() => {
-  refreshSlider()
-})
-
-/**
- * 处理登录操作
- * 校验服务器地址格式 → 检查网络 → 调用登录接口 → 跳转首页
+ * 登录按钮点击后先获取 RSA 公钥，再弹出行为验证码。
  */
 async function handleLogin(): Promise<void> {
-  // 防止重复提交
-  if (loading.value) {
+  if (loading.value || captchaSubmitting.value) {
     return
   }
 
-  // 校验服务器地址格式
   const trimmedUrl = serverUrlInput.value.trim()
   if (!trimmedUrl) {
-    uni.showToast({ title: '请输入服务器地址', icon: 'none' })
+    showToast('请输入服务器地址')
     return
   }
   if (!isValidServerUrl(trimmedUrl)) {
-    uni.showToast({ title: '服务器地址格式错误', icon: 'none', duration: 2000 })
+    showToast('服务器地址格式错误')
     return
   }
-
-  // 校验用户名密码非空
   if (!username.value.trim()) {
-    uni.showToast({ title: '请输入用户名', icon: 'none' })
+    showToast('请输入用户名')
     return
   }
   if (!password.value.trim()) {
-    uni.showToast({ title: '请输入密码', icon: 'none' })
+    showToast('请输入密码')
     return
   }
-
-  // 检查网络连接
   if (!appStore.isOnline) {
-    uni.showToast({ title: '网络不可用，请检查网络连接', icon: 'none', duration: 2000 })
+    showToast('网络不可用，请检查网络连接')
     return
   }
-
-  // 保存服务器地址
-  authStore.setServerUrl(trimmedUrl)
 
   loading.value = true
   try {
-    // 调用登录接口
-    if (!captchaToken.value || !captchaTrack.value) {
-      uni.showToast({ title: '请完成滑块验证', icon: 'none' })
-      loading.value = false
-      return
-    }
-    await authStore.login({
-      username: username.value.trim(),
-      password: password.value,
-      captchaToken: captchaToken.value,
-      captchaTrack: captchaTrack.value,
-    })
-
-    // 登录成功，跳转首页
-    uni.reLaunch({
-      url: '/pages/home/index'
-    })
+    authStore.setServerUrl(trimmedUrl)
+    await prepareRsaKey()
+    verifyRef.value?.show()
   } catch (error: unknown) {
-    // 登录失败，显示错误信息
-    const errMsg = error instanceof Error ? error.message : '登录失败'
-    if (errMsg.includes('CAPTCHA_MISMATCH') || errMsg.includes('验证未通过')) {
-      sliderStatus.value = 'failed'
-      setTimeout(() => refreshSlider(), 600)
-      uni.showToast({ title: '验证未通过, 请重试', icon: 'none' })
-    } else if (errMsg.includes('CAPTCHA_INVALID') || errMsg.includes('验证码无效')) {
-      refreshSlider()
-      uni.showToast({ title: '验证码已过期, 请重试', icon: 'none' })
-    } else if (errMsg.includes('CAPTCHA_REQUIRED') || errMsg.includes('请完成滑块验证')) {
-      refreshSlider()
-      uni.showToast({ title: '请完成滑块验证', icon: 'none' })
-    } else if (errMsg.includes('LOCKED') || errMsg.includes('锁定')) {
-      refreshSlider()
-      uni.showToast({ title: '账号已被锁定, 请稍后重试', icon: 'none' })
-    } else if (errMsg.includes('CREDENTIAL_INVALID') || errMsg.includes('用户名或密码错误')) {
-      refreshSlider()
-      uni.showToast({ title: '用户名或密码错误', icon: 'none' })
-    } else if (errMsg.includes('network') || errMsg.includes('connect') || errMsg.includes('网络')) {
-      uni.showToast({ title: '无法连接服务器，请检查服务器地址', icon: 'none', duration: 2000 })
-    } else {
-      uni.showToast({ title: errMsg || '登录失败', icon: 'none', duration: 2000 })
-    }
+    const errMsg = error instanceof Error ? error.message : ''
+    handleLoginError(errMsg || '安全认证服务不可用，请稍后重试')
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * 验证码校验成功后，使用 RSA 加密密码并提交登录。
+ */
+async function verifySuccess(params: { captchaVerification: string }): Promise<void> {
+  if (captchaSubmitting.value) {
+    return
+  }
+
+  captchaSubmitting.value = true
+  try {
+    if (!rsaPublicKey.value) {
+      await prepareRsaKey()
+    }
+    const encryptedPassword = rsaEncrypt(password.value, rsaPublicKey.value)
+    await authStore.login({
+      username: username.value.trim(),
+      encryptedPassword,
+      code: params.captchaVerification,
+      randomStr: captchaType.value,
+    })
+    uni.reLaunch({ url: '/pages/home/index' })
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : '登录失败'
+    handleLoginError(errMsg)
+  } finally {
+    captchaSubmitting.value = false
+  }
+}
+
+function verifyError(): void {
+  // verifition 组件内部会刷新验证码，这里只保留事件入口。
+}
+
+function handleLoginError(errMsg: string): void {
+  if (isCaptchaError(errMsg)) {
+    showToast(captchaErrorMessage(errMsg))
+    verifyRef.value?.refresh()
+    return
+  }
+
+  if (errMsg.includes('CREDENTIAL_INVALID') || errMsg.includes('用户名或密码错误')) {
+    password.value = ''
+    showToast('用户名或密码错误')
+  } else if (errMsg.includes('LOCKED') || errMsg.includes('锁定')) {
+    showToast('账号已被锁定，请稍后重试')
+  } else if (errMsg.includes('DISABLED') || errMsg.includes('禁用')) {
+    showToast('账号已被禁用')
+  } else if (errMsg.includes('DECRYPT') || errMsg.includes('解密')) {
+    rsaPublicKey.value = ''
+    showToast('认证信息异常，请重新登录')
+  } else if (errMsg.includes('network') || errMsg.includes('connect') || errMsg.includes('网络')) {
+    showToast('无法连接服务器，请检查服务器地址')
+  } else {
+    showToast(errMsg || '登录失败')
+  }
+}
+
+function isCaptchaError(errMsg: string): boolean {
+  return errMsg.includes('CAPTCHA_MISMATCH')
+    || errMsg.includes('CAPTCHA_INVALID')
+    || errMsg.includes('CAPTCHA_EXPIRED')
+    || errMsg.includes('CAPTCHA_REQUIRED')
+    || errMsg.includes('验证未通过')
+    || errMsg.includes('验证码无效')
+    || errMsg.includes('请完成滑块验证')
+}
+
+function captchaErrorMessage(errMsg: string): string {
+  if (errMsg.includes('CAPTCHA_MISMATCH') || errMsg.includes('验证未通过')) {
+    return '验证未通过，请重试'
+  }
+  if (errMsg.includes('CAPTCHA_REQUIRED') || errMsg.includes('请完成滑块验证')) {
+    return '请完成滑块验证'
+  }
+  return '验证码已过期，请重试'
 }
 </script>
 
 <style lang="scss" scoped>
 .login-page {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   padding: 0 $spacing-xl;
   background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 100%);
 
@@ -251,9 +230,18 @@ async function handleLogin(): Promise<void> {
   }
 
   &__logo {
-    font-size: 120rpx;
-    line-height: 1;
+    width: 120rpx;
+    height: 120rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: $spacing-md;
+    border-radius: 28rpx;
+    color: $color-primary;
+    background: $bg-color-card;
+    font-size: 36rpx;
+    font-weight: 800;
+    letter-spacing: 2rpx;
   }
 
   &__title {
@@ -266,7 +254,7 @@ async function handleLogin(): Promise<void> {
 
   &__subtitle {
     font-size: $font-size-md;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.82);
   }
 
   &__form {
@@ -279,21 +267,6 @@ async function handleLogin(): Promise<void> {
 
   &__field {
     margin-bottom: $spacing-lg;
-
-    &--captcha {
-      margin-top: $spacing-md;
-    }
-  }
-
-  &__captcha-loading {
-    height: 130px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: $bg-color-page;
-    border-radius: $border-radius-md;
-    color: $text-color-secondary;
-    font-size: $font-size-md;
   }
 
   &__label {
@@ -306,45 +279,41 @@ async function handleLogin(): Promise<void> {
 
   &__input {
     width: 100%;
-    height: 80rpx;
+    height: 88rpx;
     font-size: $font-size-lg;
     color: $text-color-primary;
     border: 2rpx solid $border-color-base;
     border-radius: $border-radius-md;
     padding: 0 $spacing-sm;
     background-color: $bg-color-page;
-
-    &:focus {
-      border-color: $color-primary;
-    }
+    box-sizing: border-box;
   }
 
   &__btn {
     width: 100%;
-    height: 88rpx;
+    height: 92rpx;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: $color-primary;
     border-radius: $border-radius-md;
     margin-top: $spacing-md;
-    cursor: pointer;
+  }
 
-    &--disabled {
-      opacity: 0.6;
-    }
+  &__btn--disabled {
+    opacity: 0.6;
   }
 
   &__btn-text {
     font-size: $font-size-lg;
     color: $text-color-inverse;
     font-weight: 600;
-    letter-spacing: 8rpx;
+    letter-spacing: 6rpx;
   }
 
   &__footer {
     position: fixed;
-    bottom: $spacing-lg;
+    bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
     left: 0;
     right: 0;
     display: flex;
@@ -353,7 +322,7 @@ async function handleLogin(): Promise<void> {
 
   &__version {
     font-size: $font-size-sm;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.55);
   }
 }
 </style>

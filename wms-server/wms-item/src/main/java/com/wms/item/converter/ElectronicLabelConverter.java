@@ -29,6 +29,7 @@ public class ElectronicLabelConverter {
         vo.setLabelNo(entity.getLabelNo());
         vo.setLabelType(entity.getLabelType());
         vo.setItemId(entity.getItemId());
+        vo.setBinId(entity.getBinId());
         vo.setBatchNo(entity.getBatchNo());
         vo.setRfidCode(entity.getRfidCode());
         vo.setQrContent(entity.getQrContent());
@@ -37,7 +38,10 @@ public class ElectronicLabelConverter {
         vo.setBindType(entity.getBindType());
         vo.setPrintStatus(entity.getPrintStatus());
         vo.setBorrowTime(entity.getBorrowTime());
+        vo.setBorrowerName(entity.getBorrowerName());
         vo.setExpectedReturn(entity.getExpectedReturn());
+        vo.setReturnerName(entity.getReturnerName());
+        vo.setReturnTime(entity.getReturnTime());
         vo.setCreateTime(entity.getCreateTime());
         return vo;
     }

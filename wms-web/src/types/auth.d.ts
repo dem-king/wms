@@ -4,10 +4,10 @@ export type { EntityId } from './common'
 export interface LoginReq {
   username: string
   encryptedPassword: string
-  /** 滑块拼图 Token（来自 getSliderCaptcha 响应） */
-  captchaToken: string
-  /** 滑块拖动轨迹 JSON 字符串，由 SliderPuzzle 组件采集 */
-  captchaTrack: string
+  /** 验证码二次校验串（captchaVerification） */
+  code: string
+  /** 验证码类型（blockPuzzle/clickWord） */
+  randomStr: string
 }
 
 export interface LoginResp {
@@ -58,47 +58,20 @@ export interface RsaKeyPairResp {
   keyId: string
 }
 
-export interface CaptchaImageResp {
-  /** 滑块拼图 Token，登录时需回传 */
-  captchaToken: string
-  /** 背景图 Base64 (data:image/png;base64,...) */
-  backgroundImage: string
-  /** 拼图块 Base64 */
-  blockImage: string
-  /** 拼图缺口 Y 坐标（用于前端将拼图块拖到正确位置） */
-  blockY: number
-  /** Token 过期秒数 */
-  expiresIn: number
+/** anji-plus 验证码请求参数 */
+export interface CaptchaVO {
+  captchaType?: string
+  pointJson?: string
+  token?: string
+  captchaVerification?: string
 }
 
-/** 单个轨迹点 */
-export interface SliderTrackPoint {
-  /** 相对拖动起点的 X 偏移 (px) */
-  x: number
-  /** 相对拖动起点的 Y 偏移 (px) */
-  y: number
-  /** 时间戳偏移 (ms，相对于拖动开始) */
-  t: number
-  /** 动作类型 */
-  type: 'MOVE' | 'DOWN' | 'UP'
-}
-
-/** 完整轨迹数据（序列化为 JSON 字符串后回传后端） */
-export interface SliderTrackPayload {
-  /** 验证码 Token */
-  id: string
-  /** 验证码类型：固定 SLIDER */
-  type: 'SLIDER'
-  /** 拖动轨迹点列表 */
-  data: SliderTrackPoint[]
-  /** 是否已结束（最后一次 UP） */
-  stop: boolean
-}
-
-/** 旧图形码响应（保留以兼容历史 API，但前端不再使用） */
-export interface CaptchaResp {
-  captchaKey: string
-  captchaImage: string
+/** anji-plus 验证码响应结构 */
+export interface ResponseModel {
+  repCode: string
+  repData: any
+  repMsg: string
+  success: boolean
 }
 
 export interface RefreshTokenReq {

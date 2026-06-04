@@ -29,6 +29,10 @@ public class ElectronicLabelVo {
     @Schema(description = "绑定物品ID")
     private Long itemId;
 
+    /** 绑定库位ID */
+    @Schema(description = "绑定库位ID")
+    private Long binId;
+
     /** 物品名称 */
     @Schema(description = "物品名称")
     private String itemName;
@@ -36,6 +40,26 @@ public class ElectronicLabelVo {
     /** 物品编码 */
     @Schema(description = "物品编码")
     private String itemCode;
+
+    /** 主类目名称 */
+    @Schema(description = "主类目名称")
+    private String categoryName;
+
+    /** 细分类目名称 */
+    @Schema(description = "细分类目名称")
+    private String subCategoryName;
+
+    /** 库位编码 */
+    @Schema(description = "库位编码")
+    private String binCode;
+
+    /** 存放位置 */
+    @Schema(description = "存放位置")
+    private String locationText;
+
+    /** 库存数量 */
+    @Schema(description = "库存数量")
+    private Integer stockQuantity;
 
     /** 批次号 */
     @Schema(description = "批次号")
@@ -69,9 +93,21 @@ public class ElectronicLabelVo {
     @Schema(description = "借出时间")
     private LocalDateTime borrowTime;
 
+    /** 领用人姓名 */
+    @Schema(description = "领用人姓名")
+    private String borrowerName;
+
     /** 预计归还时间 */
     @Schema(description = "预计归还时间")
     private LocalDateTime expectedReturn;
+
+    /** 归还人姓名 */
+    @Schema(description = "归还人姓名")
+    private String returnerName;
+
+    /** 归还时间 */
+    @Schema(description = "归还时间")
+    private LocalDateTime returnTime;
 
     /** 创建时间 */
     @Schema(description = "创建时间")

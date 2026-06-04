@@ -183,6 +183,7 @@ public class OutboundServiceImpl implements OutboundService {
             WmsOutboundDetail detail = new WmsOutboundDetail();
             detail.setOrderId(order.getId());
             detail.setItemId(detailDto.getItemId());
+            detail.setLabelId(detailDto.getLabelId());
             detail.setQuantity(detailDto.getQuantity());
             detail.setBinId(detailDto.getBinId());
             detailList.add(detail);
@@ -269,6 +270,7 @@ public class OutboundServiceImpl implements OutboundService {
             WmsOutboundDetail detail = new WmsOutboundDetail();
             detail.setOrderId(id);
             detail.setItemId(detailDto.getItemId());
+            detail.setLabelId(detailDto.getLabelId());
             detail.setQuantity(detailDto.getQuantity());
             detail.setBinId(detailDto.getBinId());
             newDetailList.add(detail);

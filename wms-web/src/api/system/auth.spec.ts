@@ -8,7 +8,7 @@ const requestMocks = vi.hoisted(() => ({
 
 vi.mock('../request', () => requestMocks)
 
-import { getProfile, getSliderCaptcha, updateProfile, uploadAvatar } from './auth'
+import { getProfile, updateProfile, uploadAvatar } from './auth'
 
 describe('auth api', () => {
   it('requests the current user profile endpoint', () => {
@@ -17,11 +17,6 @@ describe('auth api', () => {
     expect(requestMocks.get).toHaveBeenCalledWith('/auth/profile')
   })
 
-  it('fetches the slider puzzle captcha from the new endpoint', () => {
-    getSliderCaptcha()
-
-    expect(requestMocks.get).toHaveBeenCalledWith('/auth/captcha/slider')
-  })
 
   it('updates the current user profile', () => {
     const payload = {

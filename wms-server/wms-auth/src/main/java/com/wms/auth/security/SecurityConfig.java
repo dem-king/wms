@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
-                                "/auth/captcha/**",
+                                "/auth/code/**",
                                 "/auth/crypto/**",
                                 "/auth/token/refresh",
                                 "/auth/profile/avatar/content/**",

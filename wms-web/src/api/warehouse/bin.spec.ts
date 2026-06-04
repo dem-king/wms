@@ -9,7 +9,7 @@ const requestMocks = vi.hoisted(() => ({
 
 vi.mock('../request', () => requestMocks)
 
-import { getBinList, getBinListByWarehouse, getBinPage } from './bin'
+import { batchCreateBin, getBinList, getBinListByWarehouse, getBinPage } from './bin'
 
 describe('bin api', () => {
   it('requests the cabinet bin list endpoint', () => {
@@ -31,6 +31,23 @@ describe('bin api', () => {
       cabinetId: '1',
       page: 1,
       size: 20,
+    })
+  })
+
+  it('requests the batch create endpoint with cabinet path and rows cols params', () => {
+    batchCreateBin({
+      cabinetId: '8',
+      startRow: 2,
+      endRow: 4,
+      startCol: 3,
+      endCol: 5,
+    })
+
+    expect(requestMocks.post).toHaveBeenCalledWith('/warehouse/bins/cabinet/8/batch', undefined, {
+      params: {
+        rows: 3,
+        cols: 3,
+      },
     })
   })
 })

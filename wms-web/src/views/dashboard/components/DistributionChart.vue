@@ -17,16 +17,27 @@ const props = defineProps<{
   data: { name: string; value: number }[]
 }>()
 
+/** 检测当前是否为暗黑模式 */
+const isDark = computed(() => document.documentElement.classList.contains('dark'))
+
+const textColor = computed(() => isDark.value ? '#e2e8f0' : '#333')
+/** 饼图扇区边框色：暗黑模式下用深色，亮色模式用白色 */
+const pieBorderColor = computed(() => isDark.value ? '#1e293b' : '#fff')
+
 const chartOption = computed(() => {
   return {
     tooltip: {
       trigger: 'item',
-      formatter: '{b}: {c} ({d}%)'
+      formatter: '{b}: {c} ({d}%)',
+      backgroundColor: isDark.value ? '#1e293b' : '#fff',
+      borderColor: isDark.value ? 'rgba(255,255,255,0.1)' : '#eee',
+      textStyle: { color: textColor.value }
     },
     legend: {
       orient: 'vertical',
       right: 10,
-      top: 'center'
+      top: 'center',
+      textStyle: { color: textColor.value }
     },
     series: [
       {
@@ -37,7 +48,7 @@ const chartOption = computed(() => {
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 4,
-          borderColor: '#fff',
+          borderColor: pieBorderColor.value,
           borderWidth: 2
         },
         label: {
@@ -48,7 +59,8 @@ const chartOption = computed(() => {
           label: {
             show: true,
             fontSize: '14',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            color: textColor.value
           }
         },
         labelLine: {
@@ -66,12 +78,12 @@ const chartOption = computed(() => {
   height: 100%;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 6%);
   transition: transform 0.24s ease, box-shadow 0.24s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+    box-shadow: 0 18px 40px hsl(var(--foreground) / 10%);
   }
 
   :deep(.el-card__header) {

@@ -2,6 +2,9 @@ package com.wms.business.listener;
 
 import com.wms.business.domain.entity.WmsInboundDetail;
 import com.wms.business.domain.entity.WmsInboundOrder;
+import com.wms.business.domain.entity.WmsOutboundDetail;
+import com.wms.business.domain.entity.WmsOutboundOrder;
+import com.wms.business.domain.entity.WmsReturnDetail;
 import com.wms.business.domain.entity.WmsReturnOrder;
 import com.wms.business.event.StockSyncEvent;
 import com.wms.business.mapper.WmsInboundDetailMapper;
@@ -19,6 +22,7 @@ import com.wms.common.enums.BizTypeEnum;
 import com.wms.common.enums.OrderStatusEnum;
 import com.wms.common.event.ApprovalResultEvent;
 import com.wms.common.exception.BizException;
+import com.wms.item.service.ElectronicLabelService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +71,8 @@ class ApprovalResultEventListenerTest {
     private WmsReturnDetailMapper wmsReturnDetailMapper;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private ElectronicLabelService electronicLabelService;
 
     @Test
     @DisplayName("入库单审批通过后应按明细库位发布入库库存事件")
@@ -133,6 +139,55 @@ class ApprovalResultEventListenerTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
+    @Test
+    @DisplayName("outbound approval should mark related bin label as in use")
+    void shouldMarkLabelInUseWhenOutboundApproved() {
+        ApprovalResultEventListener listener = buildListener();
+        WmsOutboundOrder order = new WmsOutboundOrder();
+        order.setId(9101L);
+        order.setWarehouseId(10L);
+        order.setReceiver("张三");
+        order.setExpectedReturnDate(java.time.LocalDateTime.of(2026, 6, 10, 9, 0));
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
+        WmsOutboundDetail detail = new WmsOutboundDetail();
+        detail.setItemId(1001L);
+        detail.setBinId(2001L);
+        detail.setLabelId(3001L);
+        detail.setQuantity(1);
+        when(wmsOutboundOrderMapper.selectById(9101L)).thenReturn(order);
+        when(wmsOutboundDetailMapper.selectList(any())).thenReturn(List.of(detail));
+
+        listener.handleApprovalResult(new ApprovalResultEvent(9101L, BizTypeEnum.OUTBOUND.getCode(), true));
+
+        verify(electronicLabelService).markBorrowed(3001L, 2001L, "张三", order.getExpectedReturnDate());
+    }
+
+    @Test
+    @DisplayName("return approval should mark related bin label as returned")
+    void shouldMarkLabelReturnedWhenReturnApproved() {
+        ApprovalResultEventListener listener = buildListener();
+        WmsReturnOrder order = new WmsReturnOrder();
+        order.setId(9201L);
+        order.setOutboundOrderId(9101L);
+        order.setReceiver("李四");
+        order.setStatus(OrderStatusEnum.PENDING.getCode());
+        WmsOutboundOrder outboundOrder = new WmsOutboundOrder();
+        outboundOrder.setId(9101L);
+        outboundOrder.setWarehouseId(10L);
+        WmsReturnDetail detail = new WmsReturnDetail();
+        detail.setItemId(1001L);
+        detail.setBinId(2001L);
+        detail.setLabelId(3001L);
+        detail.setQuantity(1);
+        when(wmsReturnOrderMapper.selectById(9201L)).thenReturn(order);
+        when(wmsOutboundOrderMapper.selectById(9101L)).thenReturn(outboundOrder);
+        when(wmsReturnDetailMapper.selectList(any())).thenReturn(List.of(detail));
+
+        listener.handleApprovalResult(new ApprovalResultEvent(9201L, BizTypeEnum.RETURN.getCode(), true));
+
+        verify(electronicLabelService).markReturned(3001L, 2001L, "李四");
+    }
+
     private ApprovalResultEventListener buildListener() {
         return new ApprovalResultEventListener(
                 wmsInboundOrderMapper,
@@ -145,6 +200,7 @@ class ApprovalResultEventListenerTest {
                 wmsTransferDetailMapper,
                 wmsReturnOrderMapper,
                 wmsReturnDetailMapper,
-                eventPublisher);
+                eventPublisher,
+                electronicLabelService);
     }
 }
